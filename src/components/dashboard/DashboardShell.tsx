@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from "@tanstack/react-router";
-import { BookMarked, LogOut, LayoutGrid, Search, Gamepad2 } from "lucide-react";
+import { BookMarked, LogOut, LayoutGrid, Search, Gamepad2, Home } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { FloatingChat } from "@/components/chat/FloatingChat";
 import { CommandPalette } from "@/components/dashboard/CommandPalette";
@@ -35,7 +35,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-paper text-ink">
       <header className="sticky top-0 z-40 bg-paper/75 backdrop-blur-xl border-b border-border">
         <div className="container mx-auto px-5 lg:px-8 max-w-[1240px] h-14 flex items-center justify-between gap-4">
-          <Link to="/dashboard" className="group flex items-center gap-2 flex-shrink-0">
+          <Link to="/" className="group flex items-center gap-2 flex-shrink-0" title="Ir a la página principal">
             <div className="relative w-7 h-7 inline-flex items-center justify-center bg-ink rounded-md">
               <BookMarked className="w-3.5 h-3.5 text-paper" strokeWidth={2.25} />
               <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-orange rounded-full shadow-[0_0_8px_var(--orange)]" />
@@ -50,6 +50,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
           {/* Nav links compactos */}
           <nav className="hidden md:flex items-center gap-0.5 text-[13px]">
+            <NavLink to="/" icon={<Home className="w-3.5 h-3.5" strokeWidth={2} />}>
+              Inicio
+            </NavLink>
             <NavLink to="/dashboard" icon={<LayoutGrid className="w-3.5 h-3.5" strokeWidth={2} />}>
               Cuadernos
             </NavLink>
@@ -121,7 +124,7 @@ function NavLink({
   children,
   active,
 }: {
-  to: "/dashboard" | "/play";
+  to: "/" | "/dashboard" | "/play";
   icon: ReactNode;
   children: ReactNode;
   active?: boolean;

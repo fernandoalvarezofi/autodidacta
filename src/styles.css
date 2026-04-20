@@ -89,7 +89,7 @@
   --secondary-foreground: oklch(20% 0.012 60);
 
   --muted: oklch(93% 0.015 75);
-  --muted-foreground: oklch(42% 0.012 65);
+  --muted-foreground: oklch(32% 0.012 65);
 
   --accent: oklch(43% 0.165 18);
   --accent-foreground: oklch(97.5% 0.012 80);
@@ -119,6 +119,22 @@
 @layer base {
   * {
     border-color: var(--color-border);
+  }
+
+  /* Subir contraste global: cuando se use text-ink con opacidad baja
+     (40/45/50/55/60) lo elevamos para que sea legible sobre el papel crema.
+     Esto evita el look "lavado" sin tener que tocar cada componente. */
+  [class*="text-ink/40"],
+  [class*="text-ink/45"] {
+    color: color-mix(in oklab, var(--ink) 68%, transparent) !important;
+  }
+  [class*="text-ink/50"],
+  [class*="text-ink/55"] {
+    color: color-mix(in oklab, var(--ink) 72%, transparent) !important;
+  }
+  [class*="text-ink/60"],
+  [class*="text-ink/65"] {
+    color: color-mix(in oklab, var(--ink) 80%, transparent) !important;
   }
 
   html {
