@@ -6,7 +6,9 @@ import {
   Files,
   MessagesSquare,
   NotebookPen,
-  LayoutDashboard,
+  Sparkles,
+  Plus,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,8 +17,6 @@ import { WorkspaceLayout } from "@/components/workspace/WorkspaceLayout";
 import { ChatPanel } from "@/components/chat/ChatPanel";
 import { SourceUploader } from "@/components/document/SourceUploader";
 import { NotesList } from "@/components/editor/NotesList";
-import { NotebookHero } from "@/components/notebook/NotebookHero";
-import { NotebookStats } from "@/components/notebook/NotebookStats";
 import { DocumentCard, type DocumentRow } from "@/components/notebook/DocumentCard";
 import { toast } from "sonner";
 
@@ -33,7 +33,7 @@ interface Notebook {
   created_at: string;
 }
 
-type Tab = "chat" | "overview" | "documents" | "notes";
+type Tab = "chat" | "documents" | "notes";
 
 function NotebookPage() {
   const { id } = Route.useParams();
@@ -41,13 +41,12 @@ function NotebookPage() {
   const { user, loading: authLoading } = useAuth();
   const [notebook, setNotebook] = useState<Notebook | null>(null);
   const [documents, setDocuments] = useState<DocumentRow[]>([]);
+  const [notesCount, setNotesCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>("chat");
+  const [showUploader, setShowUploader] = useState(false);
 
   const readyDocsCount = documents.filter((d) => d.status === "ready").length;
-  const processingCount = documents.filter((d) =>
-    ["pending", "processing", "chunked", "generating"].includes(d.status),
-  ).length;
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/auth" });
@@ -92,13 +91,17 @@ function NotebookPage() {
 
   const loadData = async () => {
     setLoading(true);
-    const [nbRes, docsRes] = await Promise.all([
+    const [nbRes, docsRes, notesRes] = await Promise.all([
       supabase.from("notebooks").select("*").eq("id", id).maybeSingle(),
       supabase
         .from("documents")
         .select("*")
         .eq("notebook_id", id)
         .order("created_at", { ascending: false }),
+      supabase
+        .from("notes")
+        .select("id", { count: "exact", head: true })
+        .eq("notebook_id", id),
     ]);
     if (nbRes.error || !nbRes.data) {
       toast.error("Cuaderno no encontrado");
@@ -107,6 +110,7 @@ function NotebookPage() {
     }
     setNotebook(nbRes.data as Notebook);
     setDocuments((docsRes.data ?? []) as DocumentRow[]);
+    setNotesCount(notesRes.count ?? 0);
     setLoading(false);
   };
 
@@ -127,7 +131,17 @@ function NotebookPage() {
     );
   }
 
-  const wide = tab === "overview" || tab === "documents" || tab === "notes";
+  const wide = tab === "documents" || tab === "notes";
+
+  // Sugerencias dinámicas según títulos de documentos
+  const dynamicSuggestions = readyDocsCount > 0
+    ? [
+        "¿Cuáles son los temas principales de este cuaderno?",
+        documents[0] ? `Resumime "${documents[0].title}" en 5 puntos` : "Resumime el contenido más reciente",
+        "Generá un mapa conceptual de las ideas clave",
+        "¿Qué preguntas de examen podría hacerme con este material?",
+      ]
+    : [];
 
   return (
     <DashboardShell>
@@ -135,6 +149,28 @@ function NotebookPage() {
         title={notebook.title}
         eyebrow="Cuaderno"
         emoji={notebook.emoji ?? "📓"}
+        subtitle={
+          <div className="flex items-center gap-3 text-[11px] font-mono text-ink/45">
+            <span className="inline-flex items-center gap-1">
+              <Files className="w-3 h-3" strokeWidth={2} />
+              {documents.length}
+            </span>
+            <span className="w-px h-3 bg-border" />
+            <span className="inline-flex items-center gap-1">
+              <NotebookPen className="w-3 h-3" strokeWidth={2} />
+              {notesCount}
+            </span>
+            {readyDocsCount > 0 && (
+              <>
+                <span className="w-px h-3 bg-border" />
+                <span className="inline-flex items-center gap-1 text-orange-deep">
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange animate-pulse" />
+                  {readyDocsCount} listos
+                </span>
+              </>
+            )}
+          </div>
+        }
         backTo={{ to: "/dashboard", label: "Biblioteca" }}
         groups={[
           {
@@ -144,11 +180,6 @@ function NotebookPage() {
                 label: "Chat del cuaderno",
                 icon: <MessagesSquare className="w-4 h-4" strokeWidth={1.75} />,
                 badge: "IA",
-              },
-              {
-                key: "overview",
-                label: "Resumen del cuaderno",
-                icon: <LayoutDashboard className="w-4 h-4" strokeWidth={1.75} />,
               },
             ],
           },
@@ -165,6 +196,7 @@ function NotebookPage() {
                 key: "notes",
                 label: "Notas",
                 icon: <NotebookPen className="w-4 h-4" strokeWidth={1.75} />,
+                count: notesCount || undefined,
               },
             ],
           },
@@ -176,22 +208,23 @@ function NotebookPage() {
         {tab === "chat" && (
           <div className="h-full">
             {readyDocsCount === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center p-10">
-                <div className="inline-flex items-center justify-center w-14 h-14 mb-5 bg-cream/60 border border-border rounded-md">
-                  <MessagesSquare className="w-6 h-6 text-ink/40" strokeWidth={1.5} />
+              <div className="h-full flex flex-col items-center justify-center text-center px-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 mb-6 bg-cream/60 border border-border rounded-xl">
+                  <Sparkles className="w-7 h-7 text-orange" strokeWidth={1.5} />
                 </div>
-                <h3 className="font-display text-2xl font-semibold mb-2">
-                  Todavía no hay nada para chatear
+                <h3 className="font-display text-3xl font-semibold mb-3 tracking-tight">
+                  Empezá agregando una fuente
                 </h3>
-                <p className="text-sm text-ink/60 max-w-sm">
-                  Subí al menos un PDF y esperá a que termine de procesarse para conversar con el
-                  contenido de todo el cuaderno.
+                <p className="text-sm text-ink/60 max-w-md mb-7 leading-relaxed">
+                  Subí un PDF, Word, audio o pegá un link de YouTube. En cuanto se procese vas a poder
+                  conversar con tu material como con un tutor personal.
                 </p>
                 <button
                   onClick={() => setTab("documents")}
-                  className="mt-6 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-ink text-paper hover:bg-ink/90 transition-colors rounded-md"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium bg-ink text-paper hover:bg-ink/90 transition-all active:scale-[0.98] rounded-md shadow-soft hover:shadow-elevated"
                 >
-                  Subir documento
+                  <Plus className="w-4 h-4" strokeWidth={2} />
+                  Agregar primera fuente
                 </button>
               </div>
             ) : (
@@ -199,67 +232,71 @@ function NotebookPage() {
                 scope="notebook"
                 contextId={id}
                 variant="fullheight"
-                suggestions={[
-                  "¿De qué trata este cuaderno en general?",
-                  "Resumime las ideas principales de todos los documentos",
-                  "Compará los conceptos clave entre los documentos",
-                ]}
+                suggestions={dynamicSuggestions}
               />
             )}
           </div>
         )}
 
-        {tab === "overview" && (
-          <div className="container mx-auto px-6 lg:px-10 max-w-[1100px] py-8">
-            <NotebookHero
-              title={notebook.title}
-              description={notebook.description}
-              emoji={notebook.emoji ?? "📓"}
-              coverColor={notebook.cover_color}
-              createdAt={notebook.created_at}
-              documentsCount={documents.length}
-              readyDocsCount={readyDocsCount}
-              notebookId={id}
-            />
-            <NotebookStats
-              notebookId={id}
-              documentsCount={documents.length}
-              readyDocsCount={readyDocsCount}
-              processingCount={processingCount}
-            />
-          </div>
-        )}
-
         {tab === "documents" && (
           <div className="container mx-auto px-6 lg:px-10 max-w-[1100px] py-8 animate-fade-up">
-            <div className="mb-10">
-              <SourceUploader notebookId={id} onUploaded={loadDocuments} />
+            {/* Header con CTA destacado */}
+            <div className="flex items-end justify-between mb-6 gap-4">
+              <div>
+                <h2 className="font-display text-2xl font-semibold tracking-tight">
+                  Fuentes
+                </h2>
+                <p className="text-xs text-ink/55 mt-1">
+                  {documents.length === 0
+                    ? "Subí material para empezar a estudiar"
+                    : `${documents.length} ${documents.length === 1 ? "fuente" : "fuentes"} en este cuaderno`}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowUploader((v) => !v)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium bg-ink text-paper hover:bg-ink/90 transition-all active:scale-[0.98] rounded-md shadow-soft"
+              >
+                {showUploader ? (
+                  <>
+                    <X className="w-3.5 h-3.5" strokeWidth={2} />
+                    Cerrar
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-3.5 h-3.5" strokeWidth={2} />
+                    Agregar fuente
+                  </>
+                )}
+              </button>
             </div>
 
+            {/* Uploader colapsable */}
+            {(showUploader || documents.length === 0) && (
+              <div className="mb-8 animate-fade-up">
+                <SourceUploader
+                  notebookId={id}
+                  onUploaded={() => {
+                    void loadDocuments();
+                    setShowUploader(false);
+                  }}
+                />
+              </div>
+            )}
+
             {documents.length === 0 ? (
-              <div className="border-2 border-dashed border-border py-16 text-center bg-cream/20 rounded-lg animate-fade-up">
-                <div className="inline-flex items-center justify-center w-14 h-14 mb-5 bg-paper border border-border rounded-md">
-                  <FileText className="w-6 h-6 text-ink/40" strokeWidth={1.5} />
+              <div className="border-2 border-dashed border-border py-14 text-center bg-cream/20 rounded-lg">
+                <div className="inline-flex items-center justify-center w-12 h-12 mb-4 bg-paper border border-border rounded-md">
+                  <FileText className="w-5 h-5 text-ink/40" strokeWidth={1.5} />
                 </div>
-                <h3 className="font-display text-2xl font-semibold mb-2">Sin documentos todavía</h3>
                 <p className="text-sm text-ink/60 max-w-sm mx-auto">
-                  Subí un PDF, Word, texto o pegá un link de YouTube. En segundos vas a tener
-                  resumen, flashcards y quiz.
+                  Cargá tu primer PDF, Word, audio o link de video arriba.
                 </p>
               </div>
             ) : (
-              <div>
-                <div className="flex items-end justify-between mb-5">
-                  <h2 className="font-display text-2xl font-semibold tracking-tight">Documentos</h2>
-                  <p className="text-xs font-mono uppercase tracking-[0.2em] text-ink/40">
-                    {documents.length} {documents.length === 1 ? "archivo" : "archivos"}
-                  </p>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 stagger">
-                  {documents.map((doc) => (
-                    <DocumentCard key={doc.id} doc={doc} onChange={loadDocuments} />
-                  ))}
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 stagger">
+                {documents.map((doc) => (
+                  <DocumentCard key={doc.id} doc={doc} onChange={loadDocuments} />
+                ))}
               </div>
             )}
           </div>
