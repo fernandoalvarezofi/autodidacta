@@ -67,7 +67,8 @@ function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-paper text-ink flex flex-col">
+    <div className="relative min-h-screen bg-paper text-ink flex flex-col">
+      <div className="fixed inset-0 -z-10 bg-grid-app pointer-events-none" aria-hidden />
       <header className="border-b border-border">
         <div className="container mx-auto px-6 lg:px-10 max-w-[1200px] h-16 flex items-center">
           <Link to="/" className="flex items-center gap-2.5">
