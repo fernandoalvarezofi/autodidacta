@@ -1,6 +1,7 @@
 import { useState, useEffect, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, PanelLeftClose, PanelLeft, Menu, X } from "lucide-react";
+import { EntityIcon } from "@/components/ui/EntityIcon";
 
 export interface WorkspaceItem {
   key: string;
@@ -84,17 +85,23 @@ export function WorkspaceLayout({
           </button>
         ) : (
           <>
-            <div className="flex-1 min-w-0">
-              {eyebrow && (
-                <p className="text-[10px] font-mono uppercase tracking-[0.22em] text-orange/90 mb-1.5">
-                  {eyebrow}
-                </p>
+            <div className="flex-1 min-w-0 flex items-start gap-2.5">
+              {emoji && (
+                <div className="flex-shrink-0 mt-0.5">
+                  <EntityIcon value={emoji} size={36} flat />
+                </div>
               )}
-              <h2 className="font-display text-[20px] leading-tight text-ink truncate">
-                {emoji && <span className="mr-1.5">{emoji}</span>}
-                {title}
-              </h2>
-              {subtitle && <div className="mt-1.5">{subtitle}</div>}
+              <div className="min-w-0 flex-1">
+                {eyebrow && (
+                  <p className="text-[10px] font-mono uppercase tracking-[0.22em] text-orange/90 mb-1.5">
+                    {eyebrow}
+                  </p>
+                )}
+                <h2 className="font-display text-[20px] leading-tight text-ink truncate">
+                  {title}
+                </h2>
+                {subtitle && <div className="mt-1.5">{subtitle}</div>}
+              </div>
             </div>
             <button
               onClick={() => (isMobile ? setMobileOpen(false) : setCollapsed(true))}

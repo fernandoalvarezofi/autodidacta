@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Plus, Loader2, FileText as FileIcon, Trash2 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { TemplatePicker } from "@/components/editor/TemplatePicker";
+import { EntityIcon } from "@/components/ui/EntityIcon";
 import { createNote, listNotesByNotebook, deleteNote, type NoteRow } from "@/lib/notes";
 import type { NoteTemplate } from "@/lib/note-templates";
 import { useNavigate } from "@tanstack/react-router";
@@ -118,7 +119,7 @@ export function NotesList({ notebookId, documentId = null }: Props) {
                 className="block bg-paper border border-border p-5 hover:border-ink hover:shadow-elevated hover:-translate-y-0.5 transition-all rounded-md overflow-hidden"
               >
                 <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-orange opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="text-2xl mb-3 leading-none">{n.emoji ?? "📝"}</div>
+                <div className="mb-3"><EntityIcon value={n.emoji} size={42} fallback="pencil" /></div>
                 <h3 className="font-display text-lg font-semibold text-ink mb-1.5 line-clamp-2 leading-tight">
                   {n.title}
                 </h3>

@@ -1,5 +1,6 @@
 import { Sparkles, Calendar, BookText } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { EntityIcon } from "@/components/ui/EntityIcon";
 
 interface NotebookHeroProps {
   title: string;
@@ -101,10 +102,10 @@ export function NotebookHero({
           Cuaderno
         </div>
 
-        {/* Emoji XL flotante */}
-        <div className="absolute bottom-0 right-10 translate-y-1/3 select-none pointer-events-none">
-          <div className="text-[160px] md:text-[200px] leading-none drop-shadow-[0_20px_40px_rgba(0,0,0,0.18)] rotate-[-6deg] hover:rotate-0 transition-transform duration-700">
-            {emoji}
+        {/* Icono XL flotante */}
+        <div className="absolute bottom-0 right-10 translate-y-1/4 select-none pointer-events-none">
+          <div className="rotate-[-6deg] hover:rotate-0 transition-transform duration-700">
+            <EntityIcon value={emoji} size={180} />
           </div>
         </div>
       </div>

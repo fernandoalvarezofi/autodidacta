@@ -1,5 +1,6 @@
 import { Sparkles, X } from "lucide-react";
 import { NOTE_TEMPLATES, type NoteTemplate } from "@/lib/note-templates";
+import { EntityIcon } from "@/components/ui/EntityIcon";
 
 interface TemplatePickerProps {
   open: boolean;
@@ -40,7 +41,7 @@ export function TemplatePicker({ open, onPick, onClose }: TemplatePickerProps) {
               style={{ animationDelay: `${i * 40}ms` }}
             >
               <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-orange opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="text-3xl mb-3 leading-none">{tpl.emoji}</div>
+              <div className="mb-3"><EntityIcon value={tpl.emoji} size={48} /></div>
               <h3 className="font-display text-lg font-semibold text-ink mb-1.5 leading-tight">
                 {tpl.name}
               </h3>

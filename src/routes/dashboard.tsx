@@ -17,6 +17,9 @@ import {
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { EntityIcon } from "@/components/ui/EntityIcon";
+import { IconPicker } from "@/components/ui/IconPicker";
+import type { ClayIconKey } from "@/lib/clay-icons";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard")({
@@ -65,6 +68,8 @@ function DashboardPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [pickedIcon, setPickedIcon] = useState<ClayIconKey>("notebook");
+  const [iconPickerOpen, setIconPickerOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [view, setView] = useState<ViewMode>("grid");
   const [sort, setSort] = useState<SortMode>("recent");
@@ -92,7 +97,12 @@ function DashboardPage() {
     setCreating(true);
     const { data, error } = await supabase
       .from("notebooks")
-      .insert({ user_id: user.id, title: title.trim(), description: description.trim() || null })
+      .insert({
+        user_id: user.id,
+        title: title.trim(),
+        description: description.trim() || null,
+        emoji: pickedIcon,
+      })
       .select()
       .single();
     setCreating(false);
@@ -250,45 +260,68 @@ function DashboardPage() {
                 <h2 className="font-display text-lg">Empezá a organizar</h2>
               </div>
             </div>
-            <div className="space-y-2.5">
-              <input
-                type="text"
-                placeholder="Título (ej: Anatomía II)"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && void handleCreate()}
-                autoFocus
-                className="w-full px-3.5 py-2.5 bg-paper border border-border focus:border-orange/50 focus:ring-1 focus:ring-orange/30 focus:outline-none transition-all font-display text-[15px] rounded-md placeholder:text-ink/35"
-              />
-              <textarea
-                placeholder="Descripción (opcional)"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={2}
-                className="w-full px-3.5 py-2.5 bg-paper border border-border focus:border-orange/50 focus:ring-1 focus:ring-orange/30 focus:outline-none transition-all resize-none text-[13px] rounded-md placeholder:text-ink/35"
-              />
-              <div className="flex gap-2 justify-end pt-1">
-                <button
-                  onClick={() => {
-                    setShowCreate(false);
-                    setTitle("");
-                    setDescription("");
-                  }}
-                  className="px-3.5 py-2 text-[13px] text-ink/70 hover:text-ink hover:bg-cream transition-all rounded-md"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleCreate}
-                  disabled={creating || !title.trim()}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-[13px] font-medium bg-ink text-paper hover:bg-orange disabled:opacity-40 disabled:hover:bg-ink transition-colors rounded-md"
-                >
-                  {creating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Crear cuaderno"}
-                </button>
+            <div className="flex items-start gap-4">
+              {/* Icono editable */}
+              <button
+                type="button"
+                onClick={() => setIconPickerOpen(true)}
+                className="group relative shrink-0 p-1 rounded-xl border border-dashed border-border hover:border-orange/50 hover:bg-orange/[0.04] transition-all"
+                title="Cambiar icono"
+              >
+                <EntityIcon value={pickedIcon} size={64} />
+                <span className="absolute -bottom-1 -right-1 w-5 h-5 inline-flex items-center justify-center bg-ink text-paper rounded-full text-[10px] shadow-soft opacity-0 group-hover:opacity-100 transition-opacity">
+                  ✎
+                </span>
+              </button>
+              <div className="flex-1 space-y-2.5">
+                <input
+                  type="text"
+                  placeholder="Título (ej: Anatomía II)"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && void handleCreate()}
+                  autoFocus
+                  className="w-full px-3.5 py-2.5 bg-paper border border-border focus:border-orange/50 focus:ring-1 focus:ring-orange/30 focus:outline-none transition-all font-display text-[15px] rounded-md placeholder:text-ink/35"
+                />
+                <textarea
+                  placeholder="Descripción (opcional)"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={2}
+                  className="w-full px-3.5 py-2.5 bg-paper border border-border focus:border-orange/50 focus:ring-1 focus:ring-orange/30 focus:outline-none transition-all resize-none text-[13px] rounded-md placeholder:text-ink/35"
+                />
+                <div className="flex gap-2 justify-end pt-1">
+                  <button
+                    onClick={() => {
+                      setShowCreate(false);
+                      setTitle("");
+                      setDescription("");
+                      setPickedIcon("notebook");
+                    }}
+                    className="px-3.5 py-2 text-[13px] text-ink/70 hover:text-ink hover:bg-cream transition-all rounded-md"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleCreate}
+                    disabled={creating || !title.trim()}
+                    className="inline-flex items-center gap-2 px-4 py-2 text-[13px] font-medium bg-ink text-paper hover:bg-orange disabled:opacity-40 disabled:hover:bg-ink transition-colors rounded-md"
+                  >
+                    {creating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Crear cuaderno"}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         )}
+
+        <IconPicker
+          open={iconPickerOpen}
+          value={pickedIcon}
+          onPick={setPickedIcon}
+          onClose={() => setIconPickerOpen(false)}
+          title="Elegí el icono del cuaderno"
+        />
 
         {/* GRID/LIST */}
         {loading ? (
@@ -370,8 +403,8 @@ function NotebookCard({ notebook }: { notebook: NotebookRow }) {
       {/* Cover gradient zone con emoji */}
       <div className={`relative h-[88px] bg-gradient-to-br ${cover} overflow-hidden`}>
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/[0.04]" />
-        <div className="absolute top-3 left-3 w-8 h-8 inline-flex items-center justify-center bg-paper/90 backdrop-blur-sm rounded-full text-base shadow-soft">
-          {notebook.emoji ?? "📓"}
+        <div className="absolute top-3 left-3">
+          <EntityIcon value={notebook.emoji} size={44} />
         </div>
         {/* Status pill top-right */}
         <div className="absolute top-3 right-3 flex items-center gap-1">
@@ -430,8 +463,8 @@ function NotebookListRow({ notebook }: { notebook: NotebookRow }) {
       params={{ id: notebook.id }}
       className="group flex items-center gap-4 px-5 py-3.5 hover:bg-cream/40 transition-colors"
     >
-      <div className={`w-10 h-10 inline-flex items-center justify-center bg-gradient-to-br ${cover} rounded-lg text-base flex-shrink-0 shadow-soft`}>
-        {notebook.emoji ?? "📓"}
+      <div className="shrink-0">
+        <EntityIcon value={notebook.emoji} size={40} />
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2">

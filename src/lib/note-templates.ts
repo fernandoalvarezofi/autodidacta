@@ -1,10 +1,12 @@
 // Templates iniciales para el editor visual de notas
 // Cada template devuelve HTML compatible con TipTap StarterKit + extensiones cargadas
+import type { ClayIconKey } from "@/lib/clay-icons";
 
 export interface NoteTemplate {
   key: string;
   name: string;
-  emoji: string;
+  /** ClayIconKey del icono representativo del template */
+  emoji: ClayIconKey;
   description: string;
   cover_color: string;
   build: (ctx: { title: string; sourceMarkdown?: string }) => {
@@ -20,7 +22,7 @@ export const NOTE_TEMPLATES: NoteTemplate[] = [
   {
     key: "blank",
     name: "En blanco",
-    emoji: "📝",
+    emoji: "pencil",
     description: "Empezá desde cero, sin estructura predefinida.",
     cover_color: "cream",
     build: ({ title }) => ({
@@ -31,7 +33,7 @@ export const NOTE_TEMPLATES: NoteTemplate[] = [
   {
     key: "academic",
     name: "Resumen académico",
-    emoji: "🎓",
+    emoji: "library",
     description: "Estructura formal: tesis, desarrollo, conclusión y referencias.",
     cover_color: "cream",
     build: ({ title, sourceMarkdown }) => ({
@@ -58,7 +60,7 @@ export const NOTE_TEMPLATES: NoteTemplate[] = [
   {
     key: "cornell",
     name: "Cornell notes",
-    emoji: "🗂️",
+    emoji: "checklist",
     description: "Sistema clásico: pistas, notas y resumen al pie.",
     cover_color: "orange",
     build: ({ title }) => ({
@@ -81,7 +83,7 @@ export const NOTE_TEMPLATES: NoteTemplate[] = [
   {
     key: "concept-map",
     name: "Mapa de conceptos",
-    emoji: "🕸️",
+    emoji: "compass",
     description: "Concepto raíz, ramas y relaciones jerárquicas.",
     cover_color: "cream",
     build: ({ title }) => ({
@@ -110,7 +112,7 @@ export const NOTE_TEMPLATES: NoteTemplate[] = [
   {
     key: "cheatsheet",
     name: "Cheat-sheet",
-    emoji: "⚡",
+    emoji: "flame",
     description: "Hoja de trucos densa para repaso rápido pre-examen.",
     cover_color: "orange",
     build: ({ title }) => ({
@@ -142,7 +144,7 @@ export const NOTE_TEMPLATES: NoteTemplate[] = [
   {
     key: "study-plan",
     name: "Cronograma de estudio",
-    emoji: "📅",
+    emoji: "calendar",
     description: "Plan semanal con metas diarias y check-list.",
     cover_color: "cream",
     build: ({ title }) => ({
@@ -169,7 +171,7 @@ export const NOTE_TEMPLATES: NoteTemplate[] = [
   {
     key: "comparative",
     name: "Comparativa",
-    emoji: "⚖️",
+    emoji: "target",
     description: "Tabla comparativa entre dos o más opciones.",
     cover_color: "cream",
     build: ({ title }) => ({
