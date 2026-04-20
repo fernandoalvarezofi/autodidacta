@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Navbar } from "@/components/landing/Navbar";
 import { Hero } from "@/components/landing/Hero";
-import { ConverterDemo } from "@/components/landing/ConverterDemo";
-import { FeaturesGrid } from "@/components/landing/FeaturesGrid";
-import { GamificationSection } from "@/components/landing/GamificationSection";
+import { MethodSection } from "@/components/landing/MethodSection";
+import { CapabilitiesSection } from "@/components/landing/CapabilitiesSection";
+import { EvidenceSection } from "@/components/landing/EvidenceSection";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { FinalCTA, Footer } from "@/components/landing/FinalCTA";
 
@@ -13,18 +13,14 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-paper text-ink">
       <Navbar />
       <main>
         <Hero />
-        <ConverterDemo />
-        <section id="features">
-          <FeaturesGrid />
-        </section>
-        <GamificationSection />
-        <section id="pricing">
-          <PricingSection />
-        </section>
+        <MethodSection />
+        <CapabilitiesSection />
+        <EvidenceSection />
+        <PricingSection />
         <FinalCTA />
       </main>
       <Footer />
