@@ -324,7 +324,6 @@ export function ChatPanel({
             />
           </div>
         )}
-        {/* eslint-disable-next-line @typescript-eslint/no-unused-vars */}
 
         <div
           ref={scrollRef}
@@ -344,7 +343,14 @@ export function ChatPanel({
               scope={scope}
             />
           ) : (
-            messages.map((m, i) => <Bubble key={m.id ?? i} message={m} compact={compact} />)
+            messages.map((m, i) => (
+              <Bubble
+                key={m.id ?? i}
+                message={m}
+                compact={compact}
+                onSourceClick={setSelectedSource}
+              />
+            ))
           )}
         </div>
 
