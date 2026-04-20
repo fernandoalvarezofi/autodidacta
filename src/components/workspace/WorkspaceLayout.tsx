@@ -94,6 +94,7 @@ export function WorkspaceLayout({
                 {emoji && <span className="mr-1.5">{emoji}</span>}
                 {title}
               </h2>
+              {subtitle && <div className="mt-1.5">{subtitle}</div>}
             </div>
             <button
               onClick={() => (isMobile ? setMobileOpen(false) : setCollapsed(true))}
