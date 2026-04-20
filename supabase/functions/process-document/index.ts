@@ -11,6 +11,15 @@ interface RequestBody {
   documentId: string;
 }
 
+interface DocumentRow {
+  id: string;
+  user_id: string;
+  notebook_id: string;
+  type: "pdf" | "docx" | "text" | "youtube" | "audio" | "image" | "tiktok";
+  storage_path: string | null;
+  // For youtube/url-based docs we stash the URL in storage_path
+}
+
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
@@ -59,18 +68,13 @@ async function processDocument(documentId: string) {
 
     await admin.from("documents").update({ status: "processing", progress: 10 }).eq("id", documentId);
 
-    const { data: fileBlob, error: dlErr } = await admin.storage
-      .from("documents")
-      .download(doc.storage_path);
-    if (dlErr || !fileBlob) throw new Error(`Descarga fallida: ${dlErr?.message}`);
-
-    await admin.from("documents").update({ progress: 25 }).eq("id", documentId);
-
-    // Extract text from PDF
-    const fullText = await extractPdfText(fileBlob);
+    // === Extract text by document type ===
+    const fullText = await extractByType(admin, doc as DocumentRow);
     if (!fullText || fullText.trim().length < 50) {
-      throw new Error("No se pudo extraer suficiente texto del PDF");
+      throw new Error("No se pudo extraer suficiente texto del documento");
     }
+
+    await admin.from("documents").update({ progress: 35 }).eq("id", documentId);
 
     // Cap total text to avoid CPU blowup on huge PDFs (keep first ~80k chars for chunks)
     const text = fullText.slice(0, 80000);
@@ -166,6 +170,40 @@ async function processDocument(documentId: string) {
 }
 
 // =====================================================
+// Dispatcher por tipo de documento
+// =====================================================
+async function extractByType(admin: any, doc: DocumentRow): Promise<string> {
+  switch (doc.type) {
+    case "pdf": {
+      if (!doc.storage_path) throw new Error("PDF sin storage_path");
+      const { data: blob, error } = await admin.storage.from("documents").download(doc.storage_path);
+      if (error || !blob) throw new Error(`Descarga PDF fallida: ${error?.message}`);
+      return await extractPdfText(blob);
+    }
+    case "docx": {
+      if (!doc.storage_path) throw new Error("DOCX sin storage_path");
+      const { data: blob, error } = await admin.storage.from("documents").download(doc.storage_path);
+      if (error || !blob) throw new Error(`Descarga DOCX fallida: ${error?.message}`);
+      return await extractDocxText(blob);
+    }
+    case "text": {
+      if (!doc.storage_path) throw new Error("TXT sin storage_path");
+      const { data: blob, error } = await admin.storage.from("documents").download(doc.storage_path);
+      if (error || !blob) throw new Error(`Descarga TXT fallida: ${error?.message}`);
+      return await blob.text();
+    }
+    case "youtube": {
+      // Para youtube, guardamos la URL en storage_path (sin upload a Storage)
+      const url = doc.storage_path ?? "";
+      if (!url) throw new Error("URL de YouTube vacía");
+      return await extractYoutubeTranscript(url);
+    }
+    default:
+      throw new Error(`Tipo de documento no soportado todavía: ${doc.type}`);
+  }
+}
+
+// =====================================================
 // PDF text extraction (using unpdf - works in Deno)
 // =====================================================
 async function extractPdfText(blob: Blob): Promise<string> {
@@ -177,14 +215,12 @@ async function extractPdfText(blob: Blob): Promise<string> {
   const pagesToExtract = Math.min(totalPages, MAX_PAGES);
   console.log(`[extractPdfText] PDF tiene ${totalPages} páginas, extrayendo ${pagesToExtract}`);
 
-  // Extract page-by-page, limiting to MAX_PAGES to avoid CPU blowup
   const parts: string[] = [];
   for (let i = 1; i <= pagesToExtract; i++) {
     try {
       const { text } = await extractText(pdf, { mergePages: false, page: i } as any);
       const pageText = Array.isArray(text) ? text.join(" ") : String(text);
       parts.push(pageText);
-      // Hard cap on accumulated text to keep CPU bounded
       if (parts.join("\n\n").length > 100000) {
         console.log(`[extractPdfText] Cap de 100k chars alcanzado en página ${i}`);
         break;
@@ -194,6 +230,74 @@ async function extractPdfText(blob: Blob): Promise<string> {
     }
   }
   return parts.join("\n\n");
+}
+
+// =====================================================
+// DOCX text extraction (mammoth via esm.sh)
+// =====================================================
+async function extractDocxText(blob: Blob): Promise<string> {
+  const mammoth: any = await import("https://esm.sh/mammoth@1.8.0?bundle");
+  const buffer = await blob.arrayBuffer();
+  const result = await mammoth.extractRawText({ arrayBuffer: buffer });
+  console.log(`[extractDocxText] Extraído ${result.value.length} chars`);
+  return result.value;
+}
+
+// =====================================================
+// YouTube transcript extraction
+// Usa youtubetotranscript.com (sin API key, sin subprocess)
+// =====================================================
+async function extractYoutubeTranscript(url: string): Promise<string> {
+  const videoId = parseYoutubeId(url);
+  if (!videoId) throw new Error("URL de YouTube inválida");
+  console.log(`[extractYoutubeTranscript] Video ID: ${videoId}`);
+
+  const langs = ["es", "en", ""];
+  let lastError = "";
+  for (const lang of langs) {
+    try {
+      const apiUrl = `https://youtubetotranscript.com/transcript?v=${videoId}${lang ? `&lang=${lang}` : ""}`;
+      const res = await fetch(apiUrl, {
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; Autodidactas/1.0)" },
+      });
+      if (!res.ok) {
+        lastError = `HTTP ${res.status}`;
+        continue;
+      }
+      const html = await res.text();
+      const matches = [
+        ...html.matchAll(/<span[^>]*class="[^"]*transcript-segment[^"]*"[^>]*>([\s\S]*?)<\/span>/gi),
+      ];
+      const text = matches
+        .map((m) =>
+          m[1]
+            .replace(/<[^>]+>/g, "")
+            .replace(/&amp;/g, "&")
+            .replace(/&#39;/g, "'")
+            .replace(/&quot;/g, '"')
+            .trim(),
+        )
+        .filter(Boolean)
+        .join(" ");
+      if (text.length > 200) {
+        console.log(`[extractYoutubeTranscript] Lang=${lang || "auto"} OK, ${text.length} chars`);
+        return text;
+      }
+      lastError = "Transcript vacío";
+    } catch (e) {
+      lastError = e instanceof Error ? e.message : String(e);
+    }
+  }
+  throw new Error(
+    `No se pudo obtener el transcript de YouTube (${lastError}). El video debe tener subtítulos disponibles.`,
+  );
+}
+
+function parseYoutubeId(url: string): string | null {
+  const m = url.match(
+    /(?:youtube\.com\/watch\?(?:.*&)?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+  );
+  return m ? m[1] : null;
 }
 
 // =====================================================

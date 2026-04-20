@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowLeft,
-  Upload,
   Loader2,
   FileText,
-  AlertCircle,
+  FileType2,
+  Youtube,
+  Type,
   BookOpen,
   RotateCcw,
   Trash2,
@@ -19,6 +20,7 @@ import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { ChatPanel } from "@/components/chat/ChatPanel";
+import { SourceUploader } from "@/components/document/SourceUploader";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/notebook/$id")({
@@ -50,10 +52,7 @@ function NotebookPage() {
   const [notebook, setNotebook] = useState<Notebook | null>(null);
   const [documents, setDocuments] = useState<DocumentRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
   const [tab, setTab] = useState<"documents" | "chat">("documents");
-  const [dragActive, setDragActive] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const readyDocsCount = documents.filter((d) => d.status === "ready").length;
   const processingCount = documents.filter((d) =>
@@ -123,64 +122,7 @@ function NotebookPage() {
     setDocuments((data ?? []) as DocumentRow[]);
   };
 
-  const processFile = async (file: File) => {
-    if (!user) return;
-    if (file.type !== "application/pdf") {
-      toast.error("Por ahora solo se aceptan archivos PDF");
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("Máximo 10MB en plan Free");
-      return;
-    }
-
-    setUploading(true);
-    try {
-      const ext = "pdf";
-      const storagePath = `${user.id}/${crypto.randomUUID()}.${ext}`;
-      const { error: uploadErr } = await supabase.storage.from("documents").upload(storagePath, file);
-      if (uploadErr) throw uploadErr;
-
-      const { data: doc, error: docErr } = await supabase
-        .from("documents")
-        .insert({
-          user_id: user.id,
-          notebook_id: id,
-          title: file.name.replace(/\.pdf$/i, ""),
-          type: "pdf",
-          storage_path: storagePath,
-          size_bytes: file.size,
-          status: "pending",
-        })
-        .select()
-        .single();
-      if (docErr || !doc) throw docErr ?? new Error("Insert failed");
-
-      void supabase.functions.invoke("process-document", {
-        body: { documentId: doc.id },
-      });
-
-      toast.success("PDF subido. Procesando...");
-      void loadDocuments();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Error al subir");
-    } finally {
-      setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
-  };
-
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) await processFile(file);
-  };
-
-  const handleDrop = async (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragActive(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) await processFile(file);
-  };
+  // Upload logic moved to <SourceUploader />
 
   if (authLoading || loading || !notebook) {
     return (
@@ -281,57 +223,9 @@ function NotebookPage() {
 
         {tab === "documents" && (
           <div className="animate-fade-up" style={{ animationDelay: "120ms" }}>
-            {/* Upload area */}
+            {/* Upload area — multi-source */}
             <div className="mb-10">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="application/pdf"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setDragActive(true);
-                }}
-                onDragLeave={() => setDragActive(false)}
-                onDrop={handleDrop}
-                disabled={uploading}
-                className={`relative w-full border-2 border-dashed transition-all py-14 text-center group overflow-hidden ${
-                  dragActive
-                    ? "border-orange bg-orange/5 scale-[1.01]"
-                    : "border-border hover:border-ink hover:bg-cream/40"
-                } ${uploading ? "opacity-60 pointer-events-none" : ""}`}
-              >
-                {/* Subtle glow on hover */}
-                <div className="absolute inset-0 bg-gradient-warm opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none" />
-
-                <div className="relative">
-                  {uploading ? (
-                    <>
-                      <Loader2 className="w-8 h-8 mx-auto mb-4 animate-spin text-orange" />
-                      <p className="font-display text-base text-ink mb-1">Subiendo tu PDF...</p>
-                      <p className="text-xs text-ink/50 font-mono uppercase tracking-wider">
-                        Esto toma unos segundos
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <div className="inline-flex items-center justify-center w-14 h-14 mb-4 bg-gradient-orange shadow-orange rounded-full group-hover:scale-110 transition-transform">
-                        <Upload className="w-6 h-6 text-paper" strokeWidth={2} />
-                      </div>
-                      <p className="font-display text-xl font-medium text-ink mb-1.5">
-                        {dragActive ? "Soltá para subir" : "Arrastrá tu PDF acá"}
-                      </p>
-                      <p className="text-xs text-ink/50 font-mono uppercase tracking-wider">
-                        o hacé click · Máx 10MB · Procesamiento automático
-                      </p>
-                    </>
-                  )}
-                </div>
-              </button>
+              <SourceUploader notebookId={id} onUploaded={loadDocuments} />
             </div>
 
             {/* Documents list */}
@@ -342,7 +236,8 @@ function NotebookPage() {
                 </div>
                 <h3 className="font-display text-2xl font-semibold mb-2">Sin documentos todavía</h3>
                 <p className="text-sm text-ink/60 max-w-sm mx-auto">
-                  Subí tu primer PDF para generar resumen, flashcards y quiz automáticamente.
+                  Subí un PDF, Word, texto o pegá un link de YouTube. En segundos vas a tener
+                  resumen, flashcards y quiz.
                 </p>
               </div>
             ) : (
@@ -469,12 +364,24 @@ function DocumentCard({ doc, onChange }: { doc: DocumentRow; onChange: () => voi
                 : "border-border bg-cream/40"
           }`}
         >
-          <FileText
-            className={`w-5 h-5 ${
-              isReady ? "text-orange" : isError ? "text-destructive" : "text-ink/50"
-            }`}
-            strokeWidth={1.75}
-          />
+          {(() => {
+            const Icon =
+              doc.type === "docx"
+                ? FileType2
+                : doc.type === "youtube"
+                  ? Youtube
+                  : doc.type === "text"
+                    ? Type
+                    : FileText;
+            return (
+              <Icon
+                className={`w-5 h-5 ${
+                  isReady ? "text-orange" : isError ? "text-destructive" : "text-ink/50"
+                }`}
+                strokeWidth={1.75}
+              />
+            );
+          })()}
         </div>
 
         {/* Info */}
@@ -483,7 +390,7 @@ function DocumentCard({ doc, onChange }: { doc: DocumentRow; onChange: () => voi
             {doc.title}
           </h3>
           <p className="text-[11px] font-mono uppercase tracking-[0.15em] text-ink/40 mt-1">
-            {doc.type}
+            {typeLabel(doc.type)}
             {doc.size_bytes ? ` · ${formatSize(doc.size_bytes)}` : ""}
             {" · "}
             {new Date(doc.created_at).toLocaleDateString("es", {
@@ -560,5 +467,24 @@ function statusLabel(status: string): string {
       return "Generando";
     default:
       return status;
+  }
+}
+
+function typeLabel(type: string): string {
+  switch (type) {
+    case "pdf":
+      return "PDF";
+    case "docx":
+      return "Word";
+    case "text":
+      return "Texto";
+    case "youtube":
+      return "YouTube";
+    case "audio":
+      return "Audio";
+    case "image":
+      return "Imagen";
+    default:
+      return type;
   }
 }
