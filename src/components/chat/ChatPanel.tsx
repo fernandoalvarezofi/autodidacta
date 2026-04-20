@@ -45,6 +45,8 @@ interface ChatPanelProps {
   suggestions?: string[];
   compact?: boolean;
   intro?: React.ReactNode;
+  /** "embedded" = card con borde (uso histórico), "fullheight" = ChatGPT-like (sin borde, input flotante) */
+  variant?: "embedded" | "fullheight";
 }
 
 const DEFAULT_SUGGESTIONS = [
@@ -60,6 +62,7 @@ export function ChatPanel({
   suggestions = DEFAULT_SUGGESTIONS,
   compact = false,
   intro,
+  variant = "embedded",
 }: ChatPanelProps) {
   const { user } = useAuth();
   const [activeSession, setActiveSession] = useState<ChatSession | null>(null);
