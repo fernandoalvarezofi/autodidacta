@@ -1,57 +1,56 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { SectionHeader } from "./ConverterDemo";
+import { Check } from "lucide-react";
+import { SectionHeader } from "./SectionHeader";
 
 type Cycle = "monthly" | "yearly";
 
 const PLANS = [
   {
     id: "free",
-    name: "Free",
-    description: "Para empezar a estudiar diferente.",
+    name: "Estudiante",
+    description: "Para comenzar a estudiar de forma activa.",
     monthly: 0,
     yearly: 0,
-    cta: "Empezar gratis",
+    cta: "Comenzar gratis",
     highlighted: false,
     features: [
-      "5 conversiones/día",
-      "30 mensajes RAG/día",
-      "Flashcards ilimitadas",
-      "3 notebooks públicos",
-      "10 min/día YouTube",
+      "5 conversiones por día",
+      "30 consultas al tutor por día",
+      "Tarjetas con repetición espaciada ilimitadas",
+      "3 cuadernos públicos",
     ],
   },
   {
     id: "pro",
-    name: "Pro",
-    description: "Para estudiantes serios. El sweet spot.",
+    name: "Académico",
+    description: "Para estudiantes universitarios y profesionales.",
     monthly: 12,
     yearly: 115,
-    cta: "Suscribirme a Pro",
+    cta: "Suscribirme",
     highlighted: true,
     features: [
-      "IA ilimitada (chat y conversiones)",
-      "Editor visual estilo Canva",
-      "Texto a podcast (TTS)",
-      "Notebooks públicos ilimitados",
-      "120 min/día YouTube + TikTok",
-      "Analytics avanzado",
+      "IA sin límites en conversiones y tutor",
+      "Editor visual de resúmenes",
+      "Generación de podcast didáctico",
+      "Cuadernos públicos ilimitados",
+      "Analítica detallada de aprendizaje",
     ],
   },
   {
     id: "teams",
-    name: "Teams",
-    description: "Para aulas, academias y empresas.",
+    name: "Institucional",
+    description: "Para cátedras, academias e instituciones educativas.",
     monthly: 29,
     yearly: 278,
     cta: "Hablar con ventas",
     highlighted: false,
     features: [
-      "Todo lo de Pro · por usuario",
-      "Aulas virtuales con asistencia",
-      "Analytics de grupo",
-      "SSO + roles",
-      "Soporte prioritario",
+      "Todo lo del plan Académico, por usuario",
+      "Aulas virtuales con seguimiento de asistencia",
+      "Analítica de cohorte",
+      "SSO y administración de roles",
+      "Soporte académico dedicado",
     ],
   },
 ];
@@ -60,144 +59,113 @@ export function PricingSection() {
   const [cycle, setCycle] = useState<Cycle>("monthly");
 
   return (
-    <section className="py-28 relative">
-      <div className="container mx-auto px-6 max-w-7xl">
+    <section id="planes" className="py-24 lg:py-32 bg-cream border-t border-border">
+      <div className="container mx-auto px-6 lg:px-10 max-w-[1200px]">
         <SectionHeader
-          eyebrow="Precios"
+          number="04"
+          eyebrow="Planes"
           title={
             <>
-              Estudiá gratis. Subí cuando{" "}
-              <span className="text-gradient-brand">vueles</span>.
+              Empezá gratis. Crecé{" "}
+              <span className="italic text-orange font-normal">
+                cuando lo necesites
+              </span>
+              .
             </>
           }
         />
 
         {/* Toggle */}
-        <div className="mt-8 flex justify-center">
-          <div
-            className="relative inline-flex p-1 rounded-full border border-border"
-            style={{ background: "oklch(15% 0.02 264)" }}
-          >
-            {(["monthly", "yearly"] as const).map((c) => (
-              <button
-                key={c}
-                onClick={() => setCycle(c)}
-                className="relative z-10 px-5 py-2 text-sm font-medium rounded-full transition-colors"
-                style={{
-                  color:
-                    cycle === c ? "oklch(98% 0.005 264)" : "oklch(70% 0.01 264)",
-                }}
-              >
-                {cycle === c && (
-                  <motion.span
-                    layoutId="cycle-pill"
-                    className="absolute inset-0 rounded-full bg-gradient-brand shadow-glow-brand"
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                  />
-                )}
-                <span className="relative">
-                  {c === "monthly" ? "Mensual" : "Anual"}
-                  {c === "yearly" && (
-                    <span className="ml-1.5 text-[10px] font-bold text-[oklch(82%_0.18_142)]">
-                      −20%
-                    </span>
-                  )}
-                </span>
-              </button>
-            ))}
-          </div>
+        <div className="mt-10 inline-flex border border-ink">
+          {(["monthly", "yearly"] as const).map((c) => (
+            <button
+              key={c}
+              onClick={() => setCycle(c)}
+              className={`px-5 py-2.5 text-sm font-medium transition-colors ${
+                cycle === c
+                  ? "bg-ink text-paper"
+                  : "bg-transparent text-ink hover:bg-ink/5"
+              }`}
+            >
+              {c === "monthly" ? "Mensual" : "Anual"}
+              {c === "yearly" && (
+                <span className="ml-2 text-[10px] font-mono">−20%</span>
+              )}
+            </button>
+          ))}
         </div>
 
         {/* Plans */}
-        <div className="mt-12 grid md:grid-cols-3 gap-6">
+        <div className="mt-12 grid md:grid-cols-3 gap-px bg-border border border-border">
           {PLANS.map((p, i) => {
             const price = cycle === "monthly" ? p.monthly : p.yearly;
             return (
               <motion.div
                 key={p.id}
-                initial={{ opacity: 0, y: 24 }}
+                initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.5 }}
-                className="relative rounded-2xl p-px"
-                style={
-                  p.highlighted
-                    ? { background: "var(--gradient-brand)" }
-                    : { background: "oklch(30% 0.04 264)" }
-                }
+                transition={{ delay: i * 0.08, duration: 0.5 }}
+                className={`relative p-8 lg:p-10 flex flex-col ${
+                  p.highlighted ? "bg-paper" : "bg-paper/60"
+                }`}
               >
                 {p.highlighted && (
-                  <div
-                    className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-bold bg-gradient-brand text-primary-foreground shadow-glow-brand"
-                  >
-                    ★ Más popular
+                  <div className="absolute top-0 left-0 px-3 py-1 text-[10px] font-mono uppercase tracking-[0.15em] bg-ink text-paper">
+                    Recomendado
                   </div>
                 )}
-                <div
-                  className="rounded-[15px] h-full p-7 flex flex-col"
-                  style={{ background: "var(--gradient-card)" }}
-                >
-                  <div>
-                    <div className="text-sm font-mono uppercase tracking-wider text-muted-foreground">
-                      {p.name}
-                    </div>
-                    <div className="mt-1 text-sm text-muted-foreground">
-                      {p.description}
-                    </div>
+                <div>
+                  <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-ink/55">
+                    Plan {String(i + 1).padStart(2, "0")}
                   </div>
+                  <h3 className="mt-2 font-display text-2xl font-semibold">
+                    {p.name}
+                  </h3>
+                  <p className="mt-2 text-sm text-ink/65 leading-relaxed">
+                    {p.description}
+                  </p>
+                </div>
 
-                  <div className="mt-6 flex items-baseline gap-1.5">
-                    <span
-                      className="font-display font-bold"
-                      style={{ fontSize: "clamp(2.5rem, 4vw, 3rem)" }}
-                    >
-                      {price === 0 ? "$0" : `$${price}`}
+                <div className="mt-8 flex items-baseline gap-1.5">
+                  <span
+                    className="font-display font-semibold tracking-tight"
+                    style={{ fontSize: "clamp(2.5rem, 4vw, 3rem)" }}
+                  >
+                    {price === 0 ? "Gratis" : `US$${price}`}
+                  </span>
+                  {price !== 0 && (
+                    <span className="text-ink/55 text-sm">
+                      /{cycle === "monthly" ? "mes" : "año"}
+                      {p.id === "teams" && " · usuario"}
                     </span>
-                    {price !== 0 && (
-                      <span className="text-muted-foreground text-sm">
-                        /{cycle === "monthly" ? "mes" : "año"}
-                        {p.id === "teams" && " · usuario"}
-                      </span>
-                    )}
-                  </div>
+                  )}
+                </div>
 
-                  <ul className="mt-7 space-y-3 flex-1">
+                <div className="mt-6 rule-thin pt-6">
+                  <ul className="space-y-3">
                     {p.features.map((f) => (
                       <li key={f} className="flex items-start gap-2.5 text-sm">
-                        <span
-                          className="mt-0.5 inline-flex w-4 h-4 rounded-full items-center justify-center text-[10px] flex-shrink-0"
-                          style={{
-                            background: "oklch(78% 0.22 142 / 0.18)",
-                            color: "oklch(82% 0.18 142)",
-                          }}
-                        >
-                          ✓
-                        </span>
-                        <span className="text-muted-foreground">{f}</span>
+                        <Check
+                          className="w-4 h-4 text-orange mt-0.5 flex-shrink-0"
+                          strokeWidth={2}
+                        />
+                        <span className="text-ink/80">{f}</span>
                       </li>
                     ))}
                   </ul>
-
-                  <a
-                    href="/auth"
-                    className="mt-8 inline-flex items-center justify-center px-5 py-3 rounded-xl font-semibold transition-all active:scale-[0.97]"
-                    style={
-                      p.highlighted
-                        ? {
-                            background: "var(--gradient-brand)",
-                            color: "oklch(98% 0.005 264)",
-                            boxShadow: "var(--glow-brand)",
-                          }
-                        : {
-                            background: "transparent",
-                            color: "oklch(96% 0.005 264)",
-                            border: "1px solid oklch(30% 0.04 264)",
-                          }
-                    }
-                  >
-                    {p.cta}
-                  </a>
                 </div>
+
+                <a
+                  href="/auth"
+                  className={`mt-10 inline-flex items-center justify-center px-5 py-3 text-sm font-medium transition-colors ${
+                    p.highlighted
+                      ? "bg-ink text-paper hover:bg-orange-deep"
+                      : "border border-ink text-ink hover:bg-ink hover:text-paper"
+                  }`}
+                >
+                  {p.cta}
+                </a>
               </motion.div>
             );
           })}

@@ -1,126 +1,126 @@
 import { motion } from "framer-motion";
-import { MacbookMockup } from "./MacbookMockup";
-import { HeroParticles } from "./HeroParticles";
+import { ArrowRight } from "lucide-react";
+import { StudyMockup } from "./StudyMockup";
 
 export function Hero() {
   return (
-    <section className="relative isolate overflow-hidden pt-28 pb-32 lg:pt-36 lg:pb-40">
-      {/* Mesh gradient animado */}
-      <div
-        aria-hidden
-        className="absolute inset-0 -z-10 bg-gradient-mesh animate-mesh-move"
-      />
-      <div
-        aria-hidden
-        className="absolute inset-0 -z-10"
-        style={{
-          background:
-            "radial-gradient(ellipse 80% 50% at 50% 10%, transparent, oklch(12% 0.02 264) 75%)",
-        }}
-      />
-      <HeroParticles />
-
-      <div className="container mx-auto px-6 max-w-7xl relative">
-        {/* Badge */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mx-auto w-fit flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium border-brand-glow"
-          style={{ background: "oklch(65% 0.25 264 / 0.08)" }}
-        >
-          <span className="w-1.5 h-1.5 rounded-full bg-brand-accent shadow-glow-success" />
-          Nuevo · Motor de conversión universal con IA
-        </motion.div>
-
-        {/* Título */}
-        <motion.h1
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.05 }}
-          className="mt-6 text-center font-display font-bold tracking-tight leading-[0.95]"
-          style={{ fontSize: "clamp(2.5rem, 7vw, 5.5rem)" }}
-        >
-          Convertí cualquier cosa
-          <br className="hidden sm:block" /> en{" "}
-          <span className="text-gradient-brand">conocimiento</span>.
-        </motion.h1>
-
-        {/* Subtítulo */}
-        <motion.p
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.15 }}
-          className="mt-6 max-w-2xl mx-auto text-center text-base sm:text-lg text-muted-foreground"
-        >
-          PDF, audio, video, manuscrito — en segundos tenés tu resumen,
-          flashcards y quiz listos para estudiar como nunca antes.
-        </motion.p>
-
-        {/* CTAs */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.25 }}
-          className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3"
-        >
-          <a
-            href="/auth"
-            className="group relative inline-flex items-center justify-center px-7 py-3.5 rounded-xl font-semibold text-primary-foreground bg-gradient-brand shadow-glow-brand transition-transform active:scale-[0.97] hover:scale-[1.02]"
-          >
-            Empezar gratis
-            <span className="ml-2 transition-transform group-hover:translate-x-1">
-              →
-            </span>
-          </a>
-          <a
-            href="#demo"
-            className="inline-flex items-center justify-center px-7 py-3.5 rounded-xl font-semibold text-foreground border-brand-glow transition-colors hover:bg-[oklch(65%_0.25_264_/_0.1)]"
-          >
-            Ver cómo funciona
-          </a>
-        </motion.div>
-
-        {/* Social proof */}
+    <section className="relative pt-20 pb-24 lg:pt-28 lg:pb-32">
+      <div className="container mx-auto px-6 lg:px-10 max-w-[1200px]">
+        {/* Eyebrow tipo journal */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.7, delay: 0.4 }}
-          className="mt-7 flex items-center justify-center gap-3 text-sm text-muted-foreground"
+          transition={{ duration: 0.5 }}
+          className="flex items-center gap-3 mb-8 text-xs font-mono uppercase tracking-[0.18em] text-ink/60"
         >
-          <div className="flex -space-x-2">
-            {[
-              "oklch(65% 0.25 264)",
-              "oklch(72% 0.20 195)",
-              "oklch(78% 0.22 142)",
-              "oklch(75% 0.18 55)",
-            ].map((c, i) => (
-              <div
-                key={i}
-                className="w-7 h-7 rounded-full border-2 border-background"
-                style={{ background: c }}
-              />
-            ))}
-          </div>
-          <span>
-            <strong className="text-foreground">430.000+</strong> estudiantes
-          </span>
-          <span className="opacity-50">·</span>
-          <span>
-            <strong className="text-foreground">4.8</strong> ★★★★★
-          </span>
+          <span className="w-8 h-px bg-ink/40" />
+          <span>Vol. I · No. 1 · Plataforma de estudio</span>
         </motion.div>
 
-        {/* Macbook */}
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
+        <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-end">
+          {/* Texto */}
+          <div className="lg:col-span-7">
+            <motion.h1
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7 }}
+              className="font-display font-semibold leading-[1.02] tracking-[-0.025em]"
+              style={{ fontSize: "clamp(2.75rem, 6.5vw, 5.25rem)" }}
+            >
+              El estudio,
+              <br />
+              <span className="italic text-orange font-normal">reconcebido</span>{" "}
+              para el<br />estudiante moderno.
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.1 }}
+              className="mt-8 text-lg lg:text-xl text-ink/75 max-w-[58ch] leading-relaxed"
+            >
+              Autodidactas convierte cualquier material —documentos, audio,
+              video o manuscritos— en herramientas de estudio activo basadas en
+              evidencia: resúmenes estructurados, flashcards con repetición
+              espaciada y evaluaciones formativas.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+              className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3"
+            >
+              <a
+                href="/auth"
+                className="group inline-flex items-center gap-2 px-6 py-3.5 bg-ink text-paper text-sm font-medium hover:bg-orange-deep transition-colors"
+              >
+                Crear cuenta gratuita
+                <ArrowRight
+                  className="w-4 h-4 transition-transform group-hover:translate-x-0.5"
+                  strokeWidth={1.75}
+                />
+              </a>
+              <a
+                href="#metodo"
+                className="text-sm text-ink underline underline-offset-4 decoration-1 decoration-ink/30 hover:decoration-orange hover:text-orange transition-colors"
+              >
+                Conocer el método
+              </a>
+            </motion.div>
+          </div>
+
+          {/* Bloque lateral académico — datos */}
+          <motion.aside
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.3 }}
+            className="lg:col-span-5 lg:pl-10 lg:border-l lg:border-border"
+          >
+            <div className="text-xs font-mono uppercase tracking-[0.15em] text-ink/60 mb-5">
+              Resumen
+            </div>
+            <p className="font-display text-lg leading-snug text-ink/85">
+              Una herramienta de aprendizaje basada en cuatro pilares de la
+              ciencia cognitiva: <em>recuperación activa</em>,{" "}
+              <em>repetición espaciada</em>, <em>elaboración</em> y{" "}
+              <em>evaluación formativa</em>.
+            </p>
+
+            <dl className="mt-8 grid grid-cols-3 gap-6">
+              <Stat label="Estudiantes" value="430k" />
+              <Stat label="Universidades" value="120+" />
+              <Stat label="Calificación" value="4.8/5" />
+            </dl>
+          </motion.aside>
+        </div>
+
+        {/* Mockup editorial */}
+        <motion.figure
+          initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-16 lg:mt-20"
+          transition={{ duration: 0.9, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          className="mt-20 lg:mt-24"
         >
-          <MacbookMockup />
-        </motion.div>
+          <StudyMockup />
+          <figcaption className="mt-4 text-xs font-mono uppercase tracking-[0.15em] text-ink/55 text-center">
+            Fig. 1 — Vista del cuaderno de estudio · Termodinámica · Capítulo IV
+          </figcaption>
+        </motion.figure>
       </div>
     </section>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt className="text-[10px] font-mono uppercase tracking-[0.15em] text-ink/55 mb-1.5">
+        {label}
+      </dt>
+      <dd className="font-display text-2xl font-semibold tracking-tight">
+        {value}
+      </dd>
+    </div>
   );
 }

@@ -1,40 +1,44 @@
+import { BookMarked } from "lucide-react";
+
 export function Navbar() {
   return (
-    <header className="fixed top-0 inset-x-0 z-50">
-      <div className="container mx-auto px-6 max-w-7xl">
-        <div
-          className="mt-4 flex items-center justify-between rounded-2xl px-4 py-2.5 backdrop-blur-xl border border-border"
-          style={{ background: "oklch(12% 0.02 264 / 0.7)" }}
-        >
-          <a href="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-brand shadow-glow-brand" />
-            <span className="font-display font-bold text-lg">Autodidactas</span>
+    <header className="sticky top-0 z-50 bg-paper/85 backdrop-blur-md border-b border-border">
+      <div className="container mx-auto px-6 lg:px-10 max-w-[1200px]">
+        <div className="flex items-center justify-between h-16">
+          <a href="/" className="flex items-center gap-2.5">
+            <BookMarked className="w-5 h-5 text-orange" strokeWidth={1.75} />
+            <span className="font-display font-semibold text-xl tracking-tight">
+              Autodidactas
+            </span>
           </a>
 
-          <nav className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
-            <a href="#demo" className="hover:text-foreground transition-colors">
-              Cómo funciona
+          <nav className="hidden md:flex items-center gap-9 text-sm">
+            <a href="#metodo" className="text-ink/70 hover:text-ink transition-colors">
+              Método
             </a>
-            <a href="#features" className="hover:text-foreground transition-colors">
-              Features
+            <a href="#capacidades" className="text-ink/70 hover:text-ink transition-colors">
+              Capacidades
             </a>
-            <a href="#pricing" className="hover:text-foreground transition-colors">
-              Precios
+            <a href="#evidencia" className="text-ink/70 hover:text-ink transition-colors">
+              Evidencia
+            </a>
+            <a href="#planes" className="text-ink/70 hover:text-ink transition-colors">
+              Planes
             </a>
           </nav>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             <a
               href="/auth"
-              className="hidden sm:inline-flex px-3 py-1.5 text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
+              className="hidden sm:inline-flex text-sm text-ink/70 hover:text-ink transition-colors"
             >
               Ingresar
             </a>
             <a
               href="/auth"
-              className="inline-flex px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-brand text-primary-foreground shadow-glow-brand hover:scale-[1.03] active:scale-[0.97] transition-transform"
+              className="inline-flex items-center px-4 py-2 text-sm font-medium border border-ink text-ink hover:bg-ink hover:text-paper transition-colors"
             >
-              Empezar gratis
+              Comenzar
             </a>
           </div>
         </div>
