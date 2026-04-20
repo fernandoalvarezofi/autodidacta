@@ -148,7 +148,7 @@ function NotebookPage() {
       <WorkspaceLayout
         title={notebook.title}
         eyebrow="Cuaderno"
-        emoji={notebook.emoji ?? "📓"}
+        emoji={notebook.emoji ?? "notebook"}
         subtitle={
           <div className="flex items-center gap-3 text-[11px] font-mono text-ink/45">
             <span className="inline-flex items-center gap-1">

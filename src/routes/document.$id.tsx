@@ -65,7 +65,7 @@ function DocumentPage() {
         contentHtml: html,
         contentJson: {},
         templateKey: summary ? "academic" : tpl.key,
-        emoji: "📝",
+        emoji: "pencil",
         coverColor: "cream",
       });
       toast.success("Nota creada desde el resumen");

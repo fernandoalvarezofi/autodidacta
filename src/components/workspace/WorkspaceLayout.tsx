@@ -1,6 +1,7 @@
 import { useState, useEffect, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, PanelLeftClose, PanelLeft, Menu, X } from "lucide-react";
+import { EntityIcon } from "@/components/ui/EntityIcon";
 
 export interface WorkspaceItem {
   key: string;
