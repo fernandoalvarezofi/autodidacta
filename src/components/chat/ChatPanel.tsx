@@ -69,6 +69,7 @@ export function ChatPanel({
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [sidebarRefreshKey, setSidebarRefreshKey] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [selectedSource, setSelectedSource] = useState<ChatStreamSource | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -127,13 +128,17 @@ export function ChatPanel({
     void selectSession(s);
   };
 
-  const toggleMode = async () => {
-    if (!activeSession) return;
-    const next: ChatMode = activeSession.mode === "normal" ? "socratic" : "normal";
+  const changeMode = async (next: ChatMode) => {
+    if (!activeSession || activeSession.mode === next) return;
     try {
       await updateSessionMode(activeSession.id, next);
       setActiveSession({ ...activeSession, mode: next });
-      toast.success(next === "socratic" ? "Modo Socrático activado" : "Modo normal activado");
+      const labels: Record<ChatMode, string> = {
+        normal: "Modo Normal",
+        deep: "Modo Profundo",
+        socratic: "Modo Socrático",
+      };
+      toast.success(`${labels[next]} activado`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Error");
     }
