@@ -22,9 +22,13 @@ import {
   Quote as QuoteIcon,
   Bold as BoldIcon,
   Italic as ItalicIcon,
+  Plus,
 } from "lucide-react";
 import { EditorToolbar } from "./EditorToolbar";
 import { FlashcardFromSelection } from "./FlashcardFromSelection";
+import { SlashCommandMenu } from "./SlashCommandMenu";
+import { useSlashCommands } from "@/hooks/use-slash-commands";
+import { useEditorBlockHover } from "@/hooks/use-editor-block-hover";
 import { updateNote, deleteNote, type NoteRow } from "@/lib/notes";
 import { exportNoteAsPdf, exportNoteAsPng, safeFilename } from "@/lib/note-export";
 import { toast } from "sonner";
@@ -53,6 +57,7 @@ export function NoteEditor({ note, userId, onDeleted }: NoteEditorProps) {
   const saveTimer = useRef<number | null>(null);
   const lastSaved = useRef({ title: note.title, html: note.content_html });
   const sheetRef = useRef<HTMLDivElement>(null);
+  const editorContainerRef = useRef<HTMLDivElement>(null);
 
   const editor = useEditor({
     extensions: [
@@ -80,6 +85,12 @@ export function NoteEditor({ note, userId, onDeleted }: NoteEditorProps) {
       scheduleSave(editor.getHTML(), editor.getJSON());
     },
   });
+
+  const slash = useSlashCommands(editor);
+  const { hover: blockHover, clear: clearBlockHover } = useEditorBlockHover(
+    editor,
+    editorContainerRef,
+  );
 
   // Title autosave (separate from body)
   useEffect(() => {
@@ -239,11 +250,49 @@ export function NoteEditor({ note, userId, onDeleted }: NoteEditorProps) {
           </div>
 
           {/* Editor body */}
-          <div className="px-10 py-8 bg-paper">
+          <div ref={editorContainerRef} className="px-10 py-8 bg-paper relative">
             <EditorContent editor={editor} />
+            {/* Botón + lateral en bloques vacíos */}
+            {editor && blockHover && !slash.open && (
+              <button
+                type="button"
+                onMouseDown={(e) => {
+                  // Evitar que el editor pierda foco antes de procesar el click
+                  e.preventDefault();
+                }}
+                onClick={() => {
+                  const pos = blockHover.blockEndPos;
+                  slash.openAt(pos, {
+                    top: blockHover.viewportTop + 26,
+                    left: blockHover.viewportLeft,
+                  });
+                  clearBlockHover();
+                }}
+                className="slash-add-btn"
+                style={{
+                  top: blockHover.top,
+                  left: 8,
+                }}
+                title="Insertar bloque (/)"
+              >
+                <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+              </button>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Slash command menu */}
+      {editor && (
+        <SlashCommandMenu
+          editor={editor}
+          open={slash.open}
+          query={slash.query}
+          position={slash.position}
+          charsToDelete={slash.charsToDelete}
+          onClose={slash.close}
+        />
+      )}
 
       {/* Bubble menu — selección flotante */}
       {editor && (
