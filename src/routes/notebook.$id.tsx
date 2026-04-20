@@ -9,6 +9,7 @@ import {
   BookOpen,
   RotateCcw,
   Trash2,
+  Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
@@ -178,12 +179,22 @@ function NotebookPage() {
           Volver
         </Link>
 
-        <div className="pb-8 mb-10 border-b-2 border-ink">
-          <p className="text-xs uppercase tracking-[0.3em] text-orange font-mono mb-3">Cuaderno</p>
-          <h1 className="font-display text-4xl md:text-5xl font-semibold tracking-tight mb-3">
-            {notebook.title}
-          </h1>
-          {notebook.description && <p className="text-ink/60 max-w-2xl">{notebook.description}</p>}
+        <div className="pb-8 mb-10 border-b-2 border-ink flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-orange font-mono mb-3">Cuaderno</p>
+            <h1 className="font-display text-4xl md:text-5xl font-semibold tracking-tight mb-3">
+              {notebook.title}
+            </h1>
+            {notebook.description && <p className="text-ink/60 max-w-2xl">{notebook.description}</p>}
+          </div>
+          <Link
+            to="/review/$notebookId"
+            params={{ notebookId: id }}
+            className="inline-flex items-center gap-2 px-5 py-3 text-sm font-medium bg-ink text-paper hover:bg-ink/90 transition-colors self-start md:self-auto"
+          >
+            <Sparkles className="w-4 h-4" strokeWidth={1.75} />
+            Repasar ahora
+          </Link>
         </div>
 
         {/* Upload area */}
