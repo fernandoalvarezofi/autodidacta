@@ -223,7 +223,9 @@ Deno.serve(async (req) => {
     const systemContent =
       mode === "socratic"
         ? systemSocratic(nbTitle)
-        : systemNormal(nbTitle, docs.length, docTitles);
+        : mode === "deep"
+          ? systemDeep(nbTitle, docs.length, docTitles)
+          : systemNormal(nbTitle, docs.length, docTitles);
 
     const messages: any[] = [
       { role: "system", content: systemContent },
@@ -244,6 +246,7 @@ Deno.serve(async (req) => {
         documentId: r.chunk.document_id,
         documentTitle: docMap.get(r.chunk.document_id) ?? "Documento",
         excerpt: r.chunk.content.slice(0, 220),
+        chunkId: r.chunk.id,
       }));
 
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -253,7 +256,7 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: mode === "deep" ? "google/gemini-2.5-pro" : "google/gemini-2.5-flash",
         messages,
         stream: true,
       }),
