@@ -129,7 +129,7 @@ function StatCard({
   accent: "orange" | "cream" | "ink";
   highlight?: boolean;
 }) {
-  const animated = useCountUp(typeof value === "number" ? value : 0, 700);
+  const { ref, value: animated } = useCountUp(typeof value === "number" ? value : 0, 700);
   const isLoading = value === null && !textValue;
 
   const accentRing =
@@ -169,7 +169,10 @@ function StatCard({
             {textValue}
           </span>
         ) : (
-          <span className="font-display text-3xl font-semibold text-ink leading-none tabular-nums">
+          <span
+            ref={ref}
+            className="font-display text-3xl font-semibold text-ink leading-none tabular-nums"
+          >
             {animated}
           </span>
         )}
