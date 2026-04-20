@@ -17,22 +17,22 @@ const COVER_THEMES: Record<
   { bg: string; orb1: string; orb2: string; pattern: string }
 > = {
   orange: {
-    bg: "from-orange/25 via-orange/10 to-cream",
-    orb1: "bg-orange/40",
-    orb2: "bg-orange-deep/30",
-    pattern: "rgba(192,89,42,0.08)",
+    bg: "from-cream via-paper to-cream",
+    orb1: "bg-orange/15",
+    orb2: "bg-orange/10",
+    pattern: "rgba(165,28,48,0.06)",
   },
   cream: {
     bg: "from-cream via-paper to-cream",
-    orb1: "bg-orange/25",
-    orb2: "bg-orange-deep/20",
-    pattern: "rgba(192,89,42,0.06)",
+    orb1: "bg-orange/12",
+    orb2: "bg-ink/8",
+    pattern: "rgba(165,28,48,0.05)",
   },
   ink: {
-    bg: "from-ink/15 via-cream to-paper",
-    orb1: "bg-ink/20",
-    orb2: "bg-orange/30",
-    pattern: "rgba(30,20,15,0.08)",
+    bg: "from-ink/10 via-cream to-paper",
+    orb1: "bg-ink/15",
+    orb2: "bg-orange/12",
+    pattern: "rgba(30,20,15,0.06)",
   },
 };
 
