@@ -22,6 +22,11 @@ interface EditorToolbarProps {
   editor: Editor | null;
 }
 
+// TipTap v3 inferred types are too narrow without extension generics.
+// Cast the chain to unknown-shaped object so registered extension commands resolve.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const cmd = (editor: Editor): any => editor.chain().focus();
+
 export function EditorToolbar({ editor }: EditorToolbarProps) {
   if (!editor) return null;
 

@@ -63,7 +63,8 @@ export async function updateNote(
     cover_color: string;
   }>,
 ): Promise<void> {
-  const update: Record<string, unknown> = { ...patch };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const update: any = { ...patch };
   if (typeof patch.content_html === "string") {
     update.word_count = countWords(patch.content_html);
   }
