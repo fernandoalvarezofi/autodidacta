@@ -12,7 +12,6 @@ import Typography from "@tiptap/extension-typography";
 import { useEffect, useRef, useState } from "react";
 import {
   Loader2,
-  Download,
   Image as ImageIcon,
   FileText,
   Layers as LayersIcon,
@@ -30,7 +29,8 @@ import { SlashCommandMenu } from "./SlashCommandMenu";
 import { useSlashCommands } from "@/hooks/use-slash-commands";
 import { useEditorBlockHover } from "@/hooks/use-editor-block-hover";
 import { updateNote, deleteNote, type NoteRow } from "@/lib/notes";
-import { exportNoteAsPdf, exportNoteAsPng, safeFilename } from "@/lib/note-export";
+import { exportNoteAsPng, safeFilename } from "@/lib/note-export";
+import { ExportButton } from "@/components/ui/ExportButton";
 import { toast } from "sonner";
 
 interface NoteEditorProps {
@@ -50,7 +50,7 @@ export function NoteEditor({ note, userId, onDeleted }: NoteEditorProps) {
   const [emoji, setEmoji] = useState(note.emoji ?? "📝");
   const [cover, setCover] = useState(note.cover_color ?? "cream");
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("saved");
-  const [exporting, setExporting] = useState<"pdf" | "png" | null>(null);
+  const [exporting, setExporting] = useState<"png" | null>(null);
   const [flashOpen, setFlashOpen] = useState(false);
   const [selectedText, setSelectedText] = useState("");
 
@@ -131,19 +131,6 @@ export function NoteEditor({ note, userId, onDeleted }: NoteEditorProps) {
     }, 900);
   }
 
-  const handleExportPdf = async () => {
-    if (!sheetRef.current) return;
-    setExporting("pdf");
-    try {
-      await exportNoteAsPdf(sheetRef.current, safeFilename(title));
-      toast.success("PDF descargado");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Error al exportar PDF");
-    } finally {
-      setExporting(null);
-    }
-  };
-
   const handleExportPng = async () => {
     if (!sheetRef.current) return;
     setExporting("png");
@@ -193,18 +180,12 @@ export function NoteEditor({ note, userId, onDeleted }: NoteEditorProps) {
             )}
             PNG
           </button>
-          <button
-            onClick={handleExportPdf}
-            disabled={!!exporting}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium bg-gradient-ink text-paper hover:shadow-orange transition-all disabled:opacity-50 rounded-md"
-          >
-            {exporting === "pdf" ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            ) : (
-              <Download className="w-3.5 h-3.5" strokeWidth={2} />
-            )}
-            PDF
-          </button>
+          <ExportButton
+            title={title}
+            filename={safeFilename(title)}
+            label="Descargar"
+            content={{ kind: "html", html: editor?.getHTML() ?? "" }}
+          />
           <button
             onClick={handleDelete}
             className="p-2 text-ink/30 hover:text-destructive hover:bg-destructive/5 transition-all rounded-md"
