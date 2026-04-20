@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from "@tanstack/react-router";
-import { BookMarked, LogOut, LayoutGrid, Search, Gamepad2 } from "lucide-react";
+import { BookMarked, LogOut, LayoutGrid, Search, Gamepad2, Home } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { FloatingChat } from "@/components/chat/FloatingChat";
 import { CommandPalette } from "@/components/dashboard/CommandPalette";
