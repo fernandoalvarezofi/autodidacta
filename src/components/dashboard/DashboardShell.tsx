@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { BookMarked, LogOut, LayoutGrid } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { FloatingChat } from "@/components/chat/FloatingChat";
 import type { ReactNode } from "react";
 
 export function DashboardShell({ children }: { children: ReactNode }) {
@@ -49,6 +50,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         </div>
       </header>
       <main>{children}</main>
+      <FloatingChat />
     </div>
   );
 }

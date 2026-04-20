@@ -10,10 +10,13 @@ import {
   RotateCcw,
   Trash2,
   Sparkles,
+  Files,
+  MessagesSquare,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { ChatPanel } from "@/components/chat/ChatPanel";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/notebook/$id")({
@@ -45,7 +48,10 @@ function NotebookPage() {
   const [documents, setDocuments] = useState<DocumentRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [tab, setTab] = useState<"documents" | "chat">("documents");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const readyDocsCount = documents.filter((d) => d.status === "ready").length;
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/auth" });
@@ -197,52 +203,110 @@ function NotebookPage() {
           </Link>
         </div>
 
-        {/* Upload area */}
-        <div className="mb-12">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="application/pdf"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
+        {/* Tabs */}
+        <div className="flex gap-1 mb-8 border-b border-border">
           <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className="w-full border-2 border-dashed border-border hover:border-ink hover:bg-cream/40 disabled:opacity-50 transition-colors py-12 text-center group"
+            onClick={() => setTab("documents")}
+            className={`inline-flex items-center gap-2 px-4 py-3 text-sm transition-colors -mb-px border-b-2 ${
+              tab === "documents"
+                ? "border-orange text-ink font-medium"
+                : "border-transparent text-ink/60 hover:text-ink"
+            }`}
           >
-            {uploading ? (
-              <>
-                <Loader2 className="w-7 h-7 mx-auto mb-3 animate-spin text-ink/40" />
-                <p className="text-sm text-ink/60">Subiendo...</p>
-              </>
-            ) : (
-              <>
-                <Upload className="w-7 h-7 mx-auto mb-3 text-ink/40 group-hover:text-orange transition-colors" strokeWidth={1.5} />
-                <p className="text-base font-display font-medium text-ink mb-1">Subí tu PDF</p>
-                <p className="text-xs text-ink/50 font-mono uppercase tracking-wider">
-                  Máx 10MB · Procesamiento automático
-                </p>
-              </>
-            )}
+            <Files className="w-4 h-4" strokeWidth={1.75} />
+            Documentos ({documents.length})
+          </button>
+          <button
+            onClick={() => setTab("chat")}
+            className={`inline-flex items-center gap-2 px-4 py-3 text-sm transition-colors -mb-px border-b-2 ${
+              tab === "chat"
+                ? "border-orange text-ink font-medium"
+                : "border-transparent text-ink/60 hover:text-ink"
+            }`}
+          >
+            <MessagesSquare className="w-4 h-4" strokeWidth={1.75} />
+            Chat del cuaderno
           </button>
         </div>
 
-        {/* Documents list */}
-        {documents.length === 0 ? (
-          <div className="text-center py-12 text-ink/50 text-sm">
-            Todavía no hay documentos en este cuaderno.
-          </div>
-        ) : (
-          <div>
-            <h2 className="font-display text-2xl font-semibold mb-6 pb-3 border-b border-border">
-              Documentos
-            </h2>
-            <div className="divide-y divide-border border-y border-border">
-              {documents.map((doc) => (
-                <DocumentRow key={doc.id} doc={doc} onChange={loadDocuments} />
-              ))}
+        {tab === "documents" && (
+          <>
+            {/* Upload area */}
+            <div className="mb-12">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="application/pdf"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="w-full border-2 border-dashed border-border hover:border-ink hover:bg-cream/40 disabled:opacity-50 transition-colors py-12 text-center group"
+              >
+                {uploading ? (
+                  <>
+                    <Loader2 className="w-7 h-7 mx-auto mb-3 animate-spin text-ink/40" />
+                    <p className="text-sm text-ink/60">Subiendo...</p>
+                  </>
+                ) : (
+                  <>
+                    <Upload
+                      className="w-7 h-7 mx-auto mb-3 text-ink/40 group-hover:text-orange transition-colors"
+                      strokeWidth={1.5}
+                    />
+                    <p className="text-base font-display font-medium text-ink mb-1">Subí tu PDF</p>
+                    <p className="text-xs text-ink/50 font-mono uppercase tracking-wider">
+                      Máx 10MB · Procesamiento automático
+                    </p>
+                  </>
+                )}
+              </button>
             </div>
+
+            {/* Documents list */}
+            {documents.length === 0 ? (
+              <div className="text-center py-12 text-ink/50 text-sm">
+                Todavía no hay documentos en este cuaderno.
+              </div>
+            ) : (
+              <div>
+                <h2 className="font-display text-2xl font-semibold mb-6 pb-3 border-b border-border">
+                  Documentos
+                </h2>
+                <div className="divide-y divide-border border-y border-border">
+                  {documents.map((doc) => (
+                    <DocumentRow key={doc.id} doc={doc} onChange={loadDocuments} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {tab === "chat" && (
+          <div className="max-w-3xl mx-auto h-[calc(100vh-360px)] min-h-[480px]">
+            {readyDocsCount === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-center border-2 border-dashed border-border p-10">
+                <MessagesSquare className="w-8 h-8 mb-3 text-ink/30" strokeWidth={1.5} />
+                <p className="font-display text-lg mb-1">Todavía no hay nada para chatear</p>
+                <p className="text-sm text-ink/60 max-w-sm">
+                  Subí al menos un PDF y esperá a que termine de procesarse para conversar con el
+                  contenido de todo el cuaderno.
+                </p>
+              </div>
+            ) : (
+              <ChatPanel
+                scope="notebook"
+                contextId={id}
+                suggestions={[
+                  "¿De qué trata este cuaderno en general?",
+                  "Resumime las ideas principales de todos los documentos",
+                  "Compará los conceptos clave entre los documentos",
+                ]}
+              />
+            )}
           </div>
         )}
       </div>
