@@ -8,6 +8,7 @@ import {
   MessagesSquare,
   Network,
   PenLine,
+  Wand2,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +19,11 @@ import { FlashcardDeck, type FlashcardOutput } from "@/components/document/Flash
 import { QuizRunner, type QuizQuestion } from "@/components/document/QuizRunner";
 import { DocumentChat } from "@/components/document/DocumentChat";
 import { MindMapViewer, type MindmapContent } from "@/components/document/MindMapViewer";
+import {
+  GeneratedDocPanel,
+  type GeneratedDocType,
+  type GeneratedContent,
+} from "@/components/document/GeneratedDocPanel";
 import { createNote } from "@/lib/notes";
 import { getTemplate } from "@/lib/note-templates";
 import { toast } from "sonner";
