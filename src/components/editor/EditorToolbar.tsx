@@ -55,34 +55,34 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
   return (
     <div className="flex flex-wrap items-center gap-0.5 px-3 py-2 bg-paper/95 backdrop-blur-xl border border-border rounded-md shadow-soft sticky top-16 z-30">
       <Btn
-        onClick={() => editor.chain().focus().undo().run()}
+        onClick={() => cmd(editor).undo().run()}
         title="Deshacer (⌘Z)"
       >
         <Undo2 className="w-4 h-4" strokeWidth={1.75} />
       </Btn>
       <Btn
-        onClick={() => editor.chain().focus().redo().run()}
+        onClick={() => cmd(editor).redo().run()}
         title="Rehacer (⌘⇧Z)"
       >
         <Redo2 className="w-4 h-4" strokeWidth={1.75} />
       </Btn>
       <Sep />
       <Btn
-        onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+        onClick={() => cmd(editor).toggleHeading({ level: 1 }).run()}
         active={editor.isActive("heading", { level: 1 })}
         title="Título 1"
       >
         <Heading1 className="w-4 h-4" strokeWidth={1.75} />
       </Btn>
       <Btn
-        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+        onClick={() => cmd(editor).toggleHeading({ level: 2 }).run()}
         active={editor.isActive("heading", { level: 2 })}
         title="Título 2"
       >
         <Heading2 className="w-4 h-4" strokeWidth={1.75} />
       </Btn>
       <Btn
-        onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+        onClick={() => cmd(editor).toggleHeading({ level: 3 }).run()}
         active={editor.isActive("heading", { level: 3 })}
         title="Título 3"
       >
@@ -90,35 +90,35 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
       </Btn>
       <Sep />
       <Btn
-        onClick={() => editor.chain().focus().toggleBold().run()}
+        onClick={() => cmd(editor).toggleBold().run()}
         active={editor.isActive("bold")}
         title="Negrita (⌘B)"
       >
         <Bold className="w-4 h-4" strokeWidth={2} />
       </Btn>
       <Btn
-        onClick={() => editor.chain().focus().toggleItalic().run()}
+        onClick={() => cmd(editor).toggleItalic().run()}
         active={editor.isActive("italic")}
         title="Cursiva (⌘I)"
       >
         <Italic className="w-4 h-4" strokeWidth={1.75} />
       </Btn>
       <Btn
-        onClick={() => editor.chain().focus().toggleUnderline().run()}
+        onClick={() => cmd(editor).toggleUnderline().run()}
         active={editor.isActive("underline")}
         title="Subrayado (⌘U)"
       >
         <UnderlineIcon className="w-4 h-4" strokeWidth={1.75} />
       </Btn>
       <Btn
-        onClick={() => editor.chain().focus().toggleStrike().run()}
+        onClick={() => cmd(editor).toggleStrike().run()}
         active={editor.isActive("strike")}
         title="Tachado"
       >
         <Strikethrough className="w-4 h-4" strokeWidth={1.75} />
       </Btn>
       <Btn
-        onClick={() => editor.chain().focus().toggleHighlight().run()}
+        onClick={() => cmd(editor).toggleHighlight().run()}
         active={editor.isActive("highlight")}
         title="Resaltar"
       >
@@ -126,21 +126,21 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
       </Btn>
       <Sep />
       <Btn
-        onClick={() => editor.chain().focus().toggleBulletList().run()}
+        onClick={() => cmd(editor).toggleBulletList().run()}
         active={editor.isActive("bulletList")}
         title="Lista con viñetas"
       >
         <List className="w-4 h-4" strokeWidth={1.75} />
       </Btn>
       <Btn
-        onClick={() => editor.chain().focus().toggleOrderedList().run()}
+        onClick={() => cmd(editor).toggleOrderedList().run()}
         active={editor.isActive("orderedList")}
         title="Lista numerada"
       >
         <ListOrdered className="w-4 h-4" strokeWidth={1.75} />
       </Btn>
       <Btn
-        onClick={() => editor.chain().focus().toggleTaskList().run()}
+        onClick={() => cmd(editor).toggleTaskList().run()}
         active={editor.isActive("taskList")}
         title="Checklist"
       >
@@ -148,21 +148,21 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
       </Btn>
       <Sep />
       <Btn
-        onClick={() => editor.chain().focus().toggleBlockquote().run()}
+        onClick={() => cmd(editor).toggleBlockquote().run()}
         active={editor.isActive("blockquote")}
         title="Cita"
       >
         <Quote className="w-4 h-4" strokeWidth={1.75} />
       </Btn>
       <Btn
-        onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+        onClick={() => cmd(editor).toggleCodeBlock().run()}
         active={editor.isActive("codeBlock")}
         title="Bloque de código"
       >
         <Code className="w-4 h-4" strokeWidth={1.75} />
       </Btn>
       <Btn
-        onClick={() => editor.chain().focus().setHorizontalRule().run()}
+        onClick={() => cmd(editor).setHorizontalRule().run()}
         title="Separador"
       >
         <Minus className="w-4 h-4" strokeWidth={1.75} />
