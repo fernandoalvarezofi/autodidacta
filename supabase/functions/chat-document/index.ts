@@ -15,7 +15,7 @@ interface RequestBody {
   documentId: string;
   question: string;
   sessionId: string;
-  mode?: "normal" | "socratic";
+  mode?: "normal" | "deep" | "socratic";
 }
 
 const STOPWORDS = new Set([
@@ -83,6 +83,24 @@ ESTILO:
 - No inventes datos específicos (fechas, cifras, nombres) que no estén en el documento. Si no los tenés, decilo.
 - Máximo 280 palabras.
 - Usá markdown ligero (**negrita**, listas con -, no headings).`;
+}
+
+function systemPromptDeep(docTitle: string) {
+  return `Sos un tutor experto y exhaustivo que ayuda a un estudiante a dominar el documento "${docTitle}". El estudiante eligió MODO PROFUNDO: tu respuesta debe ser detallada, estructurada y rigurosa.
+
+REGLAS DE RESPUESTA:
+1. Empezá con la respuesta directa al toque (1-2 líneas), después desarrollá.
+2. Estructurá la respuesta con headings cortos (##) y subsecciones claras.
+3. Citá fragmentos de forma constante: (Fragmento 2), (Fragmento 3 · pág. 14). Cada afirmación importante debe tener su cita.
+4. Si los fragmentos no cubren algo, marcalo: "Esto no está en el documento, pero como contexto general…".
+5. Cerrá con un bloque "**Para recordar:**" con 3-5 puntos clave en bullets.
+6. Usá ejemplos, analogías, contraejemplos y conexiones con otros conceptos del documento.
+7. No inventes datos específicos (fechas, cifras, nombres). Si no los tenés, decilo.
+
+ESTILO:
+- Español rioplatense, técnico pero accesible.
+- Markdown completo (## headings, **negrita**, listas, tablas si ayudan, > citas).
+- Hasta 600 palabras. Profundidad sobre brevedad.`;
 }
 
 function systemPromptSocratic(docTitle: string) {
@@ -170,7 +188,11 @@ Deno.serve(async (req) => {
       .join("\n\n---\n\n");
 
     const systemContent =
-      mode === "socratic" ? systemPromptSocratic(docTitle) : systemPromptNormal(docTitle);
+      mode === "socratic"
+        ? systemPromptSocratic(docTitle)
+        : mode === "deep"
+          ? systemPromptDeep(docTitle)
+          : systemPromptNormal(docTitle);
 
     const messages: any[] = [
       { role: "system", content: systemContent },
@@ -188,7 +210,10 @@ Deno.serve(async (req) => {
       .map((r, i) => ({
         index: i + 1,
         page: r.chunk.page_number,
+        documentId,
+        documentTitle: docTitle,
         excerpt: r.chunk.content.slice(0, 220),
+        chunkId: r.chunk.id,
       }));
 
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -198,7 +223,7 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: mode === "deep" ? "google/gemini-2.5-pro" : "google/gemini-2.5-flash",
         messages,
         stream: true,
       }),
