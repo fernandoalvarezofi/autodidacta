@@ -21,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { ChatPanel } from "@/components/chat/ChatPanel";
 import { SourceUploader } from "@/components/document/SourceUploader";
+import { NotesList } from "@/components/editor/NotesList";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/notebook/$id")({
