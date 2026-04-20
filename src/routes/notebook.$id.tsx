@@ -236,7 +236,8 @@ function NotebookPage() {
                 </div>
                 <h3 className="font-display text-2xl font-semibold mb-2">Sin documentos todavía</h3>
                 <p className="text-sm text-ink/60 max-w-sm mx-auto">
-                  Subí tu primer PDF para generar resumen, flashcards y quiz automáticamente.
+                  Subí un PDF, Word, texto o pegá un link de YouTube. En segundos vas a tener
+                  resumen, flashcards y quiz.
                 </p>
               </div>
             ) : (
