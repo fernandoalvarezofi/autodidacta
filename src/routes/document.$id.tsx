@@ -39,7 +39,7 @@ interface DocumentRow {
   status: string;
 }
 
-type Tab = "chat" | "summary" | "mindmap" | "flashcards" | "quiz";
+type Tab = "chat" | "summary" | "mindmap" | "flashcards" | "quiz" | "generate";
 
 function DocumentPage() {
   const { id } = Route.useParams();
@@ -50,6 +50,9 @@ function DocumentPage() {
   const [flashcards, setFlashcards] = useState<FlashcardOutput[]>([]);
   const [quiz, setQuiz] = useState<QuizQuestion[]>([]);
   const [mindmap, setMindmap] = useState<MindmapContent | null>(null);
+  const [generated, setGenerated] = useState<
+    Partial<Record<GeneratedDocType, GeneratedContent>>
+  >({});
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>("chat");
   const [creatingNote, setCreatingNote] = useState(false);
@@ -116,6 +119,19 @@ function DocumentPage() {
         if (flash) setFlashcards(flash.content as unknown as FlashcardOutput[]);
         if (qz) setQuiz(qz.content as unknown as QuizQuestion[]);
         if (mm) setMindmap(mm.content as unknown as MindmapContent);
+
+        const genMap: Partial<Record<GeneratedDocType, GeneratedContent>> = {};
+        for (const o of outputs) {
+          if (
+            o.type === "study_guide" ||
+            o.type === "timeline" ||
+            o.type === "faq" ||
+            o.type === "business_plan"
+          ) {
+            genMap[o.type as GeneratedDocType] = o.content as unknown as GeneratedContent;
+          }
+        }
+        setGenerated(genMap);
       }
       setLoading(false);
     })();
@@ -130,7 +146,8 @@ function DocumentPage() {
   }
 
   // Tab activo: ¿necesita ancho amplio?
-  const wide = tab === "mindmap" || tab === "flashcards" || tab === "quiz";
+  const wide = tab === "mindmap" || tab === "flashcards" || tab === "quiz" || tab === "generate";
+  const generatedCount = Object.keys(generated).length;
 
   return (
     <DashboardShell>
@@ -178,6 +195,18 @@ function DocumentPage() {
                 label: "Quiz",
                 icon: <HelpCircle className="w-4 h-4" strokeWidth={1.75} />,
                 count: quiz.length,
+              },
+            ],
+          },
+          {
+            label: "Generador",
+            items: [
+              {
+                key: "generate",
+                label: "Documentos auto",
+                icon: <Wand2 className="w-4 h-4" strokeWidth={1.75} />,
+                count: generatedCount || undefined,
+                badge: generatedCount === 0 ? "Nuevo" : undefined,
               },
             ],
           },
