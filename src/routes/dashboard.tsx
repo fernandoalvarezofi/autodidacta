@@ -77,24 +77,35 @@ function DashboardPage() {
     );
   }
 
+  const greeting = getGreeting();
+  const firstName = (user.email ?? "").split("@")[0]?.split(/[._-]/)[0] ?? "";
+  const niceName = firstName ? firstName.charAt(0).toUpperCase() + firstName.slice(1) : "estudiante";
+
   return (
     <DashboardShell>
       <div className="container mx-auto px-6 lg:px-10 max-w-[1200px] py-12 relative">
         {/* Decorative radial glow */}
-        <div className="absolute top-0 right-0 w-[500px] h-[400px] -z-10 opacity-40 bg-radial-orange pointer-events-none" />
+        <div className="absolute top-0 right-0 w-[600px] h-[400px] -z-10 opacity-50 bg-radial-orange pointer-events-none" />
 
-        <div className="flex items-end justify-between mb-12 pb-6 border-b-2 border-ink animate-fade-up">
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-orange font-mono mb-3">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12 pb-8 border-b-2 border-ink animate-fade-up">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2.5 mb-3">
+              <span className="w-1.5 h-1.5 bg-orange rounded-full animate-pulse" />
+              <p className="text-[11px] uppercase tracking-[0.3em] text-orange font-mono">
+                {greeting}, {niceName}
+              </p>
+            </div>
+            <h1 className="font-display text-5xl md:text-6xl font-semibold tracking-tight leading-[1.05]">
               Tu biblioteca
-            </p>
-            <h1 className="font-display text-5xl md:text-6xl font-semibold tracking-tight">
-              Cuadernos
             </h1>
+            <p className="text-ink/60 mt-3 max-w-xl leading-relaxed">
+              Cada cuaderno es un universo de estudio. Subí material, generá flashcards, jugá quizzes
+              y conversá con tus apuntes.
+            </p>
           </div>
           <button
             onClick={() => setShowCreate(true)}
-            className="group inline-flex items-center gap-2 px-5 py-3 text-sm font-medium bg-gradient-ink text-paper hover:shadow-orange transition-all active:scale-95"
+            className="group inline-flex items-center gap-2 px-5 py-3 text-sm font-medium bg-gradient-ink text-paper hover:shadow-orange transition-all active:scale-95 self-start md:self-auto rounded-md whitespace-nowrap"
           >
             <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" strokeWidth={2} />
             Nuevo cuaderno
@@ -166,6 +177,14 @@ function DashboardPage() {
       </div>
     </DashboardShell>
   );
+}
+
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 6) return "Madrugada";
+  if (h < 12) return "Buen día";
+  if (h < 19) return "Buenas tardes";
+  return "Buenas noches";
 }
 
 function NotebookCard({ notebook }: { notebook: NotebookRow }) {
