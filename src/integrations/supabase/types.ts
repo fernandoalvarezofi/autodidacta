@@ -769,6 +769,10 @@ export type Database = {
         | "quiz"
         | "transcript"
         | "glossary"
+        | "study_guide"
+        | "timeline"
+        | "faq"
+        | "business_plan"
       quiz_room_status: "lobby" | "active" | "finished"
       user_plan: "free" | "pro" | "teams"
     }
@@ -922,6 +926,10 @@ export const Constants = {
         "quiz",
         "transcript",
         "glossary",
+        "study_guide",
+        "timeline",
+        "faq",
+        "business_plan",
       ],
       quiz_room_status: ["lobby", "active", "finished"],
       user_plan: ["free", "pro", "teams"],
