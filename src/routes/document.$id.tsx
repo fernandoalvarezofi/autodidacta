@@ -80,22 +80,35 @@ function DocumentPage() {
 
   return (
     <DashboardShell>
-      <div className="container mx-auto px-6 lg:px-10 max-w-[1100px] py-10">
+      <div className="container mx-auto px-6 lg:px-10 max-w-[1100px] py-10 relative">
+        <div className="absolute top-0 right-0 w-[400px] h-[300px] -z-10 opacity-30 bg-radial-orange pointer-events-none" />
+
         <Link
           to="/notebook/$id"
           params={{ id: doc.notebook_id }}
-          className="inline-flex items-center gap-2 text-sm text-ink/60 hover:text-ink mb-6 transition-colors"
+          className="inline-flex items-center gap-2 text-sm text-ink/60 hover:text-ink mb-6 transition-colors group"
         >
-          <ArrowLeft className="w-4 h-4" strokeWidth={1.75} />
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" strokeWidth={1.75} />
           Volver al cuaderno
         </Link>
 
-        <div className="pb-6 mb-8 border-b-2 border-ink">
-          <p className="text-xs uppercase tracking-[0.3em] text-orange font-mono mb-3">Documento</p>
-          <h1 className="font-display text-4xl font-semibold tracking-tight">{doc.title}</h1>
+        <div className="pb-8 mb-10 border-b-2 border-ink animate-fade-up">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.25em] text-orange font-mono">
+              <span className="w-1 h-1 bg-orange rounded-full animate-pulse" />
+              Documento
+            </span>
+            <span className="text-xs font-mono text-ink/40">·</span>
+            <span className="text-xs font-mono uppercase tracking-wider text-ink/50">
+              Listo para estudiar
+            </span>
+          </div>
+          <h1 className="font-display text-4xl md:text-5xl font-semibold tracking-tight leading-tight">
+            {doc.title}
+          </h1>
         </div>
 
-        <div className="flex gap-1 mb-8 border-b border-border overflow-x-auto">
+        <div className="flex gap-1 mb-10 border-b border-border overflow-x-auto sticky top-16 bg-paper/85 backdrop-blur-xl z-30 -mx-6 px-6 lg:-mx-10 lg:px-10">
           <TabButton
             active={tab === "summary"}
             onClick={() => setTab("summary")}
@@ -107,40 +120,45 @@ function DocumentPage() {
             active={tab === "flashcards"}
             onClick={() => setTab("flashcards")}
             icon={<Layers className="w-4 h-4" strokeWidth={1.75} />}
+            count={flashcards.length}
           >
-            Flashcards ({flashcards.length})
+            Flashcards
           </TabButton>
           <TabButton
             active={tab === "quiz"}
             onClick={() => setTab("quiz")}
             icon={<HelpCircle className="w-4 h-4" strokeWidth={1.75} />}
+            count={quiz.length}
           >
-            Quiz ({quiz.length})
+            Quiz
           </TabButton>
           <TabButton
             active={tab === "chat"}
             onClick={() => setTab("chat")}
             icon={<MessagesSquare className="w-4 h-4" strokeWidth={1.75} />}
+            highlight
           >
             Chat
           </TabButton>
         </div>
 
-        {tab === "summary" && (
-          <article className="prose-academic">
-            {summary ? (
-              <SummaryRender markdown={summary} />
-            ) : (
-              <p className="text-ink/50 text-sm">No hay resumen disponible.</p>
-            )}
-          </article>
-        )}
+        <div className="animate-fade-in" key={tab}>
+          {tab === "summary" && (
+            <article className="prose-academic">
+              {summary ? (
+                <SummaryRender markdown={summary} />
+              ) : (
+                <p className="text-ink/50 text-sm">No hay resumen disponible.</p>
+              )}
+            </article>
+          )}
 
-        {tab === "flashcards" && <FlashcardDeck cards={flashcards} />}
+          {tab === "flashcards" && <FlashcardDeck cards={flashcards} />}
 
-        {tab === "quiz" && <QuizRunner questions={quiz} />}
+          {tab === "quiz" && <QuizRunner questions={quiz} />}
 
-        {tab === "chat" && <DocumentChat documentId={doc.id} />}
+          {tab === "chat" && <DocumentChat documentId={doc.id} />}
+        </div>
       </div>
     </DashboardShell>
   );
@@ -151,23 +169,39 @@ function TabButton({
   onClick,
   children,
   icon,
+  count,
+  highlight,
 }: {
   active: boolean;
   onClick: () => void;
   children: React.ReactNode;
   icon: React.ReactNode;
+  count?: number;
+  highlight?: boolean;
 }) {
   return (
     <button
       onClick={onClick}
-      className={`inline-flex items-center gap-2 px-4 py-3 text-sm transition-colors -mb-px border-b-2 whitespace-nowrap ${
+      className={`inline-flex items-center gap-2 px-4 py-3 text-sm transition-all -mb-px border-b-2 whitespace-nowrap relative ${
         active
           ? "border-orange text-ink font-medium"
-          : "border-transparent text-ink/60 hover:text-ink"
+          : "border-transparent text-ink/60 hover:text-ink hover:bg-cream/40"
       }`}
     >
-      {icon}
+      <span className={active ? "text-orange" : ""}>{icon}</span>
       {children}
+      {count !== undefined && (
+        <span
+          className={`text-[10px] font-mono px-1.5 py-0.5 rounded-sm ${
+            active ? "bg-orange/15 text-orange-deep" : "bg-cream text-ink/50"
+          }`}
+        >
+          {count}
+        </span>
+      )}
+      {highlight && !active && (
+        <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-orange rounded-full animate-pulse" />
+      )}
     </button>
   );
 }
