@@ -1,16 +1,17 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-  ArrowLeft,
   Loader2,
   FileText,
   Files,
   MessagesSquare,
   NotebookPen,
+  LayoutDashboard,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { WorkspaceLayout } from "@/components/workspace/WorkspaceLayout";
 import { ChatPanel } from "@/components/chat/ChatPanel";
 import { SourceUploader } from "@/components/document/SourceUploader";
 import { NotesList } from "@/components/editor/NotesList";
@@ -32,6 +33,8 @@ interface Notebook {
   created_at: string;
 }
 
+type Tab = "chat" | "overview" | "documents" | "notes";
+
 function NotebookPage() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
@@ -39,7 +42,7 @@ function NotebookPage() {
   const [notebook, setNotebook] = useState<Notebook | null>(null);
   const [documents, setDocuments] = useState<DocumentRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"documents" | "notes" | "chat">("documents");
+  const [tab, setTab] = useState<Tab>("chat");
 
   const readyDocsCount = documents.filter((d) => d.status === "ready").length;
   const processingCount = documents.filter((d) =>
@@ -124,76 +127,115 @@ function NotebookPage() {
     );
   }
 
+  const wide = tab === "overview" || tab === "documents" || tab === "notes";
+
   return (
     <DashboardShell>
-      <div className="container mx-auto px-6 lg:px-10 max-w-[1200px] py-8 relative">
-        {/* Breadcrumb editorial */}
-        <nav className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-[0.18em] text-ink/40 mb-6 animate-fade-in">
-          <Link
-            to="/dashboard"
-            className="hover:text-orange transition-colors inline-flex items-center gap-1.5 group"
-          >
-            <ArrowLeft className="w-3 h-3 group-hover:-translate-x-0.5 transition-transform" strokeWidth={2} />
-            Biblioteca
-          </Link>
-          <span className="text-ink/25">/</span>
-          <span className="text-ink/60 truncate max-w-[300px]">{notebook.title}</span>
-        </nav>
+      <WorkspaceLayout
+        title={notebook.title}
+        eyebrow="Cuaderno"
+        emoji={notebook.emoji ?? "📓"}
+        backTo={{ to: "/dashboard", label: "Biblioteca" }}
+        groups={[
+          {
+            items: [
+              {
+                key: "chat",
+                label: "Chat del cuaderno",
+                icon: <MessagesSquare className="w-4 h-4" strokeWidth={1.75} />,
+                badge: "IA",
+              },
+              {
+                key: "overview",
+                label: "Resumen del cuaderno",
+                icon: <LayoutDashboard className="w-4 h-4" strokeWidth={1.75} />,
+              },
+            ],
+          },
+          {
+            label: "Contenido",
+            items: [
+              {
+                key: "documents",
+                label: "Documentos",
+                icon: <Files className="w-4 h-4" strokeWidth={1.75} />,
+                count: documents.length,
+              },
+              {
+                key: "notes",
+                label: "Notas",
+                icon: <NotebookPen className="w-4 h-4" strokeWidth={1.75} />,
+              },
+            ],
+          },
+        ]}
+        activeKey={tab}
+        onItemSelect={(k) => setTab(k as Tab)}
+        wide={wide}
+      >
+        {tab === "chat" && (
+          <div className="h-full">
+            {readyDocsCount === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-center p-10">
+                <div className="inline-flex items-center justify-center w-14 h-14 mb-5 bg-cream/60 border border-border rounded-md">
+                  <MessagesSquare className="w-6 h-6 text-ink/40" strokeWidth={1.5} />
+                </div>
+                <h3 className="font-display text-2xl font-semibold mb-2">
+                  Todavía no hay nada para chatear
+                </h3>
+                <p className="text-sm text-ink/60 max-w-sm">
+                  Subí al menos un PDF y esperá a que termine de procesarse para conversar con el
+                  contenido de todo el cuaderno.
+                </p>
+                <button
+                  onClick={() => setTab("documents")}
+                  className="mt-6 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-ink text-paper hover:bg-ink/90 transition-colors rounded-md"
+                >
+                  Subir documento
+                </button>
+              </div>
+            ) : (
+              <ChatPanel
+                scope="notebook"
+                contextId={id}
+                variant="fullheight"
+                suggestions={[
+                  "¿De qué trata este cuaderno en general?",
+                  "Resumime las ideas principales de todos los documentos",
+                  "Compará los conceptos clave entre los documentos",
+                ]}
+              />
+            )}
+          </div>
+        )}
 
-        {/* Hero editorial con cover ilustrado */}
-        <NotebookHero
-          title={notebook.title}
-          description={notebook.description}
-          emoji={notebook.emoji ?? "📓"}
-          coverColor={notebook.cover_color}
-          createdAt={notebook.created_at}
-          documentsCount={documents.length}
-          readyDocsCount={readyDocsCount}
-          notebookId={id}
-        />
-
-        {/* Stats */}
-        <NotebookStats
-          notebookId={id}
-          documentsCount={documents.length}
-          readyDocsCount={readyDocsCount}
-          processingCount={processingCount}
-        />
-
-        {/* Tabs */}
-        <div
-          className="flex gap-1 mb-8 border-b border-border animate-fade-up sticky top-16 bg-paper/85 backdrop-blur-xl z-20 -mx-6 px-6 lg:-mx-10 lg:px-10"
-          style={{ animationDelay: "120ms" }}
-        >
-          <TabBtn
-            active={tab === "documents"}
-            onClick={() => setTab("documents")}
-            icon={<Files className="w-4 h-4" strokeWidth={1.75} />}
-            label="Documentos"
-            count={documents.length}
-          />
-          <TabBtn
-            active={tab === "notes"}
-            onClick={() => setTab("notes")}
-            icon={<NotebookPen className="w-4 h-4" strokeWidth={1.75} />}
-            label="Notas"
-          />
-          <TabBtn
-            active={tab === "chat"}
-            onClick={() => setTab("chat")}
-            icon={<MessagesSquare className="w-4 h-4" strokeWidth={1.75} />}
-            label="Chat del cuaderno"
-          />
-        </div>
+        {tab === "overview" && (
+          <div className="container mx-auto px-6 lg:px-10 max-w-[1100px] py-8">
+            <NotebookHero
+              title={notebook.title}
+              description={notebook.description}
+              emoji={notebook.emoji ?? "📓"}
+              coverColor={notebook.cover_color}
+              createdAt={notebook.created_at}
+              documentsCount={documents.length}
+              readyDocsCount={readyDocsCount}
+              notebookId={id}
+            />
+            <NotebookStats
+              notebookId={id}
+              documentsCount={documents.length}
+              readyDocsCount={readyDocsCount}
+              processingCount={processingCount}
+            />
+          </div>
+        )}
 
         {tab === "documents" && (
-          <div className="animate-fade-up" style={{ animationDelay: "160ms" }}>
-            {/* Upload area */}
+          <div className="container mx-auto px-6 lg:px-10 max-w-[1100px] py-8 animate-fade-up">
             <div className="mb-10">
               <SourceUploader notebookId={id} onUploaded={loadDocuments} />
             </div>
 
-            {/* Documents grid */}
             {documents.length === 0 ? (
               <div className="border-2 border-dashed border-border py-16 text-center bg-cream/20 rounded-lg animate-fade-up">
                 <div className="inline-flex items-center justify-center w-14 h-14 mb-5 bg-paper border border-border rounded-md">
@@ -208,9 +250,7 @@ function NotebookPage() {
             ) : (
               <div>
                 <div className="flex items-end justify-between mb-5">
-                  <h2 className="font-display text-2xl font-semibold tracking-tight">
-                    Documentos
-                  </h2>
+                  <h2 className="font-display text-2xl font-semibold tracking-tight">Documentos</h2>
                   <p className="text-xs font-mono uppercase tracking-[0.2em] text-ink/40">
                     {documents.length} {documents.length === 1 ? "archivo" : "archivos"}
                   </p>
@@ -226,77 +266,11 @@ function NotebookPage() {
         )}
 
         {tab === "notes" && (
-          <div className="animate-fade-up" style={{ animationDelay: "160ms" }}>
+          <div className="container mx-auto px-6 lg:px-10 max-w-[1100px] py-8 animate-fade-up">
             <NotesList notebookId={id} />
           </div>
         )}
-
-        {tab === "chat" && (
-          <div className="animate-fade-up max-w-3xl mx-auto h-[calc(100vh-360px)] min-h-[480px]">
-            {readyDocsCount === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center border-2 border-dashed border-border p-10 bg-cream/20 rounded-lg">
-                <div className="inline-flex items-center justify-center w-14 h-14 mb-5 bg-paper border border-border rounded-md">
-                  <MessagesSquare className="w-6 h-6 text-ink/40" strokeWidth={1.5} />
-                </div>
-                <h3 className="font-display text-2xl font-semibold mb-2">
-                  Todavía no hay nada para chatear
-                </h3>
-                <p className="text-sm text-ink/60 max-w-sm">
-                  Subí al menos un PDF y esperá a que termine de procesarse para conversar con el
-                  contenido de todo el cuaderno.
-                </p>
-              </div>
-            ) : (
-              <ChatPanel
-                scope="notebook"
-                contextId={id}
-                suggestions={[
-                  "¿De qué trata este cuaderno en general?",
-                  "Resumime las ideas principales de todos los documentos",
-                  "Compará los conceptos clave entre los documentos",
-                ]}
-              />
-            )}
-          </div>
-        )}
-      </div>
+      </WorkspaceLayout>
     </DashboardShell>
-  );
-}
-
-function TabBtn({
-  active,
-  onClick,
-  icon,
-  label,
-  count,
-}: {
-  active: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-  label: string;
-  count?: number;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`inline-flex items-center gap-2 px-4 py-3 text-sm transition-all -mb-px border-b-2 whitespace-nowrap ${
-        active
-          ? "border-orange text-ink font-medium"
-          : "border-transparent text-ink/50 hover:text-ink"
-      }`}
-    >
-      <span className={active ? "text-orange" : ""}>{icon}</span>
-      {label}
-      {count !== undefined && (
-        <span
-          className={`text-[10px] font-mono px-1.5 py-0.5 rounded-sm ${
-            active ? "bg-orange/15 text-orange-deep" : "bg-cream text-ink/50"
-          }`}
-        >
-          {count}
-        </span>
-      )}
-    </button>
   );
 }
