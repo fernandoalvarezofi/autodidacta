@@ -15,6 +15,7 @@ import {
   MessagesSquare,
   CheckCircle2,
   Clock,
+  NotebookPen,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,7 +54,7 @@ function NotebookPage() {
   const [notebook, setNotebook] = useState<Notebook | null>(null);
   const [documents, setDocuments] = useState<DocumentRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"documents" | "chat">("documents");
+  const [tab, setTab] = useState<"documents" | "notes" | "chat">("documents");
 
   const readyDocsCount = documents.filter((d) => d.status === "ready").length;
   const processingCount = documents.filter((d) =>
@@ -215,6 +216,17 @@ function NotebookPage() {
             <span className="text-xs font-mono text-ink/40">({documents.length})</span>
           </button>
           <button
+            onClick={() => setTab("notes")}
+            className={`inline-flex items-center gap-2 px-4 py-3 text-sm transition-all -mb-px border-b-2 ${
+              tab === "notes"
+                ? "border-orange text-ink font-medium"
+                : "border-transparent text-ink/50 hover:text-ink"
+            }`}
+          >
+            <NotebookPen className="w-4 h-4" strokeWidth={1.75} />
+            Notas
+          </button>
+          <button
             onClick={() => setTab("chat")}
             className={`inline-flex items-center gap-2 px-4 py-3 text-sm transition-all -mb-px border-b-2 ${
               tab === "chat"
@@ -226,6 +238,12 @@ function NotebookPage() {
             Chat del cuaderno
           </button>
         </div>
+
+        {tab === "notes" && (
+          <div className="animate-fade-up" style={{ animationDelay: "120ms" }}>
+            <NotesList notebookId={id} />
+          </div>
+        )}
 
         {tab === "documents" && (
           <div className="animate-fade-up" style={{ animationDelay: "120ms" }}>
