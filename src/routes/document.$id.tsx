@@ -24,6 +24,7 @@ import {
   type GeneratedDocType,
   type GeneratedContent,
 } from "@/components/document/GeneratedDocPanel";
+import { ExportButton } from "@/components/ui/ExportButton";
 import { createNote } from "@/lib/notes";
 import { getTemplate } from "@/lib/note-templates";
 import { toast } from "sonner";
@@ -233,6 +234,16 @@ function DocumentPage() {
 
         {tab === "summary" && (
           <div className="py-8 overflow-y-auto h-full">
+            {summary && (
+              <div className="flex items-center justify-end mb-4 -mt-4">
+                <ExportButton
+                  variant="compact"
+                  title={`Resumen — ${doc.title}`}
+                  filename={`resumen-${doc.title}`}
+                  content={{ kind: "markdown", markdown: summary }}
+                />
+              </div>
+            )}
             <article className="prose-academic">
               {summary ? (
                 <SummaryRender markdown={summary} />
