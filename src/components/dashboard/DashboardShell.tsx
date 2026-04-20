@@ -32,7 +32,17 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const isOnPlay = location.pathname.startsWith("/play");
 
   return (
-    <div className="min-h-screen bg-paper text-ink">
+    <div className="relative min-h-screen bg-paper text-ink">
+      {/* Fondo cuadriculado sutil, fijo, no interfiere con scroll ni clicks */}
+      <div className="fixed inset-0 -z-10 bg-grid-app pointer-events-none" aria-hidden />
+      <div
+        className="fixed inset-0 -z-10 pointer-events-none"
+        aria-hidden
+        style={{
+          background:
+            "radial-gradient(ellipse 80% 60% at 50% 0%, oklch(98% 0.02 80 / 0.7), transparent 70%)",
+        }}
+      />
       <header className="sticky top-0 z-40 bg-paper/75 backdrop-blur-xl border-b border-border">
         <div className="container mx-auto px-5 lg:px-8 max-w-[1240px] h-14 flex items-center justify-between gap-4">
           <Link to="/" className="group flex items-center gap-2 flex-shrink-0" title="Ir a la página principal">
