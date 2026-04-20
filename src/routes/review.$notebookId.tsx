@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { applySM2, RATING_LABELS, type SM2State } from "@/lib/sm2";
+import { awardXp, XP } from "@/lib/gamification";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/review/$notebookId")({
