@@ -371,6 +371,49 @@
   font-style: italic;
 }
 
+/* === 3D card flip utilities === */
+.perspective-1000 {
+  perspective: 1500px;
+}
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+.backface-hidden {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+/* === Quiz feedback animations === */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+.animate-shake {
+  animation: shake 0.42s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes correct-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.03); box-shadow: 0 0 0 8px oklch(64% 0.16 45 / 0.15); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 oklch(64% 0.16 45 / 0); }
+}
+.animate-correct-pop {
+  animation: correct-pop 0.6s ease-out both;
+}
+
+@keyframes confetti-pop {
+  0% { transform: scale(0) rotate(0deg); opacity: 0; }
+  50% { transform: scale(1.2) rotate(180deg); opacity: 1; }
+  100% { transform: scale(1) rotate(360deg); opacity: 1; }
+}
+.animate-confetti {
+  animation: confetti-pop 0.6s ease-out both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
