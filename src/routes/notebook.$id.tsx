@@ -10,10 +10,13 @@ import {
   RotateCcw,
   Trash2,
   Sparkles,
+  Files,
+  MessagesSquare,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { ChatPanel } from "@/components/chat/ChatPanel";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/notebook/$id")({
@@ -45,7 +48,10 @@ function NotebookPage() {
   const [documents, setDocuments] = useState<DocumentRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [tab, setTab] = useState<"documents" | "chat">("documents");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const readyDocsCount = documents.filter((d) => d.status === "ready").length;
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/auth" });
