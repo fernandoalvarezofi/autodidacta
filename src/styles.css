@@ -257,10 +257,10 @@
 }
 
 /* Glow halo (Vercel-style) */
-@utility halo-orange {
+.halo-orange {
   position: relative;
 }
-@utility halo-orange::before {
+.halo-orange::before {
   content: "";
   position: absolute;
   inset: -1px;
@@ -270,7 +270,7 @@
   opacity: 0;
   transition: opacity 0.3s;
 }
-@utility halo-orange:hover::before {
+.halo-orange:hover::before {
   opacity: 1;
 }
 
