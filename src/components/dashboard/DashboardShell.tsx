@@ -124,7 +124,7 @@ function NavLink({
   children,
   active,
 }: {
-  to: "/dashboard" | "/play";
+  to: "/" | "/dashboard" | "/play";
   icon: ReactNode;
   children: ReactNode;
   active?: boolean;
