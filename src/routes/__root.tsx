@@ -29,14 +29,33 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      {
+        title:
+          "Autodidactas — Convertí cualquier cosa en conocimiento",
+      },
+      {
+        name: "description",
+        content:
+          "PDF, audio, video, manuscrito — en segundos tenés tu resumen, flashcards y quiz listos para estudiar como nunca antes.",
+      },
+      { name: "author", content: "Autodidactas" },
+      { name: "theme-color", content: "#1a1230" },
+      {
+        property: "og:title",
+        content: "Autodidactas — Estudiá como nunca antes",
+      },
+      {
+        property: "og:description",
+        content:
+          "Plataforma de estudio activo con IA: convertí cualquier formato en herramientas de estudio. Resúmenes, flashcards SM-2, quiz competitivo y más.",
+      },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Autodidactas" },
+      {
+        name: "twitter:description",
+        content: "Convertí cualquier cosa en conocimiento.",
+      },
     ],
     links: [
       {
