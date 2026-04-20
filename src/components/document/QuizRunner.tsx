@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Check, X, ChevronRight, RotateCw, Trophy } from "lucide-react";
+import { awardXp, XP } from "@/lib/gamification";
 
 export interface QuizQuestion {
   question: string;
