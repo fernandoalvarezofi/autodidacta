@@ -18,6 +18,8 @@ interface Props {
   onSelect: (session: ChatSession) => void;
   onCreated: (session: ChatSession) => void;
   refreshKey?: number;
+  /** Cuando true, no renderiza el contenedor exterior (border/bg) — pensado para drawers */
+  embedded?: boolean;
 }
 
 export function ChatSessionsSidebar({
@@ -27,6 +29,7 @@ export function ChatSessionsSidebar({
   onSelect,
   onCreated,
   refreshKey = 0,
+  embedded = false,
 }: Props) {
   const { user } = useAuth();
   const [sessions, setSessions] = useState<ChatSession[]>([]);
@@ -105,7 +108,13 @@ export function ChatSessionsSidebar({
   };
 
   return (
-    <aside className="w-full md:w-64 flex-shrink-0 flex flex-col bg-paper border border-border rounded-lg overflow-hidden">
+    <aside
+      className={
+        embedded
+          ? "w-full h-full flex flex-col"
+          : "w-full md:w-64 flex-shrink-0 flex flex-col bg-paper border border-border rounded-lg overflow-hidden"
+      }
+    >
       <div className="p-3 border-b border-border flex items-center justify-between">
         <h3 className="text-[11px] font-mono uppercase tracking-[0.18em] text-ink/60">
           Conversaciones
