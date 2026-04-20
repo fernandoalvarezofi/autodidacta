@@ -22,9 +22,13 @@ import {
   Quote as QuoteIcon,
   Bold as BoldIcon,
   Italic as ItalicIcon,
+  Plus,
 } from "lucide-react";
 import { EditorToolbar } from "./EditorToolbar";
 import { FlashcardFromSelection } from "./FlashcardFromSelection";
+import { SlashCommandMenu } from "./SlashCommandMenu";
+import { useSlashCommands } from "@/hooks/use-slash-commands";
+import { useEditorBlockHover } from "@/hooks/use-editor-block-hover";
 import { updateNote, deleteNote, type NoteRow } from "@/lib/notes";
 import { exportNoteAsPdf, exportNoteAsPng, safeFilename } from "@/lib/note-export";
 import { toast } from "sonner";
