@@ -18,7 +18,10 @@ interface LineHover {
  *
  * Solo aparece cuando el bloque hovereado es un párrafo vacío.
  */
-export function useEditorBlockHover(editor: Editor | null, containerRef: React.RefObject<HTMLElement>) {
+export function useEditorBlockHover(
+  editor: Editor | null,
+  containerRef: React.RefObject<HTMLElement | null>,
+) {
   const [hover, setHover] = useState<LineHover | null>(null);
   const lastUpdateRef = useRef(0);
 
