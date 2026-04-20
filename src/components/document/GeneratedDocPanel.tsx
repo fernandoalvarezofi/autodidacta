@@ -3,6 +3,8 @@ import { Loader2, BookMarked, Clock, MessageCircleQuestion, Briefcase, Sparkles 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { SummaryRender } from "./SummaryRender";
+import { ExportButton } from "@/components/ui/ExportButton";
+import { asExportable } from "@/lib/document-export";
 
 export type GeneratedDocType = "study_guide" | "timeline" | "faq" | "business_plan";
 
@@ -167,22 +169,30 @@ export function GeneratedDocPanel({ documentId, initialOutputs }: Props) {
         {/* Render del activo */}
         {active && outputs[active] && (
           <div className="border-t border-border pt-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
               <h3 className="font-display text-2xl text-ink">
                 {DEFS.find((d) => d.key === active)?.label}
               </h3>
-              <button
-                onClick={() => generate(active)}
-                disabled={!!loading}
-                className="text-xs font-medium text-ink/60 hover:text-ink inline-flex items-center gap-1.5 disabled:opacity-50"
-              >
-                {loading === active ? (
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                ) : (
-                  <Sparkles className="w-3 h-3" />
-                )}
-                Regenerar
-              </button>
+              <div className="flex items-center gap-2">
+                <ExportButton
+                  variant="compact"
+                  title={DEFS.find((d) => d.key === active)?.label ?? "Documento"}
+                  filename={DEFS.find((d) => d.key === active)?.label ?? "documento"}
+                  content={asExportable(active, outputs[active])}
+                />
+                <button
+                  onClick={() => generate(active)}
+                  disabled={!!loading}
+                  className="text-xs font-medium text-ink/60 hover:text-ink inline-flex items-center gap-1.5 disabled:opacity-50 px-2.5 py-1.5 hover:bg-cream/60 rounded-md transition-colors"
+                >
+                  {loading === active ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-3 h-3" />
+                  )}
+                  Regenerar
+                </button>
+              </div>
             </div>
             <RenderOutput type={active} content={outputs[active]!} />
           </div>
