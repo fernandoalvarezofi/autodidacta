@@ -223,57 +223,9 @@ function NotebookPage() {
 
         {tab === "documents" && (
           <div className="animate-fade-up" style={{ animationDelay: "120ms" }}>
-            {/* Upload area */}
+            {/* Upload area — multi-source */}
             <div className="mb-10">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="application/pdf"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setDragActive(true);
-                }}
-                onDragLeave={() => setDragActive(false)}
-                onDrop={handleDrop}
-                disabled={uploading}
-                className={`relative w-full border-2 border-dashed transition-all py-14 text-center group overflow-hidden ${
-                  dragActive
-                    ? "border-orange bg-orange/5 scale-[1.01]"
-                    : "border-border hover:border-ink hover:bg-cream/40"
-                } ${uploading ? "opacity-60 pointer-events-none" : ""}`}
-              >
-                {/* Subtle glow on hover */}
-                <div className="absolute inset-0 bg-gradient-warm opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none" />
-
-                <div className="relative">
-                  {uploading ? (
-                    <>
-                      <Loader2 className="w-8 h-8 mx-auto mb-4 animate-spin text-orange" />
-                      <p className="font-display text-base text-ink mb-1">Subiendo tu PDF...</p>
-                      <p className="text-xs text-ink/50 font-mono uppercase tracking-wider">
-                        Esto toma unos segundos
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <div className="inline-flex items-center justify-center w-14 h-14 mb-4 bg-gradient-orange shadow-orange rounded-full group-hover:scale-110 transition-transform">
-                        <Upload className="w-6 h-6 text-paper" strokeWidth={2} />
-                      </div>
-                      <p className="font-display text-xl font-medium text-ink mb-1.5">
-                        {dragActive ? "Soltá para subir" : "Arrastrá tu PDF acá"}
-                      </p>
-                      <p className="text-xs text-ink/50 font-mono uppercase tracking-wider">
-                        o hacé click · Máx 10MB · Procesamiento automático
-                      </p>
-                    </>
-                  )}
-                </div>
-              </button>
+              <SourceUploader notebookId={id} onUploaded={loadDocuments} />
             </div>
 
             {/* Documents list */}
