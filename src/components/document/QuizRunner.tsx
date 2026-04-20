@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react";
-import { Check, X, ChevronRight, RotateCw, Trophy, Sparkles, Award } from "lucide-react";
+import { Check, X, ChevronRight, RotateCw, Trophy, Sparkles, Award, Users, Loader2 } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 import { awardXp, XP } from "@/lib/gamification";
+import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/integrations/supabase/client";
+import { createRoom } from "@/lib/quiz-room";
+import { toast } from "sonner";
 
 export interface QuizQuestion {
   question: string;
@@ -9,7 +14,54 @@ export interface QuizQuestion {
   explanation: string;
 }
 
-export function QuizRunner({ questions }: { questions: QuizQuestion[] }) {
+interface QuizRunnerProps {
+  questions: QuizQuestion[];
+  documentId?: string;
+  documentTitle?: string;
+}
+
+export function QuizRunner({ questions, documentId, documentTitle }: QuizRunnerProps) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [creatingRoom, setCreatingRoom] = useState(false);
+
+  const handleCreateRoom = async () => {
+    if (!user || !documentId || questions.length === 0) return;
+    setCreatingRoom(true);
+    try {
+      const { data: out } = await supabase
+        .from("document_outputs")
+        .select("id, document_id")
+        .eq("document_id", documentId)
+        .eq("type", "quiz")
+        .maybeSingle();
+      const { data: doc } = await supabase
+        .from("documents")
+        .select("notebook_id")
+        .eq("id", documentId)
+        .maybeSingle();
+
+      if (!out) {
+        toast.error("No se encontró el quiz");
+        return;
+      }
+
+      const room = await createRoom({
+        hostUserId: user.id,
+        quizOutputId: out.id,
+        documentId,
+        notebookId: doc?.notebook_id ?? null,
+        quizTitle: documentTitle ?? "Quiz",
+        questions,
+      });
+      toast.success(`Sala creada: ${room.code}`);
+      navigate({ to: "/play/$roomId", params: { roomId: room.id } });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo crear la sala");
+    } finally {
+      setCreatingRoom(false);
+    }
+  };
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [answers, setAnswers] = useState<number[]>([]);
