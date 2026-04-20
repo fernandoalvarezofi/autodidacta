@@ -165,9 +165,8 @@ export function WorkspaceLayout({
         {backTo && !collapsed && (
           <div className="border-t border-border/60 p-2.5">
             <Link
-              // @ts-expect-error dynamic route
-              to={backTo.to}
-              params={backTo.params}
+              to={backTo.to as string}
+              params={backTo.params as never}
               className="flex items-center gap-2 px-2.5 py-2 text-xs text-ink/55 hover:text-ink hover:bg-paper/70 rounded-md transition-colors group"
             >
               <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" strokeWidth={1.75} />
