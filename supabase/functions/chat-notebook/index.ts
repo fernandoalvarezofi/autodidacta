@@ -15,7 +15,7 @@ interface RequestBody {
   notebookId: string;
   question: string;
   sessionId: string;
-  mode?: "normal" | "socratic";
+  mode?: "normal" | "deep" | "socratic";
 }
 
 const STOPWORDS = new Set([
@@ -106,6 +106,24 @@ ESTILO:
 - Español rioplatense, cálido y paciente.
 - Preguntas cortas, claras, abiertas.
 - Markdown ligero. Máximo 150 palabras.`;
+}
+
+function systemDeep(nbTitle: string, count: number, titles: string) {
+  return `Sos un tutor experto y exhaustivo que ayuda a un estudiante a dominar el cuaderno "${nbTitle}" (${count} documento${count === 1 ? "" : "s"}: ${titles}). El estudiante eligió MODO PROFUNDO: respuesta detallada, estructurada y rigurosa.
+
+REGLAS:
+1. Respuesta directa al toque (1-2 líneas), después desarrollo.
+2. Estructurá con headings cortos (##) y subsecciones.
+3. Citá constantemente: (Fragmento 2 · "Documento X"). Cada afirmación clave con su cita.
+4. Si algo no está en los fragmentos, marcalo: "Esto no está en el cuaderno, pero como contexto general…".
+5. Cerrá con bloque "**Para recordar:**" con 3-5 bullets.
+6. Usá ejemplos, analogías, contraejemplos y conexiones cruzadas entre documentos cuando aplique.
+7. No inventes datos específicos.
+
+ESTILO:
+- Español rioplatense, técnico pero accesible.
+- Markdown completo (## headings, **negrita**, listas, > citas).
+- Hasta 600 palabras.`;
 }
 
 Deno.serve(async (req) => {
