@@ -328,7 +328,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      award_xp: {
+        Args: { _amount: number }
+        Returns: {
+          level: string
+          streak_days: number
+          xp: number
+        }[]
+      }
     }
     Enums: {
       document_status:
