@@ -52,10 +52,7 @@ function NotebookPage() {
   const [notebook, setNotebook] = useState<Notebook | null>(null);
   const [documents, setDocuments] = useState<DocumentRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
   const [tab, setTab] = useState<"documents" | "chat">("documents");
-  const [dragActive, setDragActive] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const readyDocsCount = documents.filter((d) => d.status === "ready").length;
   const processingCount = documents.filter((d) =>
@@ -125,64 +122,7 @@ function NotebookPage() {
     setDocuments((data ?? []) as DocumentRow[]);
   };
 
-  const processFile = async (file: File) => {
-    if (!user) return;
-    if (file.type !== "application/pdf") {
-      toast.error("Por ahora solo se aceptan archivos PDF");
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("Máximo 10MB en plan Free");
-      return;
-    }
-
-    setUploading(true);
-    try {
-      const ext = "pdf";
-      const storagePath = `${user.id}/${crypto.randomUUID()}.${ext}`;
-      const { error: uploadErr } = await supabase.storage.from("documents").upload(storagePath, file);
-      if (uploadErr) throw uploadErr;
-
-      const { data: doc, error: docErr } = await supabase
-        .from("documents")
-        .insert({
-          user_id: user.id,
-          notebook_id: id,
-          title: file.name.replace(/\.pdf$/i, ""),
-          type: "pdf",
-          storage_path: storagePath,
-          size_bytes: file.size,
-          status: "pending",
-        })
-        .select()
-        .single();
-      if (docErr || !doc) throw docErr ?? new Error("Insert failed");
-
-      void supabase.functions.invoke("process-document", {
-        body: { documentId: doc.id },
-      });
-
-      toast.success("PDF subido. Procesando...");
-      void loadDocuments();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Error al subir");
-    } finally {
-      setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
-  };
-
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) await processFile(file);
-  };
-
-  const handleDrop = async (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragActive(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) await processFile(file);
-  };
+  // Upload logic moved to <SourceUploader />
 
   if (authLoading || loading || !notebook) {
     return (
