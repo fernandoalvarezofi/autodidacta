@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ReviewNotebookIdRouteImport } from './routes/review.$notebookId'
 import { Route as NotebookIdRouteImport } from './routes/notebook.$id'
 import { Route as DocumentIdRouteImport } from './routes/document.$id'
 
@@ -28,6 +29,11 @@ const AuthRoute = AuthRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReviewNotebookIdRoute = ReviewNotebookIdRouteImport.update({
+  id: '/review/$notebookId',
+  path: '/review/$notebookId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NotebookIdRoute = NotebookIdRouteImport.update({
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/document/$id': typeof DocumentIdRoute
   '/notebook/$id': typeof NotebookIdRoute
+  '/review/$notebookId': typeof ReviewNotebookIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/document/$id': typeof DocumentIdRoute
   '/notebook/$id': typeof NotebookIdRoute
+  '/review/$notebookId': typeof ReviewNotebookIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,12 +70,25 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/document/$id': typeof DocumentIdRoute
   '/notebook/$id': typeof NotebookIdRoute
+  '/review/$notebookId': typeof ReviewNotebookIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/dashboard' | '/document/$id' | '/notebook/$id'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/document/$id'
+    | '/notebook/$id'
+    | '/review/$notebookId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/dashboard' | '/document/$id' | '/notebook/$id'
+  to:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/document/$id'
+    | '/notebook/$id'
+    | '/review/$notebookId'
   id:
     | '__root__'
     | '/'
@@ -75,6 +96,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/document/$id'
     | '/notebook/$id'
+    | '/review/$notebookId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -83,6 +105,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   DocumentIdRoute: typeof DocumentIdRoute
   NotebookIdRoute: typeof NotebookIdRoute
+  ReviewNotebookIdRoute: typeof ReviewNotebookIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -108,6 +131,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/review/$notebookId': {
+      id: '/review/$notebookId'
+      path: '/review/$notebookId'
+      fullPath: '/review/$notebookId'
+      preLoaderRoute: typeof ReviewNotebookIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/notebook/$id': {
       id: '/notebook/$id'
       path: '/notebook/$id'
@@ -131,6 +161,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   DocumentIdRoute: DocumentIdRoute,
   NotebookIdRoute: NotebookIdRoute,
+  ReviewNotebookIdRoute: ReviewNotebookIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
