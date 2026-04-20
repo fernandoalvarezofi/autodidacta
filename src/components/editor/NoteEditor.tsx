@@ -250,11 +250,49 @@ export function NoteEditor({ note, userId, onDeleted }: NoteEditorProps) {
           </div>
 
           {/* Editor body */}
-          <div className="px-10 py-8 bg-paper">
+          <div ref={editorContainerRef} className="px-10 py-8 bg-paper relative">
             <EditorContent editor={editor} />
+            {/* Botón + lateral en bloques vacíos */}
+            {editor && blockHover && !slash.open && (
+              <button
+                type="button"
+                onMouseDown={(e) => {
+                  // Evitar que el editor pierda foco antes de procesar el click
+                  e.preventDefault();
+                }}
+                onClick={() => {
+                  const pos = blockHover.blockEndPos;
+                  slash.openAt(pos, {
+                    top: blockHover.viewportTop + 26,
+                    left: blockHover.viewportLeft,
+                  });
+                  clearBlockHover();
+                }}
+                className="slash-add-btn"
+                style={{
+                  top: blockHover.top,
+                  left: 8,
+                }}
+                title="Insertar bloque (/)"
+              >
+                <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+              </button>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Slash command menu */}
+      {editor && (
+        <SlashCommandMenu
+          editor={editor}
+          open={slash.open}
+          query={slash.query}
+          position={slash.position}
+          charsToDelete={slash.charsToDelete}
+          onClose={slash.close}
+        />
+      )}
 
       {/* Bubble menu — selección flotante */}
       {editor && (
