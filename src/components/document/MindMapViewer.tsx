@@ -43,7 +43,7 @@ interface MindMapViewerProps {
 // =====================================================
 // Custom node renderer — editorial, paper-feel
 // =====================================================
-type FlowNodeData = MindmapNodeData & { onSelect: (n: MindmapNodeData) => void };
+
 
 const TYPE_STYLES: Record<
   MindmapNodeData["type"],
