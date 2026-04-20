@@ -20,6 +20,7 @@ interface WorkspaceLayoutProps {
   title: string;
   eyebrow?: string;
   emoji?: string;
+  subtitle?: ReactNode;
   backTo?: { to: string; params?: Record<string, string>; label: string };
   groups: WorkspaceGroup[];
   activeKey: string;
@@ -33,6 +34,7 @@ export function WorkspaceLayout({
   title,
   eyebrow,
   emoji,
+  subtitle,
   backTo,
   groups,
   activeKey,
