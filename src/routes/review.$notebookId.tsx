@@ -98,11 +98,18 @@ function ReviewPage() {
         })
         .eq("id", current.id);
 
-      setStats((s) => ({
-        reviewed: s.reviewed + 1,
-        again: s.again + (quality < 3 ? 1 : 0),
-      }));
+      // Award XP (silent on failure)
+      void awardXp(quality >= 3 ? XP.flashcardCorrect : XP.flashcardWrong);
+
+      const newReviewed = stats.reviewed + 1;
+      const newAgain = stats.again + (quality < 3 ? 1 : 0);
+      setStats({ reviewed: newReviewed, again: newAgain });
       setFlipped(false);
+
+      // Bonus when finishing the session
+      if (newReviewed >= queue.length) {
+        void awardXp(XP.reviewSessionComplete);
+      }
       setIndex((i) => i + 1);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Error al guardar");
