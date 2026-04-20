@@ -57,6 +57,7 @@ export function NoteEditor({ note, userId, onDeleted }: NoteEditorProps) {
   const saveTimer = useRef<number | null>(null);
   const lastSaved = useRef({ title: note.title, html: note.content_html });
   const sheetRef = useRef<HTMLDivElement>(null);
+  const editorContainerRef = useRef<HTMLDivElement>(null);
 
   const editor = useEditor({
     extensions: [
