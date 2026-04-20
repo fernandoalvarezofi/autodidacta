@@ -469,3 +469,22 @@ function statusLabel(status: string): string {
       return status;
   }
 }
+
+function typeLabel(type: string): string {
+  switch (type) {
+    case "pdf":
+      return "PDF";
+    case "docx":
+      return "Word";
+    case "text":
+      return "Texto";
+    case "youtube":
+      return "YouTube";
+    case "audio":
+      return "Audio";
+    case "image":
+      return "Imagen";
+    default:
+      return type;
+  }
+}
