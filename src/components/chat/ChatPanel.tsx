@@ -249,26 +249,71 @@ export function ChatPanel({
   const isSocratic = activeSession?.mode === "socratic";
 
   return (
-    <div className="flex flex-col md:flex-row gap-3 h-full min-h-0">
-      <ChatSessionsSidebar
-        scope={scope}
-        contextId={contextId}
-        activeSessionId={activeSession?.id ?? null}
-        onSelect={selectSession}
-        onCreated={handleNewSession}
-        refreshKey={sidebarRefreshKey}
-      />
+    <div className="relative flex flex-col h-full min-h-0">
+      {/* Drawer overlay de conversaciones */}
+      {sidebarOpen && (
+        <>
+          <div
+            className="absolute inset-0 z-20 bg-ink/20 backdrop-blur-sm animate-fade-in"
+            onClick={() => setSidebarOpen(false)}
+          />
+          <div className="absolute left-0 top-0 bottom-0 z-30 w-72 max-w-[85%] animate-slide-in-up">
+            <div className="h-full flex flex-col bg-paper border border-border rounded-lg shadow-soft overflow-hidden">
+              <div className="flex items-center justify-between px-3 py-2 border-b border-border">
+                <span className="text-[11px] font-mono uppercase tracking-[0.18em] text-ink/60">
+                  Conversaciones
+                </span>
+                <button
+                  onClick={() => setSidebarOpen(false)}
+                  className="p-1 text-ink/50 hover:text-ink hover:bg-cream rounded-sm transition-colors"
+                  title="Cerrar"
+                >
+                  <X className="w-3.5 h-3.5" strokeWidth={2} />
+                </button>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <ChatSessionsSidebar
+                  scope={scope}
+                  contextId={contextId}
+                  activeSessionId={activeSession?.id ?? null}
+                  onSelect={(s) => {
+                    void selectSession(s);
+                    setSidebarOpen(false);
+                  }}
+                  onCreated={(s) => {
+                    handleNewSession(s);
+                    setSidebarOpen(false);
+                  }}
+                  refreshKey={sidebarRefreshKey}
+                  embedded
+                />
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       <div className="flex-1 flex flex-col min-h-0">
-        {/* Header con título de sesión y toggle modo */}
+        {/* Header con toggle sidebar + título de sesión + toggle modo */}
         {activeSession && (
           <div className="flex items-center justify-between gap-3 mb-2 px-1">
-            <h3 className="font-display text-base font-semibold text-ink truncate">
-              {activeSession.title}
-            </h3>
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="inline-flex items-center gap-1.5 px-2 py-1.5 text-[11px] font-medium text-ink/70 hover:text-ink hover:bg-cream rounded-md transition-colors flex-shrink-0"
+                title="Ver conversaciones"
+              >
+                <PanelLeft className="w-3.5 h-3.5" strokeWidth={2} />
+                <span className="hidden sm:inline">Historial</span>
+              </button>
+              <div className="w-px h-4 bg-border flex-shrink-0" />
+              <h3 className="font-display text-base font-semibold text-ink truncate">
+                {activeSession.title}
+              </h3>
+            </div>
             <button
               onClick={toggleMode}
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium rounded-md border transition-all ${
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium rounded-md border transition-all flex-shrink-0 ${
                 isSocratic
                   ? "bg-orange/10 border-orange/40 text-orange-deep hover:bg-orange/20"
                   : "bg-paper border-border text-ink/70 hover:border-ink hover:text-ink"
