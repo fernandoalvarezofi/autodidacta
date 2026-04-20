@@ -20,6 +20,7 @@ interface WorkspaceLayoutProps {
   title: string;
   eyebrow?: string;
   emoji?: string;
+  subtitle?: ReactNode;
   backTo?: { to: string; params?: Record<string, string>; label: string };
   groups: WorkspaceGroup[];
   activeKey: string;
@@ -33,6 +34,7 @@ export function WorkspaceLayout({
   title,
   eyebrow,
   emoji,
+  subtitle,
   backTo,
   groups,
   activeKey,
@@ -92,6 +94,7 @@ export function WorkspaceLayout({
                 {emoji && <span className="mr-1.5">{emoji}</span>}
                 {title}
               </h2>
+              {subtitle && <div className="mt-1.5">{subtitle}</div>}
             </div>
             <button
               onClick={() => (isMobile ? setMobileOpen(false) : setCollapsed(true))}
