@@ -5,11 +5,10 @@ import {
   Upload,
   Loader2,
   FileText,
-  CheckCircle2,
   AlertCircle,
-  Sparkles,
   BookOpen,
-  Layers,
+  RotateCcw,
+  Trash2,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
