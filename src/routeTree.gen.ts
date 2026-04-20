@@ -9,13 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PlayRouteImport } from './routes/play'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ReviewNotebookIdRouteImport } from './routes/review.$notebookId'
+import { Route as PlayRoomIdRouteImport } from './routes/play.$roomId'
 import { Route as NotebookIdRouteImport } from './routes/notebook.$id'
 import { Route as DocumentIdRouteImport } from './routes/document.$id'
 
+const PlayRoute = PlayRouteImport.update({
+  id: '/play',
+  path: '/play',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -36,6 +43,11 @@ const ReviewNotebookIdRoute = ReviewNotebookIdRouteImport.update({
   path: '/review/$notebookId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlayRoomIdRoute = PlayRoomIdRouteImport.update({
+  id: '/$roomId',
+  path: '/$roomId',
+  getParentRoute: () => PlayRoute,
+} as any)
 const NotebookIdRoute = NotebookIdRouteImport.update({
   id: '/notebook/$id',
   path: '/notebook/$id',
@@ -51,16 +63,20 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/play': typeof PlayRouteWithChildren
   '/document/$id': typeof DocumentIdRoute
   '/notebook/$id': typeof NotebookIdRoute
+  '/play/$roomId': typeof PlayRoomIdRoute
   '/review/$notebookId': typeof ReviewNotebookIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/play': typeof PlayRouteWithChildren
   '/document/$id': typeof DocumentIdRoute
   '/notebook/$id': typeof NotebookIdRoute
+  '/play/$roomId': typeof PlayRoomIdRoute
   '/review/$notebookId': typeof ReviewNotebookIdRoute
 }
 export interface FileRoutesById {
@@ -68,8 +84,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/play': typeof PlayRouteWithChildren
   '/document/$id': typeof DocumentIdRoute
   '/notebook/$id': typeof NotebookIdRoute
+  '/play/$roomId': typeof PlayRoomIdRoute
   '/review/$notebookId': typeof ReviewNotebookIdRoute
 }
 export interface FileRouteTypes {
@@ -78,24 +96,30 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/dashboard'
+    | '/play'
     | '/document/$id'
     | '/notebook/$id'
+    | '/play/$roomId'
     | '/review/$notebookId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/dashboard'
+    | '/play'
     | '/document/$id'
     | '/notebook/$id'
+    | '/play/$roomId'
     | '/review/$notebookId'
   id:
     | '__root__'
     | '/'
     | '/auth'
     | '/dashboard'
+    | '/play'
     | '/document/$id'
     | '/notebook/$id'
+    | '/play/$roomId'
     | '/review/$notebookId'
   fileRoutesById: FileRoutesById
 }
@@ -103,6 +127,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   DashboardRoute: typeof DashboardRoute
+  PlayRoute: typeof PlayRouteWithChildren
   DocumentIdRoute: typeof DocumentIdRoute
   NotebookIdRoute: typeof NotebookIdRoute
   ReviewNotebookIdRoute: typeof ReviewNotebookIdRoute
@@ -110,6 +135,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/play': {
+      id: '/play'
+      path: '/play'
+      fullPath: '/play'
+      preLoaderRoute: typeof PlayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
@@ -138,6 +170,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReviewNotebookIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/play/$roomId': {
+      id: '/play/$roomId'
+      path: '/$roomId'
+      fullPath: '/play/$roomId'
+      preLoaderRoute: typeof PlayRoomIdRouteImport
+      parentRoute: typeof PlayRoute
+    }
     '/notebook/$id': {
       id: '/notebook/$id'
       path: '/notebook/$id'
@@ -155,10 +194,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface PlayRouteChildren {
+  PlayRoomIdRoute: typeof PlayRoomIdRoute
+}
+
+const PlayRouteChildren: PlayRouteChildren = {
+  PlayRoomIdRoute: PlayRoomIdRoute,
+}
+
+const PlayRouteWithChildren = PlayRoute._addFileChildren(PlayRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   DashboardRoute: DashboardRoute,
+  PlayRoute: PlayRouteWithChildren,
   DocumentIdRoute: DocumentIdRoute,
   NotebookIdRoute: NotebookIdRoute,
   ReviewNotebookIdRoute: ReviewNotebookIdRoute,

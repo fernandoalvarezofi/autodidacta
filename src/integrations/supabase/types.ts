@@ -323,6 +323,232 @@ export type Database = {
         }
         Relationships: []
       }
+      quiz_attempts: {
+        Row: {
+          answers: Json
+          completed_at: string
+          created_at: string
+          document_id: string | null
+          id: string
+          max_score: number
+          quiz_output_id: string | null
+          room_id: string | null
+          score: number
+          time_total_ms: number | null
+          user_id: string
+        }
+        Insert: {
+          answers?: Json
+          completed_at?: string
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          max_score: number
+          quiz_output_id?: string | null
+          room_id?: string | null
+          score: number
+          time_total_ms?: number | null
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          completed_at?: string
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          max_score?: number
+          quiz_output_id?: string | null
+          room_id?: string | null
+          score?: number
+          time_total_ms?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_attempts_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_attempts_quiz_output_id_fkey"
+            columns: ["quiz_output_id"]
+            isOneToOne: false
+            referencedRelation: "document_outputs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_attempts_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_attempts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quiz_room_participants: {
+        Row: {
+          answers: Json
+          anti_cheat_events: Json
+          avatar_emoji: string
+          created_at: string
+          display_name: string
+          id: string
+          is_ready: boolean
+          joined_at: string
+          last_seen_at: string
+          rank: number | null
+          room_id: string
+          score: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answers?: Json
+          anti_cheat_events?: Json
+          avatar_emoji?: string
+          created_at?: string
+          display_name: string
+          id?: string
+          is_ready?: boolean
+          joined_at?: string
+          last_seen_at?: string
+          rank?: number | null
+          room_id: string
+          score?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          anti_cheat_events?: Json
+          avatar_emoji?: string
+          created_at?: string
+          display_name?: string
+          id?: string
+          is_ready?: boolean
+          joined_at?: string
+          last_seen_at?: string
+          rank?: number | null
+          room_id?: string
+          score?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_room_participants_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_room_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quiz_rooms: {
+        Row: {
+          anti_cheat_enabled: boolean
+          code: string
+          created_at: string
+          current_question_index: number
+          document_id: string | null
+          finished_at: string | null
+          host_user_id: string
+          id: string
+          max_participants: number
+          notebook_id: string | null
+          question_started_at: string | null
+          questions: Json
+          quiz_output_id: string | null
+          quiz_title: string
+          seconds_per_question: number
+          status: Database["public"]["Enums"]["quiz_room_status"]
+          updated_at: string
+        }
+        Insert: {
+          anti_cheat_enabled?: boolean
+          code: string
+          created_at?: string
+          current_question_index?: number
+          document_id?: string | null
+          finished_at?: string | null
+          host_user_id: string
+          id?: string
+          max_participants?: number
+          notebook_id?: string | null
+          question_started_at?: string | null
+          questions: Json
+          quiz_output_id?: string | null
+          quiz_title: string
+          seconds_per_question?: number
+          status?: Database["public"]["Enums"]["quiz_room_status"]
+          updated_at?: string
+        }
+        Update: {
+          anti_cheat_enabled?: boolean
+          code?: string
+          created_at?: string
+          current_question_index?: number
+          document_id?: string | null
+          finished_at?: string | null
+          host_user_id?: string
+          id?: string
+          max_participants?: number
+          notebook_id?: string | null
+          question_started_at?: string | null
+          questions?: Json
+          quiz_output_id?: string | null
+          quiz_title?: string
+          seconds_per_question?: number
+          status?: Database["public"]["Enums"]["quiz_room_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_rooms_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_rooms_host_user_id_fkey"
+            columns: ["host_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_rooms_notebook_id_fkey"
+            columns: ["notebook_id"]
+            isOneToOne: false
+            referencedRelation: "notebooks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_rooms_quiz_output_id_fkey"
+            columns: ["quiz_output_id"]
+            isOneToOne: false
+            referencedRelation: "document_outputs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -336,6 +562,7 @@ export type Database = {
           xp: number
         }[]
       }
+      generate_quiz_room_code: { Args: never; Returns: string }
     }
     Enums: {
       document_status:
@@ -360,6 +587,7 @@ export type Database = {
         | "quiz"
         | "transcript"
         | "glossary"
+      quiz_room_status: "lobby" | "active" | "finished"
       user_plan: "free" | "pro" | "teams"
     }
     CompositeTypes: {
@@ -513,6 +741,7 @@ export const Constants = {
         "transcript",
         "glossary",
       ],
+      quiz_room_status: ["lobby", "active", "finished"],
       user_plan: ["free", "pro", "teams"],
     },
   },
