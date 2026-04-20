@@ -11,6 +11,15 @@ interface RequestBody {
   documentId: string;
 }
 
+interface DocumentRow {
+  id: string;
+  user_id: string;
+  notebook_id: string;
+  type: "pdf" | "docx" | "text" | "youtube" | "audio" | "image" | "tiktok";
+  storage_path: string | null;
+  // For youtube/url-based docs we stash the URL in storage_path
+}
+
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
@@ -59,18 +68,13 @@ async function processDocument(documentId: string) {
 
     await admin.from("documents").update({ status: "processing", progress: 10 }).eq("id", documentId);
 
-    const { data: fileBlob, error: dlErr } = await admin.storage
-      .from("documents")
-      .download(doc.storage_path);
-    if (dlErr || !fileBlob) throw new Error(`Descarga fallida: ${dlErr?.message}`);
-
-    await admin.from("documents").update({ progress: 25 }).eq("id", documentId);
-
-    // Extract text from PDF
-    const fullText = await extractPdfText(fileBlob);
+    // === Extract text by document type ===
+    const fullText = await extractByType(admin, doc as DocumentRow);
     if (!fullText || fullText.trim().length < 50) {
-      throw new Error("No se pudo extraer suficiente texto del PDF");
+      throw new Error("No se pudo extraer suficiente texto del documento");
     }
+
+    await admin.from("documents").update({ progress: 35 }).eq("id", documentId);
 
     // Cap total text to avoid CPU blowup on huge PDFs (keep first ~80k chars for chunks)
     const text = fullText.slice(0, 80000);
