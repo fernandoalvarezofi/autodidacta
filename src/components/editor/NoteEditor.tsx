@@ -86,6 +86,12 @@ export function NoteEditor({ note, userId, onDeleted }: NoteEditorProps) {
     },
   });
 
+  const slash = useSlashCommands(editor);
+  const { hover: blockHover, clear: clearBlockHover } = useEditorBlockHover(
+    editor,
+    editorContainerRef,
+  );
+
   // Title autosave (separate from body)
   useEffect(() => {
     if (title === lastSaved.current.title) return;
