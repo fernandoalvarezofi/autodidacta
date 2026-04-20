@@ -129,6 +129,14 @@ function DocumentPage() {
             Resumen
           </TabButton>
           <TabButton
+            active={tab === "mindmap"}
+            onClick={() => setTab("mindmap")}
+            icon={<Network className="w-4 h-4" strokeWidth={1.75} />}
+            count={mindmap?.nodes.length}
+          >
+            Mapa
+          </TabButton>
+          <TabButton
             active={tab === "flashcards"}
             onClick={() => setTab("flashcards")}
             icon={<Layers className="w-4 h-4" strokeWidth={1.75} />}
@@ -163,6 +171,17 @@ function DocumentPage() {
                 <p className="text-ink/50 text-sm">No hay resumen disponible.</p>
               )}
             </article>
+          )}
+
+          {tab === "mindmap" && (
+            mindmap ? (
+              <MindMapViewer content={mindmap} />
+            ) : (
+              <div className="border-2 border-dashed border-border bg-paper p-12 text-center">
+                <p className="text-ink/50 text-sm">El mapa mental aún no está disponible para este documento.</p>
+                <p className="text-xs text-ink/40 mt-2 font-mono uppercase tracking-wider">Reprocesá el documento para generarlo</p>
+              </div>
+            )
           )}
 
           {tab === "flashcards" && <FlashcardDeck cards={flashcards} />}
