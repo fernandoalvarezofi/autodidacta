@@ -579,3 +579,59 @@
   text-underline-offset: 2px;
 }
 .ProseMirror-focused { outline: none; }
+
+/* === Callouts didácticos (slash commands) === */
+.note-callout {
+  margin: 1.2em 0;
+  padding: 0.9em 1.1em;
+  border-left: 3px solid var(--ink);
+  border-radius: 4px;
+  background: color-mix(in oklab, var(--cream) 80%, transparent);
+}
+.note-callout > p { margin: 0.3em 0; }
+.note-callout > p:first-child { margin-top: 0; }
+.note-callout > p:last-child { margin-bottom: 0; }
+.note-callout ul, .note-callout ol { margin: 0.4em 0 0.2em; padding-left: 1.4em; }
+.note-callout li { margin: 0.15em 0; }
+
+.note-callout--definition {
+  border-left-color: var(--ink);
+  background: color-mix(in oklab, var(--ink) 5%, var(--paper));
+}
+.note-callout--question {
+  border-left-color: var(--orange);
+  background: color-mix(in oklab, var(--orange) 8%, var(--paper));
+}
+.note-callout--summary {
+  border-left-color: oklch(50% 0.13 150);
+  background: color-mix(in oklab, oklch(70% 0.13 150) 10%, var(--paper));
+}
+.note-callout--example {
+  border-left-color: oklch(70% 0.16 75);
+  background: color-mix(in oklab, oklch(80% 0.14 75) 14%, var(--paper));
+}
+
+/* === Botón + lateral en bloques vacíos === */
+.tiptap-content {
+  position: relative;
+}
+.slash-add-btn {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: oklch(40% 0 0 / 0.5);
+  background: transparent;
+  border: 1px dashed transparent;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  z-index: 5;
+}
+.slash-add-btn:hover {
+  color: var(--orange-deep);
+  border-color: color-mix(in oklab, var(--orange) 40%, transparent);
+  background: color-mix(in oklab, var(--orange) 8%, transparent);
+}
