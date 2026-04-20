@@ -7,6 +7,7 @@ export interface ChatStreamSource {
   excerpt: string;
   documentId?: string;
   documentTitle?: string;
+  chunkId?: string;
 }
 
 export interface ChatStreamHandlers {
