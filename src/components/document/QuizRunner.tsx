@@ -54,7 +54,13 @@ export function QuizRunner({ questions }: { questions: QuizQuestion[] }) {
     if (selected === null) return;
     const newAnswers = [...answers, selected];
     setAnswers(newAnswers);
+    // Award XP for correct answer (silent)
+    if (selected === q.correct_index) {
+      void awardXp(XP.quizCorrect);
+    }
     if (index + 1 >= questions.length) {
+      // Bonus on completion
+      void awardXp(XP.quizComplete);
       setFinished(true);
     } else {
       setIndex(index + 1);
