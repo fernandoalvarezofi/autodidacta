@@ -364,12 +364,24 @@ function DocumentCard({ doc, onChange }: { doc: DocumentRow; onChange: () => voi
                 : "border-border bg-cream/40"
           }`}
         >
-          <FileText
-            className={`w-5 h-5 ${
-              isReady ? "text-orange" : isError ? "text-destructive" : "text-ink/50"
-            }`}
-            strokeWidth={1.75}
-          />
+          {(() => {
+            const Icon =
+              doc.type === "docx"
+                ? FileType2
+                : doc.type === "youtube"
+                  ? Youtube
+                  : doc.type === "text"
+                    ? Type
+                    : FileText;
+            return (
+              <Icon
+                className={`w-5 h-5 ${
+                  isReady ? "text-orange" : isError ? "text-destructive" : "text-ink/50"
+                }`}
+                strokeWidth={1.75}
+              />
+            );
+          })()}
         </div>
 
         {/* Info */}
@@ -378,7 +390,7 @@ function DocumentCard({ doc, onChange }: { doc: DocumentRow; onChange: () => voi
             {doc.title}
           </h3>
           <p className="text-[11px] font-mono uppercase tracking-[0.15em] text-ink/40 mt-1">
-            {doc.type}
+            {typeLabel(doc.type)}
             {doc.size_bytes ? ` · ${formatSize(doc.size_bytes)}` : ""}
             {" · "}
             {new Date(doc.created_at).toLocaleDateString("es", {
