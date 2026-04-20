@@ -299,11 +299,11 @@ Reglas:
   const raw = data.choices?.[0]?.message?.content ?? "{}";
 
   try {
-    const parsed = JSON.parse(raw);
+    const parsed = JSON.parse(extractJson(raw));
     const cards = Array.isArray(parsed?.cards) ? parsed.cards : [];
     return cards
-      .filter((card) => typeof card?.front === "string" && typeof card?.back === "string")
-      .map((card) => ({
+      .filter((card: any) => typeof card?.front === "string" && typeof card?.back === "string")
+      .map((card: any) => ({
         front: String(card.front).slice(0, 200),
         back: String(card.back).slice(0, 350),
         difficulty: card.difficulty === 1 || card.difficulty === 3 ? card.difficulty : 2,
@@ -313,6 +313,26 @@ Reglas:
     console.error("[generateFlashcards] JSON inválido:", raw, error);
     return [];
   }
+}
+
+// Strips markdown code fences and extracts the first JSON object/array.
+function extractJson(raw: string): string {
+  let s = raw.trim();
+  // Remove ```json ... ``` or ``` ... ``` wrappers
+  s = s.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+  // Fallback: slice between first { or [ and last } or ]
+  const firstBrace = s.indexOf("{");
+  const firstBracket = s.indexOf("[");
+  let start = -1;
+  if (firstBrace === -1) start = firstBracket;
+  else if (firstBracket === -1) start = firstBrace;
+  else start = Math.min(firstBrace, firstBracket);
+  if (start > 0) s = s.slice(start);
+  const lastBrace = s.lastIndexOf("}");
+  const lastBracket = s.lastIndexOf("]");
+  const end = Math.max(lastBrace, lastBracket);
+  if (end >= 0 && end < s.length - 1) s = s.slice(0, end + 1);
+  return s;
 }
 
 interface QuizQuestion {
@@ -353,7 +373,7 @@ Reglas:
 
   const raw = data.choices?.[0]?.message?.content ?? "{}";
   try {
-    const parsed = JSON.parse(raw);
+    const parsed = JSON.parse(extractJson(raw));
     const qs = Array.isArray(parsed?.questions) ? parsed.questions : [];
     return qs
       .filter(
