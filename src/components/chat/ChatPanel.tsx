@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, Fragment, useMemo } from "react";
 import {
   Send,
   Loader2,
@@ -7,7 +7,6 @@ import {
   BookOpen,
   Globe2,
   Brain,
-  MessageCircle,
   Square,
   PanelLeft,
   X,
@@ -16,6 +15,8 @@ import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { ChatSessionsSidebar } from "./ChatSessionsSidebar";
+import { ChatModeSelector } from "./ChatModeSelector";
+import { SourcePanel } from "./SourcePanel";
 import { streamChat, type ChatStreamSource } from "@/lib/chat-stream";
 import {
   type ChatMode,
@@ -68,6 +69,7 @@ export function ChatPanel({
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [sidebarRefreshKey, setSidebarRefreshKey] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [selectedSource, setSelectedSource] = useState<ChatStreamSource | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -126,13 +128,17 @@ export function ChatPanel({
     void selectSession(s);
   };
 
-  const toggleMode = async () => {
-    if (!activeSession) return;
-    const next: ChatMode = activeSession.mode === "normal" ? "socratic" : "normal";
+  const changeMode = async (next: ChatMode) => {
+    if (!activeSession || activeSession.mode === next) return;
     try {
       await updateSessionMode(activeSession.id, next);
       setActiveSession({ ...activeSession, mode: next });
-      toast.success(next === "socratic" ? "Modo Socrático activado" : "Modo normal activado");
+      const labels: Record<ChatMode, string> = {
+        normal: "Modo Normal",
+        deep: "Modo Profundo",
+        socratic: "Modo Socrático",
+      };
+      toast.success(`${labels[next]} activado`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Error");
     }
@@ -311,27 +317,11 @@ export function ChatPanel({
                 {activeSession.title}
               </h3>
             </div>
-            <button
-              onClick={toggleMode}
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium rounded-md border transition-all flex-shrink-0 ${
-                isSocratic
-                  ? "bg-orange/10 border-orange/40 text-orange-deep hover:bg-orange/20"
-                  : "bg-paper border-border text-ink/70 hover:border-ink hover:text-ink"
-              }`}
-              title="Cambiar entre modo normal y socrático"
-            >
-              {isSocratic ? (
-                <>
-                  <Brain className="w-3.5 h-3.5" strokeWidth={2} />
-                  Socrático
-                </>
-              ) : (
-                <>
-                  <MessageCircle className="w-3.5 h-3.5" strokeWidth={2} />
-                  Normal
-                </>
-              )}
-            </button>
+            <ChatModeSelector
+              mode={activeSession.mode}
+              onChange={(m) => void changeMode(m)}
+              disabled={sending}
+            />
           </div>
         )}
 
@@ -353,7 +343,14 @@ export function ChatPanel({
               scope={scope}
             />
           ) : (
-            messages.map((m, i) => <Bubble key={m.id ?? i} message={m} compact={compact} />)
+            messages.map((m, i) => (
+              <Bubble
+                key={m.id ?? i}
+                message={m}
+                compact={compact}
+                onSourceClick={setSelectedSource}
+              />
+            ))
           )}
         </div>
 
@@ -402,6 +399,8 @@ export function ChatPanel({
           )}
         </form>
       </div>
+
+      <SourcePanel source={selectedSource} onClose={() => setSelectedSource(null)} />
     </div>
   );
 }
@@ -466,9 +465,25 @@ function EmptyChat({
   );
 }
 
-function Bubble({ message, compact }: { message: ChatMessage; compact: boolean }) {
+function Bubble({
+  message,
+  compact,
+  onSourceClick,
+}: {
+  message: ChatMessage;
+  compact: boolean;
+  onSourceClick: (s: ChatStreamSource) => void;
+}) {
   const isUser = message.role === "user";
   const size = compact ? "w-8 h-8" : "w-9 h-9";
+
+  // Mapeo rápido index -> source para resolver clicks en citas inline
+  const sourceMap = useMemo(() => {
+    const m = new Map<number, ChatStreamSource>();
+    (message.sources ?? []).forEach((s) => m.set(s.index, s));
+    return m;
+  }, [message.sources]);
+
   return (
     <div className={`flex gap-3 animate-slide-in-up ${isUser ? "flex-row-reverse" : ""}`}>
       <div
@@ -495,7 +510,18 @@ function Bubble({ message, compact }: { message: ChatMessage; compact: boolean }
           ) : (
             <div className="chat-markdown text-sm leading-relaxed text-ink">
               {message.content ? (
-                <ReactMarkdown>{message.content}</ReactMarkdown>
+                <ReactMarkdown
+                  components={{
+                    p: ({ children }) => (
+                      <p>{renderWithCitations(children, sourceMap, onSourceClick)}</p>
+                    ),
+                    li: ({ children }) => (
+                      <li>{renderWithCitations(children, sourceMap, onSourceClick)}</li>
+                    ),
+                  }}
+                >
+                  {message.content}
+                </ReactMarkdown>
               ) : (
                 <ThinkingDots />
               )}
@@ -521,16 +547,18 @@ function Bubble({ message, compact }: { message: ChatMessage; compact: boolean }
                     Fuentes
                   </span>
                   {message.sources.map((s) => (
-                    <span
+                    <button
                       key={s.index}
-                      title={`${s.documentTitle ? s.documentTitle + " · " : ""}${s.excerpt}`}
-                      className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 bg-cream border border-border text-ink/70 hover:border-ink hover:text-ink transition-colors cursor-help rounded-sm"
+                      type="button"
+                      onClick={() => onSourceClick(s)}
+                      title={`Ver fragmento — ${s.documentTitle ?? ""}`}
+                      className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 bg-cream border border-ink/15 text-ink/75 hover:border-orange hover:bg-orange/5 hover:text-orange-deep transition-all cursor-pointer rounded-sm active:scale-95"
                     >
                       <BookOpen className="w-2.5 h-2.5" strokeWidth={2} />
                       {s.index}
                       {s.documentTitle ? ` · ${truncate(s.documentTitle, 18)}` : ""}
                       {s.page ? ` · p.${s.page}` : ""}
-                    </span>
+                    </button>
                   ))}
                 </>
               )}
@@ -539,6 +567,62 @@ function Bubble({ message, compact }: { message: ChatMessage; compact: boolean }
       </div>
     </div>
   );
+}
+
+/**
+ * Reemplaza menciones tipo (Fragmento N) o (Fragmento N · pág. M) en el texto
+ * por botones clickeables que abren el SourcePanel.
+ */
+function renderWithCitations(
+  children: React.ReactNode,
+  sourceMap: Map<number, ChatStreamSource>,
+  onSourceClick: (s: ChatStreamSource) => void,
+): React.ReactNode {
+  const re = /\(Fragmento\s+(\d+)(?:\s*·[^)]*)?\)/gi;
+
+  const transform = (node: React.ReactNode, key: string): React.ReactNode => {
+    if (typeof node !== "string") return node;
+    const parts: React.ReactNode[] = [];
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+    re.lastIndex = 0;
+    let i = 0;
+    while ((match = re.exec(node)) !== null) {
+      const idx = parseInt(match[1], 10);
+      const src = sourceMap.get(idx);
+      if (match.index > lastIndex) {
+        parts.push(node.slice(lastIndex, match.index));
+      }
+      if (src) {
+        parts.push(
+          <button
+            key={`${key}-cit-${i}`}
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              onSourceClick(src);
+            }}
+            className="inline-flex items-center gap-0.5 align-baseline text-[11px] font-mono font-medium px-1.5 py-0.5 -my-0.5 bg-orange/10 text-orange-deep border border-orange/30 hover:bg-orange hover:text-paper hover:border-orange transition-all rounded-sm cursor-pointer"
+            title={`Ver Fragmento ${idx}${src.page ? ` · pág. ${src.page}` : ""}`}
+          >
+            <BookOpen className="w-2.5 h-2.5" strokeWidth={2.5} />
+            {idx}
+          </button>,
+        );
+      } else {
+        parts.push(match[0]);
+      }
+      lastIndex = match.index + match[0].length;
+      i += 1;
+    }
+    if (lastIndex < node.length) parts.push(node.slice(lastIndex));
+    return parts.length > 0 ? <Fragment>{parts}</Fragment> : node;
+  };
+
+  if (Array.isArray(children)) {
+    return children.map((c, i) => transform(c, `c${i}`));
+  }
+  return transform(children, "c0");
 }
 
 function ThinkingDots() {

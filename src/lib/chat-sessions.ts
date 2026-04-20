@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export type ChatScope = "document" | "notebook";
-export type ChatMode = "normal" | "socratic";
+export type ChatMode = "normal" | "deep" | "socratic";
 export type ChatRole = "user" | "assistant" | "system";
 
 export interface ChatSession {

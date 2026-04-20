@@ -15,7 +15,7 @@ interface RequestBody {
   notebookId: string;
   question: string;
   sessionId: string;
-  mode?: "normal" | "socratic";
+  mode?: "normal" | "deep" | "socratic";
 }
 
 const STOPWORDS = new Set([
@@ -106,6 +106,24 @@ ESTILO:
 - Español rioplatense, cálido y paciente.
 - Preguntas cortas, claras, abiertas.
 - Markdown ligero. Máximo 150 palabras.`;
+}
+
+function systemDeep(nbTitle: string, count: number, titles: string) {
+  return `Sos un tutor experto y exhaustivo que ayuda a un estudiante a dominar el cuaderno "${nbTitle}" (${count} documento${count === 1 ? "" : "s"}: ${titles}). El estudiante eligió MODO PROFUNDO: respuesta detallada, estructurada y rigurosa.
+
+REGLAS:
+1. Respuesta directa al toque (1-2 líneas), después desarrollo.
+2. Estructurá con headings cortos (##) y subsecciones.
+3. Citá constantemente: (Fragmento 2 · "Documento X"). Cada afirmación clave con su cita.
+4. Si algo no está en los fragmentos, marcalo: "Esto no está en el cuaderno, pero como contexto general…".
+5. Cerrá con bloque "**Para recordar:**" con 3-5 bullets.
+6. Usá ejemplos, analogías, contraejemplos y conexiones cruzadas entre documentos cuando aplique.
+7. No inventes datos específicos.
+
+ESTILO:
+- Español rioplatense, técnico pero accesible.
+- Markdown completo (## headings, **negrita**, listas, > citas).
+- Hasta 600 palabras.`;
 }
 
 Deno.serve(async (req) => {
@@ -205,7 +223,9 @@ Deno.serve(async (req) => {
     const systemContent =
       mode === "socratic"
         ? systemSocratic(nbTitle)
-        : systemNormal(nbTitle, docs.length, docTitles);
+        : mode === "deep"
+          ? systemDeep(nbTitle, docs.length, docTitles)
+          : systemNormal(nbTitle, docs.length, docTitles);
 
     const messages: any[] = [
       { role: "system", content: systemContent },
@@ -226,6 +246,7 @@ Deno.serve(async (req) => {
         documentId: r.chunk.document_id,
         documentTitle: docMap.get(r.chunk.document_id) ?? "Documento",
         excerpt: r.chunk.content.slice(0, 220),
+        chunkId: r.chunk.id,
       }));
 
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -235,7 +256,7 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: mode === "deep" ? "google/gemini-2.5-pro" : "google/gemini-2.5-flash",
         messages,
         stream: true,
       }),
