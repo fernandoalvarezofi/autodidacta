@@ -267,6 +267,12 @@ function DocumentPage() {
             <QuizRunner questions={quiz} documentId={doc.id} documentTitle={doc.title} />
           </div>
         )}
+
+        {tab === "generate" && (
+          <div className="px-6 h-full">
+            <GeneratedDocPanel documentId={doc.id} initialOutputs={generated} />
+          </div>
+        )}
       </WorkspaceLayout>
     </DashboardShell>
   );
