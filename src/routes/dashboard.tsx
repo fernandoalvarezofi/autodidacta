@@ -264,20 +264,29 @@ function NotebookCard({ notebook }: { notebook: NotebookRow }) {
 
 function EmptyState({ onCreate }: { onCreate: () => void }) {
   return (
-    <div className="border-2 border-dashed border-border py-20 text-center bg-cream/20 animate-fade-up">
+    <div className="relative border-2 border-dashed border-border py-24 px-6 text-center bg-cream/20 animate-fade-up overflow-hidden rounded-md">
+      <div className="absolute inset-0 -z-10 opacity-60 bg-radial-orange pointer-events-none" />
       <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-orange shadow-orange rounded-full mb-6 animate-pulse-glow">
         <FileText className="w-7 h-7 text-paper" strokeWidth={1.75} />
       </div>
-      <h3 className="font-display text-3xl font-semibold mb-3">Tu biblioteca está vacía</h3>
-      <p className="text-sm text-ink/60 mb-6 max-w-sm mx-auto leading-relaxed">
-        Creá tu primer cuaderno y empezá a transformar PDFs en herramientas de estudio activas.
+      <p className="text-[10px] uppercase tracking-[0.3em] font-mono text-orange mb-3">
+        Tu primera vez
+      </p>
+      <h3 className="font-display text-3xl font-semibold mb-3 leading-tight">
+        Tu biblioteca está lista
+        <br />
+        <span className="text-ink/40">esperando contenido</span>
+      </h3>
+      <p className="text-sm text-ink/60 mb-7 max-w-md mx-auto leading-relaxed">
+        Creá tu primer cuaderno, subí un PDF y en segundos vas a tener resumen, mapa mental,
+        flashcards y quiz listos para estudiar.
       </p>
       <button
         onClick={onCreate}
-        className="inline-flex items-center gap-2 px-5 py-3 text-sm font-medium bg-gradient-ink text-paper hover:shadow-orange transition-all active:scale-95"
+        className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium bg-gradient-ink text-paper hover:shadow-orange transition-all active:scale-95 rounded-md"
       >
         <Plus className="w-4 h-4" strokeWidth={2} />
-        Crear cuaderno
+        Crear mi primer cuaderno
       </button>
     </div>
   );
