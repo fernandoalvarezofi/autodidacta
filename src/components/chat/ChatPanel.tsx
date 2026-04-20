@@ -9,6 +9,8 @@ import {
   Brain,
   MessageCircle,
   Square,
+  PanelLeft,
+  X,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
