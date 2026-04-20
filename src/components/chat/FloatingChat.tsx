@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { MessagesSquare, X, ChevronDown, BookMarked, FileText } from "lucide-react";
-import { useLocation, useParams } from "@tanstack/react-router";
+import { useLocation } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { ChatPanel } from "./ChatPanel";
