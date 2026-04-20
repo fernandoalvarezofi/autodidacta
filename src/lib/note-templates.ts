@@ -1,10 +1,12 @@
 // Templates iniciales para el editor visual de notas
 // Cada template devuelve HTML compatible con TipTap StarterKit + extensiones cargadas
+import type { ClayIconKey } from "@/lib/clay-icons";
 
 export interface NoteTemplate {
   key: string;
   name: string;
-  emoji: string;
+  /** ClayIconKey del icono representativo del template */
+  emoji: ClayIconKey;
   description: string;
   cover_color: string;
   build: (ctx: { title: string; sourceMarkdown?: string }) => {
