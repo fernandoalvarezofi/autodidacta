@@ -86,6 +86,11 @@ const TYPE_STYLES: Record<
   },
 };
 
+type FlowNodeData = MindmapNodeData & {
+  onSelect: (n: MindmapNodeData) => void;
+  [key: string]: unknown;
+};
+
 function MindNode({ data }: NodeProps<Node<FlowNodeData>>) {
   const style = TYPE_STYLES[data.type];
   const Icon = style.icon;
