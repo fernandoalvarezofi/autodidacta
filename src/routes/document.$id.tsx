@@ -246,6 +246,74 @@ function DocumentPage() {
   );
 }
 
+function escapeHtml(s: string): string {
+  return s.replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] ?? c,
+  );
+}
+
+// Conversor markdown → HTML mínimo (headings, listas, énfasis, citas, párrafos)
+function markdownToHtml(md: string): string {
+  const lines = md.split(/\r?\n/);
+  const out: string[] = [];
+  let inList: "ul" | "ol" | null = null;
+  const closeList = () => {
+    if (inList) {
+      out.push(`</${inList}>`);
+      inList = null;
+    }
+  };
+  const inline = (s: string) =>
+    escapeHtml(s)
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*(.+?)\*/g, "<em>$1</em>")
+      .replace(/`(.+?)`/g, "<code>$1</code>");
+
+  for (const raw of lines) {
+    const line = raw.trimEnd();
+    if (!line.trim()) {
+      closeList();
+      continue;
+    }
+    const h = /^(#{1,6})\s+(.*)$/.exec(line);
+    if (h) {
+      closeList();
+      const lvl = Math.min(h[1].length, 3);
+      out.push(`<h${lvl}>${inline(h[2])}</h${lvl}>`);
+      continue;
+    }
+    if (/^>\s+/.test(line)) {
+      closeList();
+      out.push(`<blockquote><p>${inline(line.replace(/^>\s+/, ""))}</p></blockquote>`);
+      continue;
+    }
+    const ul = /^[-*]\s+(.*)$/.exec(line);
+    const ol = /^\d+\.\s+(.*)$/.exec(line);
+    if (ul) {
+      if (inList !== "ul") {
+        closeList();
+        out.push("<ul>");
+        inList = "ul";
+      }
+      out.push(`<li>${inline(ul[1])}</li>`);
+      continue;
+    }
+    if (ol) {
+      if (inList !== "ol") {
+        closeList();
+        out.push("<ol>");
+        inList = "ol";
+      }
+      out.push(`<li>${inline(ol[1])}</li>`);
+      continue;
+    }
+    closeList();
+    out.push(`<p>${inline(line)}</p>`);
+  }
+  closeList();
+  return out.join("\n");
+}
+
 function TabButton({
   active,
   onClick,
