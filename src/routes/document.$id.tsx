@@ -1,12 +1,13 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Loader2, BookOpen, Layers, HelpCircle } from "lucide-react";
+import { ArrowLeft, Loader2, BookOpen, Layers, HelpCircle, MessagesSquare } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { SummaryRender, type SummaryContent } from "@/components/document/SummaryRender";
 import { FlashcardDeck, type FlashcardOutput } from "@/components/document/FlashcardDeck";
 import { QuizRunner, type QuizQuestion } from "@/components/document/QuizRunner";
+import { DocumentChat } from "@/components/document/DocumentChat";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/document/$id")({
@@ -20,7 +21,7 @@ interface DocumentRow {
   status: string;
 }
 
-type Tab = "summary" | "flashcards" | "quiz";
+type Tab = "summary" | "flashcards" | "quiz" | "chat";
 
 function DocumentPage() {
   const { id } = Route.useParams();
@@ -116,6 +117,13 @@ function DocumentPage() {
           >
             Quiz ({quiz.length})
           </TabButton>
+          <TabButton
+            active={tab === "chat"}
+            onClick={() => setTab("chat")}
+            icon={<MessagesSquare className="w-4 h-4" strokeWidth={1.75} />}
+          >
+            Chat
+          </TabButton>
         </div>
 
         {tab === "summary" && (
@@ -131,6 +139,8 @@ function DocumentPage() {
         {tab === "flashcards" && <FlashcardDeck cards={flashcards} />}
 
         {tab === "quiz" && <QuizRunner questions={quiz} />}
+
+        {tab === "chat" && <DocumentChat documentId={doc.id} />}
       </div>
     </DashboardShell>
   );
