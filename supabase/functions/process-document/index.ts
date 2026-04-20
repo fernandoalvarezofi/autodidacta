@@ -261,57 +261,44 @@ interface FlashcardOut {
 }
 
 async function generateFlashcards(text: string): Promise<FlashcardOut[]> {
-  const data = await callAi(
-    [
-      {
-        role: "system",
-        content:
-          "Sos un experto en aprendizaje activo. Creás flashcards efectivas siguiendo principios de recuperación activa: preguntas específicas y atómicas, respuestas concisas y precisas. Español rioplatense.",
-      },
-      {
-        role: "user",
-        content: `Generá entre 10 y 15 flashcards de alta calidad sobre este texto:\n\n${text}`,
-      },
-    ],
-    [
-      {
-        type: "function",
-        function: {
-          name: "create_flashcards",
-          description: "Devuelve un array de flashcards de estudio activo.",
-          parameters: {
-            type: "object",
-            properties: {
-              cards: {
-                type: "array",
-                minItems: 8,
-                maxItems: 15,
-                items: {
-                  type: "object",
-                  properties: {
-                    front: { type: "string", description: "Pregunta atómica, máx 200 chars" },
-                    back: { type: "string", description: "Respuesta precisa, máx 350 chars" },
-                    difficulty: {
-                      type: "integer",
-                      enum: [1, 2, 3],
-                      description: "1=fácil, 2=media, 3=difícil",
-                    },
-                  },
-                  required: ["front", "back", "difficulty"],
-                  additionalProperties: false,
-                },
-              },
-            },
-            required: ["cards"],
-            additionalProperties: false,
-          },
-        },
-      },
-    ],
-  );
+  const data = await callAi([
+    {
+      role: "system",
+      content: `Sos un experto en aprendizaje activo. Creás flashcards efectivas en español rioplatense. Respondé SOLO JSON válido con este formato exacto:
+{
+  "cards": [
+    { "front": "¿Pregunta?", "back": "Respuesta breve", "difficulty": 2 }
+  ]
+}
+Reglas:
+- Generá entre 10 y 15 cards
+- front: string corto y específico
+- back: string preciso y breve
+- difficulty: 1, 2 o 3
+- Sin markdown
+- Sin texto extra fuera del JSON`,
+    },
+    {
+      role: "user",
+      content: `Texto fuente:\n\n${text}`,
+    },
+  ]);
 
-  const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-  if (!toolCall) return [];
-  const args = JSON.parse(toolCall.function.arguments);
-  return (args.cards ?? []) as FlashcardOut[];
+  const raw = data.choices?.[0]?.message?.content ?? "{}";
+
+  try {
+    const parsed = JSON.parse(raw);
+    const cards = Array.isArray(parsed?.cards) ? parsed.cards : [];
+    return cards
+      .filter((card) => typeof card?.front === "string" && typeof card?.back === "string")
+      .map((card) => ({
+        front: String(card.front).slice(0, 200),
+        back: String(card.back).slice(0, 350),
+        difficulty: card.difficulty === 1 || card.difficulty === 3 ? card.difficulty : 2,
+      }))
+      .slice(0, 15);
+  } catch (error) {
+    console.error("[generateFlashcards] JSON inválido:", raw, error);
+    return [];
+  }
 }

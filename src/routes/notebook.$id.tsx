@@ -55,7 +55,6 @@ function NotebookPage() {
     void loadData();
   }, [user, id]);
 
-  // Realtime: refresh on any document change for this notebook
   useEffect(() => {
     if (!user) return;
     const channel = supabase
@@ -70,6 +69,20 @@ function NotebookPage() {
       void supabase.removeChannel(channel);
     };
   }, [user, id]);
+
+  useEffect(() => {
+    if (!user) return;
+    const hasProcessing = documents.some((doc) =>
+      ["pending", "processing", "chunked", "generating"].includes(doc.status),
+    );
+    if (!hasProcessing) return;
+
+    const interval = window.setInterval(() => {
+      void loadDocuments();
+    }, 3000);
+
+    return () => window.clearInterval(interval);
+  }, [user, documents]);
 
   const loadData = async () => {
     setLoading(true);
