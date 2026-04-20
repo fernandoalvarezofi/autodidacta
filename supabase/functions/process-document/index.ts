@@ -103,10 +103,24 @@ async function processDocument(documentId: string) {
 
     await admin.from("documents").update({ status: "generating", progress: 75 }).eq("id", documentId);
 
-    const [summaryRes, flashcardsRes, quizRes] = await Promise.allSettled([
+    // Necesitamos los chunk_ids reales para anclar los nodos del mindmap
+    const { data: chunkRowsWithIds } = await admin
+      .from("document_chunks")
+      .select("id, chunk_index, content")
+      .eq("document_id", documentId)
+      .order("chunk_index", { ascending: true });
+
+    const chunkRefs = (chunkRowsWithIds ?? []).map((c) => ({
+      id: c.id as string,
+      index: c.chunk_index as number,
+      preview: String(c.content).slice(0, 200),
+    }));
+
+    const [summaryRes, flashcardsRes, quizRes, mindmapRes] = await Promise.allSettled([
       generateSummary(aiInput),
       generateFlashcards(aiInput),
       generateQuiz(aiInput),
+      generateMindmap(aiInput, chunkRefs),
     ]);
 
     if (summaryRes.status === "fulfilled" && summaryRes.value) {
@@ -151,6 +165,17 @@ async function processDocument(documentId: string) {
       });
     } else if (quizRes.status === "rejected") {
       console.error("Quiz failed:", quizRes.reason);
+    }
+
+    if (mindmapRes.status === "fulfilled" && mindmapRes.value && mindmapRes.value.nodes.length >= 3) {
+      await admin.from("document_outputs").insert({
+        document_id: documentId,
+        user_id: doc.user_id,
+        type: "mindmap",
+        content: mindmapRes.value,
+      });
+    } else if (mindmapRes.status === "rejected") {
+      console.error("Mindmap failed:", mindmapRes.reason);
     }
 
     await admin
