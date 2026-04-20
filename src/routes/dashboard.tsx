@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Plus, Loader2, FileText, Clock, CheckCircle2, AlertCircle } from "lucide-react";
+import { Plus, Loader2, FileText, Clock, CheckCircle2, AlertCircle, Sparkles, ArrowUpRight } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
@@ -72,7 +72,7 @@ function DashboardPage() {
   if (authLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-paper">
-        <Loader2 className="w-6 h-6 animate-spin text-ink/40" />
+        <Loader2 className="w-5 h-5 animate-spin text-ink/40" />
       </div>
     );
   }
@@ -83,92 +83,106 @@ function DashboardPage() {
 
   return (
     <DashboardShell>
-      <div className="container mx-auto px-6 lg:px-10 max-w-[1200px] py-12 relative">
-        {/* Decorative radial glow */}
-        <div className="absolute top-0 right-0 w-[600px] h-[400px] -z-10 opacity-50 bg-radial-orange pointer-events-none" />
+      <div className="container mx-auto px-5 lg:px-8 max-w-[1240px] py-10 relative">
+        {/* Subtle grid background */}
+        <div className="absolute inset-x-0 top-0 h-[400px] bg-grid-fade -z-10 pointer-events-none" />
 
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12 pb-8 border-b-2 border-ink animate-fade-up">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10 animate-fade-up">
           <div className="min-w-0">
-            <div className="flex items-center gap-2.5 mb-3">
-              <span className="w-1.5 h-1.5 bg-orange rounded-full animate-pulse" />
-              <p className="text-[11px] uppercase tracking-[0.3em] text-orange font-mono">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-1.5 h-1.5 bg-orange rounded-full shadow-[0_0_8px_var(--orange)]" />
+              <p className="text-[10.5px] uppercase tracking-[0.22em] text-ink/45 font-mono">
                 {greeting}, {niceName}
               </p>
             </div>
-            <h1 className="font-display text-5xl md:text-6xl font-semibold tracking-tight leading-[1.05]">
+            <h1 className="font-display text-4xl md:text-5xl font-semibold tracking-[-0.03em] leading-[1.05]">
               Tu biblioteca
             </h1>
-            <p className="text-ink/60 mt-3 max-w-xl leading-relaxed">
-              Cada cuaderno es un universo de estudio. Subí material, generá flashcards, jugá quizzes
-              y conversá con tus apuntes.
+            <p className="text-ink/55 mt-2.5 max-w-xl text-[14.5px] leading-relaxed">
+              Cada cuaderno es un universo de estudio. Subí material, generá flashcards y conversá con tus apuntes.
             </p>
           </div>
           <button
             onClick={() => setShowCreate(true)}
-            className="group inline-flex items-center gap-2 px-5 py-3 text-sm font-medium bg-gradient-ink text-paper hover:shadow-orange transition-all active:scale-95 self-start md:self-auto rounded-md whitespace-nowrap"
+            className="group inline-flex items-center gap-2 px-4 py-2.5 text-[13px] font-medium bg-ink text-paper hover:bg-orange transition-colors active:scale-[0.98] self-start md:self-auto rounded-md whitespace-nowrap shadow-soft"
           >
-            <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" strokeWidth={2} />
+            <Plus className="w-3.5 h-3.5 group-hover:rotate-90 transition-transform duration-300" strokeWidth={2.25} />
             Nuevo cuaderno
           </button>
         </div>
 
-        <div className="animate-fade-up" style={{ animationDelay: "80ms" }}>
+        <div className="animate-fade-up mb-10" style={{ animationDelay: "80ms" }}>
           <GamificationWidget />
         </div>
 
         {showCreate && (
-          <div className="mb-10 border-2 border-ink bg-paper p-6 md:p-7 shadow-elevated animate-scale-in">
+          <div className="mb-10 border border-border bg-cream/40 backdrop-blur-sm p-6 shadow-elevated animate-scale-in rounded-lg">
             <div className="flex items-start justify-between mb-5">
               <div>
-                <p className="text-xs uppercase tracking-[0.25em] text-orange font-mono mb-1.5">
-                  Crear
+                <p className="text-[10px] uppercase tracking-[0.22em] text-orange font-mono mb-1.5">
+                  Nuevo cuaderno
                 </p>
-                <h2 className="font-display text-2xl">Nuevo cuaderno</h2>
+                <h2 className="font-display text-xl">Empezá a organizar</h2>
               </div>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               <input
                 type="text"
                 placeholder="Título (ej: Anatomía II)"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 autoFocus
-                className="w-full px-4 py-3 bg-cream/30 border border-border focus:border-ink focus:bg-paper focus:outline-none transition-all font-display text-lg"
+                className="w-full px-3.5 py-2.5 bg-paper border border-border focus:border-orange/50 focus:ring-1 focus:ring-orange/30 focus:outline-none transition-all font-display text-[15px] rounded-md placeholder:text-ink/35"
               />
               <textarea
                 placeholder="Descripción (opcional)"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={2}
-                className="w-full px-4 py-3 bg-cream/30 border border-border focus:border-ink focus:bg-paper focus:outline-none transition-all resize-none text-sm"
+                className="w-full px-3.5 py-2.5 bg-paper border border-border focus:border-orange/50 focus:ring-1 focus:ring-orange/30 focus:outline-none transition-all resize-none text-[13px] rounded-md placeholder:text-ink/35"
               />
-              <div className="flex gap-3 justify-end pt-1">
+              <div className="flex gap-2 justify-end pt-1">
                 <button
                   onClick={() => setShowCreate(false)}
-                  className="px-4 py-2.5 text-sm border border-border hover:border-ink hover:bg-cream/60 transition-all"
+                  className="px-3.5 py-2 text-[13px] text-ink/70 hover:text-ink hover:bg-cream transition-all rounded-md"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleCreate}
                   disabled={creating || !title.trim()}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium bg-gradient-ink text-paper hover:shadow-orange disabled:opacity-50 disabled:hover:shadow-none transition-all"
+                  className="inline-flex items-center gap-2 px-4 py-2 text-[13px] font-medium bg-ink text-paper hover:bg-orange disabled:opacity-40 disabled:hover:bg-ink transition-colors rounded-md"
                 >
-                  {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : "Crear cuaderno"}
+                  {creating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Crear cuaderno"}
                 </button>
               </div>
             </div>
           </div>
         )}
 
+        {/* Section header */}
+        {!loading && notebooks.length > 0 && (
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-2.5">
+              <h2 className="text-[11px] font-mono uppercase tracking-[0.22em] text-ink/55">
+                Cuadernos
+              </h2>
+              <span className="text-[10px] font-mono px-1.5 py-0.5 bg-cream border border-border rounded text-ink/60">
+                {notebooks.length}
+              </span>
+            </div>
+          </div>
+        )}
+
         {loading ? (
           <div className="flex justify-center py-20">
-            <Loader2 className="w-6 h-6 animate-spin text-ink/40" />
+            <Loader2 className="w-5 h-5 animate-spin text-ink/40" />
           </div>
         ) : notebooks.length === 0 ? (
           <EmptyState onCreate={() => setShowCreate(true)} />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 stagger">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 stagger">
             {notebooks.map((nb) => (
               <NotebookCard key={nb.id} notebook={nb} />
             ))}
@@ -199,42 +213,50 @@ function NotebookCard({ notebook }: { notebook: NotebookRow }) {
     <Link
       to="/notebook/$id"
       params={{ id: notebook.id }}
-      className="group relative bg-paper border border-border p-6 hover:border-ink hover:shadow-elevated hover:-translate-y-1 transition-all flex flex-col overflow-hidden"
+      className="group relative bg-cream/40 hover:bg-cream/80 border border-border hover:border-ink/25 p-5 transition-all flex flex-col overflow-hidden rounded-lg"
     >
-      {/* Subtle orange accent on hover */}
-      <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-orange opacity-0 group-hover:opacity-100 transition-opacity" />
+      {/* Hover glow line */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-orange to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
       <div className="flex items-start justify-between mb-4">
-        <p className="text-[10px] uppercase tracking-[0.2em] font-mono text-ink/40">
-          {new Date(notebook.created_at).toLocaleDateString("es", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-          })}
-        </p>
-        <div className="w-7 h-7 inline-flex items-center justify-center border border-border group-hover:border-orange group-hover:bg-orange/5 transition-all">
+        <div className="w-8 h-8 inline-flex items-center justify-center bg-paper border border-border group-hover:border-orange/40 group-hover:bg-orange/10 transition-all rounded-md">
           <FileText
-            className="w-3.5 h-3.5 text-ink/40 group-hover:text-orange transition-colors"
+            className="w-3.5 h-3.5 text-ink/50 group-hover:text-orange transition-colors"
             strokeWidth={1.75}
           />
         </div>
+        <ArrowUpRight
+          className="w-4 h-4 text-ink/25 group-hover:text-orange group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all"
+          strokeWidth={2}
+        />
       </div>
-      <h3 className="font-display text-2xl font-semibold tracking-tight text-ink mb-2 line-clamp-2 leading-snug">
+
+      <h3 className="font-display text-[17px] font-semibold tracking-tight text-ink mb-1.5 line-clamp-2 leading-snug">
         {notebook.title}
       </h3>
-      {notebook.description && (
-        <p className="text-sm text-ink/60 mb-4 line-clamp-2 leading-relaxed">
+      {notebook.description ? (
+        <p className="text-[13px] text-ink/55 mb-4 line-clamp-2 leading-relaxed">
           {notebook.description}
         </p>
+      ) : (
+        <p className="text-[13px] text-ink/30 italic mb-4">Sin descripción</p>
       )}
-      <div className="mt-auto pt-4 border-t border-border flex items-center gap-3 text-xs font-mono">
-        <span className="text-ink/60">
-          {total} {total === 1 ? "documento" : "documentos"}
+
+      <div className="mt-auto pt-3 border-t border-border/60 flex items-center gap-3 text-[11px] font-mono">
+        <span className="text-ink/50">
+          {total} {total === 1 ? "doc" : "docs"}
         </span>
-        <div className="flex items-center gap-2 ml-auto">
+        <span className="text-ink/25">·</span>
+        <span className="text-ink/40 truncate">
+          {new Date(notebook.created_at).toLocaleDateString("es", {
+            day: "2-digit",
+            month: "short",
+          })}
+        </span>
+        <div className="flex items-center gap-1.5 ml-auto">
           {ready > 0 && (
             <span
-              className="inline-flex items-center gap-1 text-orange-deep"
+              className="inline-flex items-center gap-0.5 text-orange-deep"
               title={`${ready} listos`}
             >
               <CheckCircle2 className="w-3 h-3" strokeWidth={2.5} /> {ready}
@@ -242,7 +264,7 @@ function NotebookCard({ notebook }: { notebook: NotebookRow }) {
           )}
           {processing > 0 && (
             <span
-              className="inline-flex items-center gap-1 text-ink/50"
+              className="inline-flex items-center gap-0.5 text-ink/45"
               title={`${processing} procesando`}
             >
               <Clock className="w-3 h-3 animate-pulse" strokeWidth={2.5} /> {processing}
@@ -250,7 +272,7 @@ function NotebookCard({ notebook }: { notebook: NotebookRow }) {
           )}
           {errors > 0 && (
             <span
-              className="inline-flex items-center gap-1 text-destructive"
+              className="inline-flex items-center gap-0.5 text-destructive"
               title={`${errors} con error`}
             >
               <AlertCircle className="w-3 h-3" strokeWidth={2.5} /> {errors}
@@ -264,28 +286,27 @@ function NotebookCard({ notebook }: { notebook: NotebookRow }) {
 
 function EmptyState({ onCreate }: { onCreate: () => void }) {
   return (
-    <div className="relative border-2 border-dashed border-border py-24 px-6 text-center bg-cream/20 animate-fade-up overflow-hidden rounded-md">
-      <div className="absolute inset-0 -z-10 opacity-60 bg-radial-orange pointer-events-none" />
-      <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-orange shadow-orange rounded-full mb-6 animate-pulse-glow">
-        <FileText className="w-7 h-7 text-paper" strokeWidth={1.75} />
+    <div className="relative border border-dashed border-border py-20 px-6 text-center bg-cream/20 animate-fade-up overflow-hidden rounded-xl">
+      <div className="absolute inset-0 -z-10 bg-grid pointer-events-none opacity-40" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[200px] bg-orange/10 blur-[80px] -z-10 rounded-full" />
+
+      <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-orange shadow-orange rounded-xl mb-5 animate-pulse-glow">
+        <Sparkles className="w-5 h-5 text-paper" strokeWidth={2} />
       </div>
-      <p className="text-[10px] uppercase tracking-[0.3em] font-mono text-orange mb-3">
-        Tu primera vez
+      <p className="text-[10px] uppercase tracking-[0.28em] font-mono text-orange mb-2.5">
+        Empezá acá
       </p>
-      <h3 className="font-display text-3xl font-semibold mb-3 leading-tight">
-        Tu biblioteca está lista
-        <br />
-        <span className="text-ink/40">esperando contenido</span>
+      <h3 className="font-display text-3xl font-semibold mb-2.5 leading-tight tracking-tight">
+        Tu biblioteca está vacía
       </h3>
-      <p className="text-sm text-ink/60 mb-7 max-w-md mx-auto leading-relaxed">
-        Creá tu primer cuaderno, subí un PDF y en segundos vas a tener resumen, mapa mental,
-        flashcards y quiz listos para estudiar.
+      <p className="text-[14px] text-ink/55 mb-7 max-w-md mx-auto leading-relaxed">
+        Creá tu primer cuaderno, subí un PDF y en segundos vas a tener resumen, mapa mental, flashcards y quiz.
       </p>
       <button
         onClick={onCreate}
-        className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium bg-gradient-ink text-paper hover:shadow-orange transition-all active:scale-95 rounded-md"
+        className="inline-flex items-center gap-2 px-5 py-2.5 text-[13px] font-medium bg-ink text-paper hover:bg-orange transition-colors active:scale-[0.98] rounded-md shadow-soft"
       >
-        <Plus className="w-4 h-4" strokeWidth={2} />
+        <Plus className="w-3.5 h-3.5" strokeWidth={2.25} />
         Crear mi primer cuaderno
       </button>
     </div>
