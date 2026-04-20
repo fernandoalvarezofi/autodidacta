@@ -1,6 +1,14 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Loader2, BookOpen, Layers, HelpCircle, MessagesSquare } from "lucide-react";
+import {
+  ArrowLeft,
+  Loader2,
+  BookOpen,
+  Layers,
+  HelpCircle,
+  MessagesSquare,
+  Network,
+} from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
@@ -8,6 +16,7 @@ import { SummaryRender, type SummaryContent } from "@/components/document/Summar
 import { FlashcardDeck, type FlashcardOutput } from "@/components/document/FlashcardDeck";
 import { QuizRunner, type QuizQuestion } from "@/components/document/QuizRunner";
 import { DocumentChat } from "@/components/document/DocumentChat";
+import { MindMapViewer, type MindmapContent } from "@/components/document/MindMapViewer";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/document/$id")({
@@ -21,7 +30,7 @@ interface DocumentRow {
   status: string;
 }
 
-type Tab = "summary" | "flashcards" | "quiz" | "chat";
+type Tab = "summary" | "mindmap" | "flashcards" | "quiz" | "chat";
 
 function DocumentPage() {
   const { id } = Route.useParams();
@@ -31,6 +40,7 @@ function DocumentPage() {
   const [summary, setSummary] = useState<string | null>(null);
   const [flashcards, setFlashcards] = useState<FlashcardOutput[]>([]);
   const [quiz, setQuiz] = useState<QuizQuestion[]>([]);
+  const [mindmap, setMindmap] = useState<MindmapContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>("summary");
 
@@ -62,9 +72,11 @@ function DocumentPage() {
         const sum = outputs.find((o) => o.type === "summary");
         const flash = outputs.find((o) => o.type === "flashcards");
         const qz = outputs.find((o) => o.type === "quiz");
+        const mm = outputs.find((o) => o.type === "mindmap");
         if (sum) setSummary((sum.content as unknown as SummaryContent).markdown);
         if (flash) setFlashcards(flash.content as unknown as FlashcardOutput[]);
         if (qz) setQuiz(qz.content as unknown as QuizQuestion[]);
+        if (mm) setMindmap(mm.content as unknown as MindmapContent);
       }
       setLoading(false);
     })();
