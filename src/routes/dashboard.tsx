@@ -68,6 +68,8 @@ function DashboardPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [pickedIcon, setPickedIcon] = useState<ClayIconKey>("notebook");
+  const [iconPickerOpen, setIconPickerOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [view, setView] = useState<ViewMode>("grid");
   const [sort, setSort] = useState<SortMode>("recent");
@@ -95,7 +97,12 @@ function DashboardPage() {
     setCreating(true);
     const { data, error } = await supabase
       .from("notebooks")
-      .insert({ user_id: user.id, title: title.trim(), description: description.trim() || null })
+      .insert({
+        user_id: user.id,
+        title: title.trim(),
+        description: description.trim() || null,
+        emoji: pickedIcon,
+      })
       .select()
       .single();
     setCreating(false);
