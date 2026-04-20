@@ -97,11 +97,14 @@ export function FloatingChat() {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed bottom-5 right-5 z-50 inline-flex items-center gap-2 pl-4 pr-5 py-3 bg-ink text-paper hover:bg-ink/90 transition-colors shadow-lg shadow-ink/20"
+          className="group fixed bottom-6 right-6 z-50 inline-flex items-center gap-2.5 pl-4 pr-5 py-3.5 bg-gradient-ink text-paper hover:shadow-orange transition-all shadow-ink rounded-full animate-fade-in active:scale-95"
           aria-label="Abrir chat"
         >
-          <MessagesSquare className="w-4 h-4" strokeWidth={1.75} />
-          <span className="text-sm font-medium">Chat</span>
+          <span className="relative flex">
+            <span className="absolute inset-0 rounded-full bg-orange/40 animate-ping" />
+            <MessagesSquare className="w-4 h-4 relative" strokeWidth={2} />
+          </span>
+          <span className="text-sm font-medium tracking-wide">Chat con tu material</span>
         </button>
       )}
 
@@ -109,21 +112,28 @@ export function FloatingChat() {
       {open && (
         <>
           <div
-            className="fixed inset-0 z-40 bg-ink/20 md:bg-transparent"
+            className="fixed inset-0 z-40 bg-ink/30 backdrop-blur-sm md:bg-ink/10 md:backdrop-blur-0 animate-fade-in"
             onClick={() => setOpen(false)}
           />
-          <aside className="fixed top-0 right-0 z-50 h-screen w-full md:w-[420px] bg-paper border-l-2 border-ink flex flex-col">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border flex-shrink-0">
-              <div className="flex items-center gap-2">
-                <MessagesSquare className="w-4 h-4 text-orange" strokeWidth={1.75} />
-                <p className="font-display text-base font-semibold">Chat</p>
+          <aside className="fixed top-0 right-0 z-50 h-screen w-full md:w-[440px] bg-paper border-l border-ink/20 flex flex-col shadow-elevated animate-slide-in-right">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border flex-shrink-0 bg-gradient-warm">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 inline-flex items-center justify-center bg-gradient-orange rounded-full shadow-orange">
+                  <MessagesSquare className="w-4 h-4 text-paper" strokeWidth={2} />
+                </div>
+                <div>
+                  <p className="font-display text-base font-semibold leading-tight">Chat</p>
+                  <p className="text-[10px] uppercase tracking-wider font-mono text-ink/50">
+                    Asistente de estudio
+                  </p>
+                </div>
               </div>
               <button
                 onClick={() => setOpen(false)}
-                className="p-1.5 text-ink/60 hover:text-ink transition-colors"
+                className="p-2 text-ink/60 hover:text-ink hover:bg-cream/60 transition-colors rounded-sm"
                 aria-label="Cerrar"
               >
-                <X className="w-4 h-4" strokeWidth={1.75} />
+                <X className="w-4 h-4" strokeWidth={2} />
               </button>
             </div>
 
