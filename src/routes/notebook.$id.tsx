@@ -5,11 +5,10 @@ import {
   Upload,
   Loader2,
   FileText,
-  CheckCircle2,
   AlertCircle,
-  Sparkles,
   BookOpen,
-  Layers,
+  RotateCcw,
+  Trash2,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
@@ -217,7 +216,7 @@ function NotebookPage() {
             </h2>
             <div className="divide-y divide-border border-y border-border">
               {documents.map((doc) => (
-                <DocumentRow key={doc.id} doc={doc} />
+                <DocumentRow key={doc.id} doc={doc} onChange={loadDocuments} />
               ))}
             </div>
           </div>
@@ -227,10 +226,42 @@ function NotebookPage() {
   );
 }
 
-function DocumentRow({ doc }: { doc: DocumentRow }) {
+function DocumentRow({ doc, onChange }: { doc: DocumentRow; onChange: () => void }) {
   const isProcessing = ["pending", "processing", "chunked", "generating"].includes(doc.status);
   const isReady = doc.status === "ready";
   const isError = doc.status === "error";
+  const [busy, setBusy] = useState(false);
+
+  const handleRetry = async () => {
+    setBusy(true);
+    try {
+      await supabase
+        .from("documents")
+        .update({ status: "pending", progress: 0, error_message: null })
+        .eq("id", doc.id);
+      void supabase.functions.invoke("process-document", { body: { documentId: doc.id } });
+      toast.success("Reintentando...");
+      onChange();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Error al reintentar");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!confirm("¿Eliminar este documento? Esta acción no se puede deshacer.")) return;
+    setBusy(true);
+    try {
+      await supabase.from("documents").delete().eq("id", doc.id);
+      toast.success("Documento eliminado");
+      onChange();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Error al eliminar");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <div className="py-5 flex items-center gap-5">
@@ -259,7 +290,19 @@ function DocumentRow({ doc }: { doc: DocumentRow }) {
       </div>
       <div className="flex items-center gap-2">
         {isProcessing && <Loader2 className="w-5 h-5 animate-spin text-ink/40" />}
-        {isError && <AlertCircle className="w-5 h-5 text-destructive" strokeWidth={1.75} />}
+        {isError && (
+          <>
+            <AlertCircle className="w-5 h-5 text-destructive" strokeWidth={1.75} />
+            <button
+              onClick={handleRetry}
+              disabled={busy}
+              className="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium border border-ink hover:bg-ink hover:text-paper transition-colors disabled:opacity-50"
+            >
+              <RotateCcw className="w-3.5 h-3.5" strokeWidth={1.75} />
+              Reintentar
+            </button>
+          </>
+        )}
         {isReady && (
           <Link
             to="/document/$id"
@@ -269,6 +312,16 @@ function DocumentRow({ doc }: { doc: DocumentRow }) {
             <BookOpen className="w-4 h-4" strokeWidth={1.75} />
             Estudiar
           </Link>
+        )}
+        {!isProcessing && (
+          <button
+            onClick={handleDelete}
+            disabled={busy}
+            className="p-2 text-ink/40 hover:text-destructive transition-colors disabled:opacity-50"
+            title="Eliminar"
+          >
+            <Trash2 className="w-4 h-4" strokeWidth={1.75} />
+          </button>
         )}
       </div>
     </div>

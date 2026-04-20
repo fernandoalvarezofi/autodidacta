@@ -160,8 +160,28 @@ async function extractPdfText(blob: Blob): Promise<string> {
   const { extractText, getDocumentProxy } = await import("https://esm.sh/unpdf@0.12.1");
   const buffer = new Uint8Array(await blob.arrayBuffer());
   const pdf = await getDocumentProxy(buffer);
-  const { text } = await extractText(pdf, { mergePages: true });
-  return Array.isArray(text) ? text.join("\n\n") : String(text);
+  const totalPages = pdf.numPages ?? 0;
+  const MAX_PAGES = 30;
+  const pagesToExtract = Math.min(totalPages, MAX_PAGES);
+  console.log(`[extractPdfText] PDF tiene ${totalPages} páginas, extrayendo ${pagesToExtract}`);
+
+  // Extract page-by-page, limiting to MAX_PAGES to avoid CPU blowup
+  const parts: string[] = [];
+  for (let i = 1; i <= pagesToExtract; i++) {
+    try {
+      const { text } = await extractText(pdf, { mergePages: false, page: i } as any);
+      const pageText = Array.isArray(text) ? text.join(" ") : String(text);
+      parts.push(pageText);
+      // Hard cap on accumulated text to keep CPU bounded
+      if (parts.join("\n\n").length > 100000) {
+        console.log(`[extractPdfText] Cap de 100k chars alcanzado en página ${i}`);
+        break;
+      }
+    } catch (e) {
+      console.error(`[extractPdfText] Error página ${i}:`, e);
+    }
+  }
+  return parts.join("\n\n");
 }
 
 // =====================================================
