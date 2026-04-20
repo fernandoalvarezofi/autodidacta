@@ -1,7 +1,6 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-  ArrowLeft,
   Loader2,
   BookOpen,
   Layers,
@@ -13,6 +12,7 @@ import {
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { WorkspaceLayout } from "@/components/workspace/WorkspaceLayout";
 import { SummaryRender, type SummaryContent } from "@/components/document/SummaryRender";
 import { FlashcardDeck, type FlashcardOutput } from "@/components/document/FlashcardDeck";
 import { QuizRunner, type QuizQuestion } from "@/components/document/QuizRunner";
@@ -33,7 +33,7 @@ interface DocumentRow {
   status: string;
 }
 
-type Tab = "summary" | "mindmap" | "flashcards" | "quiz" | "chat";
+type Tab = "chat" | "summary" | "mindmap" | "flashcards" | "quiz";
 
 function DocumentPage() {
   const { id } = Route.useParams();
@@ -45,7 +45,7 @@ function DocumentPage() {
   const [quiz, setQuiz] = useState<QuizQuestion[]>([]);
   const [mindmap, setMindmap] = useState<MindmapContent | null>(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<Tab>("summary");
+  const [tab, setTab] = useState<Tab>("chat");
   const [creatingNote, setCreatingNote] = useState(false);
 
   const handleEditAsNote = async () => {
@@ -123,98 +123,81 @@ function DocumentPage() {
     );
   }
 
+  // Tab activo: ¿necesita ancho amplio?
+  const wide = tab === "mindmap" || tab === "flashcards" || tab === "quiz";
+
   return (
     <DashboardShell>
-      <div className="container mx-auto px-6 lg:px-10 max-w-[1100px] py-10 relative">
-        <div className="absolute top-0 right-0 w-[400px] h-[300px] -z-10 opacity-30 bg-radial-orange pointer-events-none" />
-
-        <Link
-          to="/notebook/$id"
-          params={{ id: doc.notebook_id }}
-          className="inline-flex items-center gap-2 text-sm text-ink/60 hover:text-ink mb-6 transition-colors group"
-        >
-          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" strokeWidth={1.75} />
-          Volver al cuaderno
-        </Link>
-
-        <div className="pb-8 mb-10 border-b-2 border-ink animate-fade-up">
-          <div className="flex items-center gap-3 mb-3">
-            <span className="inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.25em] text-orange font-mono">
-              <span className="w-1 h-1 bg-orange rounded-full animate-pulse" />
-              Documento
-            </span>
-            <span className="text-xs font-mono text-ink/40">·</span>
-            <span className="text-xs font-mono uppercase tracking-wider text-ink/50">
-              Listo para estudiar
-            </span>
-          </div>
-          <h1 className="font-display text-4xl md:text-5xl font-semibold tracking-tight leading-tight">
-            {doc.title}
-          </h1>
-
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            <button
-              onClick={handleEditAsNote}
-              disabled={creatingNote}
-              className="group inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium border border-ink hover:bg-ink hover:text-paper transition-all active:scale-95 rounded-md disabled:opacity-50"
-            >
-              {creatingNote ? (
-                <Loader2 className="w-4 h-4 animate-spin" strokeWidth={2} />
-              ) : (
-                <PenLine className="w-4 h-4 group-hover:rotate-[-6deg] transition-transform" strokeWidth={1.75} />
-              )}
-              Editar como nota
-            </button>
-            <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-ink/40">
-              Abre el editor visual con el resumen como punto de partida
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-1 mb-10 border-b border-border overflow-x-auto sticky top-16 bg-paper/85 backdrop-blur-xl z-30 -mx-6 px-6 lg:-mx-10 lg:px-10">
-          <TabButton
-            active={tab === "summary"}
-            onClick={() => setTab("summary")}
-            icon={<BookOpen className="w-4 h-4" strokeWidth={1.75} />}
+      <WorkspaceLayout
+        title={doc.title}
+        eyebrow="Documento"
+        backTo={{
+          to: "/notebook/$id",
+          params: { id: doc.notebook_id },
+          label: "Volver al cuaderno",
+        }}
+        groups={[
+          {
+            items: [
+              {
+                key: "chat",
+                label: "Chat",
+                icon: <MessagesSquare className="w-4 h-4" strokeWidth={1.75} />,
+                badge: "IA",
+              },
+            ],
+          },
+          {
+            label: "Material de estudio",
+            items: [
+              {
+                key: "summary",
+                label: "Resumen",
+                icon: <BookOpen className="w-4 h-4" strokeWidth={1.75} />,
+              },
+              {
+                key: "mindmap",
+                label: "Mapa mental",
+                icon: <Network className="w-4 h-4" strokeWidth={1.75} />,
+                count: mindmap?.nodes.length,
+              },
+              {
+                key: "flashcards",
+                label: "Flashcards",
+                icon: <Layers className="w-4 h-4" strokeWidth={1.75} />,
+                count: flashcards.length,
+              },
+              {
+                key: "quiz",
+                label: "Quiz",
+                icon: <HelpCircle className="w-4 h-4" strokeWidth={1.75} />,
+                count: quiz.length,
+              },
+            ],
+          },
+        ]}
+        activeKey={tab}
+        onItemSelect={(k) => setTab(k as Tab)}
+        headerAction={
+          <button
+            onClick={handleEditAsNote}
+            disabled={creatingNote}
+            className="group w-full inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium border border-ink/80 hover:bg-ink hover:text-paper transition-all active:scale-[0.98] rounded-md disabled:opacity-50"
           >
-            Resumen
-          </TabButton>
-          <TabButton
-            active={tab === "mindmap"}
-            onClick={() => setTab("mindmap")}
-            icon={<Network className="w-4 h-4" strokeWidth={1.75} />}
-            count={mindmap?.nodes.length}
-          >
-            Mapa
-          </TabButton>
-          <TabButton
-            active={tab === "flashcards"}
-            onClick={() => setTab("flashcards")}
-            icon={<Layers className="w-4 h-4" strokeWidth={1.75} />}
-            count={flashcards.length}
-          >
-            Flashcards
-          </TabButton>
-          <TabButton
-            active={tab === "quiz"}
-            onClick={() => setTab("quiz")}
-            icon={<HelpCircle className="w-4 h-4" strokeWidth={1.75} />}
-            count={quiz.length}
-          >
-            Quiz
-          </TabButton>
-          <TabButton
-            active={tab === "chat"}
-            onClick={() => setTab("chat")}
-            icon={<MessagesSquare className="w-4 h-4" strokeWidth={1.75} />}
-            highlight
-          >
-            Chat
-          </TabButton>
-        </div>
+            {creatingNote ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" strokeWidth={2} />
+            ) : (
+              <PenLine className="w-3.5 h-3.5 group-hover:rotate-[-6deg] transition-transform" strokeWidth={1.75} />
+            )}
+            Editar como nota
+          </button>
+        }
+        wide={wide}
+      >
+        {tab === "chat" && <DocumentChat documentId={doc.id} />}
 
-        <div className="animate-fade-in" key={tab}>
-          {tab === "summary" && (
+        {tab === "summary" && (
+          <div className="py-8 overflow-y-auto h-full">
             <article className="prose-academic">
               {summary ? (
                 <SummaryRender markdown={summary} />
@@ -222,26 +205,34 @@ function DocumentPage() {
                 <p className="text-ink/50 text-sm">No hay resumen disponible.</p>
               )}
             </article>
-          )}
+          </div>
+        )}
 
-          {tab === "mindmap" && (
-            mindmap ? (
+        {tab === "mindmap" && (
+          <div className="p-6 h-full">
+            {mindmap ? (
               <MindMapViewer content={mindmap} />
             ) : (
-              <div className="border-2 border-dashed border-border bg-paper p-12 text-center">
+              <div className="border-2 border-dashed border-border bg-paper p-12 text-center rounded-lg">
                 <p className="text-ink/50 text-sm">El mapa mental aún no está disponible para este documento.</p>
                 <p className="text-xs text-ink/40 mt-2 font-mono uppercase tracking-wider">Reprocesá el documento para generarlo</p>
               </div>
-            )
-          )}
+            )}
+          </div>
+        )}
 
-          {tab === "flashcards" && <FlashcardDeck cards={flashcards} />}
+        {tab === "flashcards" && (
+          <div className="p-6 h-full overflow-y-auto">
+            <FlashcardDeck cards={flashcards} />
+          </div>
+        )}
 
-          {tab === "quiz" && <QuizRunner questions={quiz} documentId={doc.id} documentTitle={doc.title} />}
-
-          {tab === "chat" && <DocumentChat documentId={doc.id} />}
-        </div>
-      </div>
+        {tab === "quiz" && (
+          <div className="p-6 h-full overflow-y-auto">
+            <QuizRunner questions={quiz} documentId={doc.id} documentTitle={doc.title} />
+          </div>
+        )}
+      </WorkspaceLayout>
     </DashboardShell>
   );
 }
@@ -312,46 +303,4 @@ function markdownToHtml(md: string): string {
   }
   closeList();
   return out.join("\n");
-}
-
-function TabButton({
-  active,
-  onClick,
-  children,
-  icon,
-  count,
-  highlight,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-  icon: React.ReactNode;
-  count?: number;
-  highlight?: boolean;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`inline-flex items-center gap-2 px-4 py-3 text-sm transition-all -mb-px border-b-2 whitespace-nowrap relative ${
-        active
-          ? "border-orange text-ink font-medium"
-          : "border-transparent text-ink/60 hover:text-ink hover:bg-cream/40"
-      }`}
-    >
-      <span className={active ? "text-orange" : ""}>{icon}</span>
-      {children}
-      {count !== undefined && (
-        <span
-          className={`text-[10px] font-mono px-1.5 py-0.5 rounded-sm ${
-            active ? "bg-orange/15 text-orange-deep" : "bg-cream text-ink/50"
-          }`}
-        >
-          {count}
-        </span>
-      )}
-      {highlight && !active && (
-        <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-orange rounded-full animate-pulse" />
-      )}
-    </button>
-  );
 }
