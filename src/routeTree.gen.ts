@@ -16,6 +16,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ReviewNotebookIdRouteImport } from './routes/review.$notebookId'
 import { Route as PlayRoomIdRouteImport } from './routes/play.$roomId'
 import { Route as NotebookIdRouteImport } from './routes/notebook.$id'
+import { Route as EditorIdRouteImport } from './routes/editor.$id'
 import { Route as DocumentIdRouteImport } from './routes/document.$id'
 
 const PlayRoute = PlayRouteImport.update({
@@ -53,6 +54,11 @@ const NotebookIdRoute = NotebookIdRouteImport.update({
   path: '/notebook/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EditorIdRoute = EditorIdRouteImport.update({
+  id: '/editor/$id',
+  path: '/editor/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DocumentIdRoute = DocumentIdRouteImport.update({
   id: '/document/$id',
   path: '/document/$id',
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/play': typeof PlayRouteWithChildren
   '/document/$id': typeof DocumentIdRoute
+  '/editor/$id': typeof EditorIdRoute
   '/notebook/$id': typeof NotebookIdRoute
   '/play/$roomId': typeof PlayRoomIdRoute
   '/review/$notebookId': typeof ReviewNotebookIdRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/play': typeof PlayRouteWithChildren
   '/document/$id': typeof DocumentIdRoute
+  '/editor/$id': typeof EditorIdRoute
   '/notebook/$id': typeof NotebookIdRoute
   '/play/$roomId': typeof PlayRoomIdRoute
   '/review/$notebookId': typeof ReviewNotebookIdRoute
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/play': typeof PlayRouteWithChildren
   '/document/$id': typeof DocumentIdRoute
+  '/editor/$id': typeof EditorIdRoute
   '/notebook/$id': typeof NotebookIdRoute
   '/play/$roomId': typeof PlayRoomIdRoute
   '/review/$notebookId': typeof ReviewNotebookIdRoute
@@ -98,6 +107,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/play'
     | '/document/$id'
+    | '/editor/$id'
     | '/notebook/$id'
     | '/play/$roomId'
     | '/review/$notebookId'
@@ -108,6 +118,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/play'
     | '/document/$id'
+    | '/editor/$id'
     | '/notebook/$id'
     | '/play/$roomId'
     | '/review/$notebookId'
@@ -118,6 +129,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/play'
     | '/document/$id'
+    | '/editor/$id'
     | '/notebook/$id'
     | '/play/$roomId'
     | '/review/$notebookId'
@@ -129,6 +141,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   PlayRoute: typeof PlayRouteWithChildren
   DocumentIdRoute: typeof DocumentIdRoute
+  EditorIdRoute: typeof EditorIdRoute
   NotebookIdRoute: typeof NotebookIdRoute
   ReviewNotebookIdRoute: typeof ReviewNotebookIdRoute
 }
@@ -184,6 +197,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NotebookIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/editor/$id': {
+      id: '/editor/$id'
+      path: '/editor/$id'
+      fullPath: '/editor/$id'
+      preLoaderRoute: typeof EditorIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/document/$id': {
       id: '/document/$id'
       path: '/document/$id'
@@ -210,6 +230,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   PlayRoute: PlayRouteWithChildren,
   DocumentIdRoute: DocumentIdRoute,
+  EditorIdRoute: EditorIdRoute,
   NotebookIdRoute: NotebookIdRoute,
   ReviewNotebookIdRoute: ReviewNotebookIdRoute,
 }

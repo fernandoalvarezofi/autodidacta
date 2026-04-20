@@ -281,6 +281,76 @@ export type Database = {
           },
         ]
       }
+      notes: {
+        Row: {
+          content_html: string
+          content_json: Json
+          cover_color: string | null
+          created_at: string
+          document_id: string | null
+          emoji: string | null
+          id: string
+          notebook_id: string | null
+          template_key: string | null
+          title: string
+          updated_at: string
+          user_id: string
+          word_count: number
+        }
+        Insert: {
+          content_html?: string
+          content_json?: Json
+          cover_color?: string | null
+          created_at?: string
+          document_id?: string | null
+          emoji?: string | null
+          id?: string
+          notebook_id?: string | null
+          template_key?: string | null
+          title?: string
+          updated_at?: string
+          user_id: string
+          word_count?: number
+        }
+        Update: {
+          content_html?: string
+          content_json?: Json
+          cover_color?: string | null
+          created_at?: string
+          document_id?: string | null
+          emoji?: string | null
+          id?: string
+          notebook_id?: string | null
+          template_key?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          word_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notes_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notes_notebook_id_fkey"
+            columns: ["notebook_id"]
+            isOneToOne: false
+            referencedRelation: "notebooks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
