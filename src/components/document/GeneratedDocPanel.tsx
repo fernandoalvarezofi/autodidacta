@@ -136,7 +136,7 @@ export function GeneratedDocPanel({ documentId, initialOutputs }: Props) {
                       <Icon className="w-5 h-5 text-ink" strokeWidth={1.75} />
                     </div>
                     {has && (
-                      <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2 py-1 rounded">
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-orange bg-orange/10 px-2 py-1 rounded border border-orange/20">
                         ✓ Listo
                       </span>
                     )}
