@@ -27,7 +27,8 @@ const STOPWORDS = new Set([
   "como","cómo","es","son","ser","por","para","con","sin","sobre","entre","cuando","cuándo","donde",
   "dónde","muy","más","menos","pero","si","no","se","lo","le","les","mi","tu","su","sus","mis","tus",
   "the","a","an","of","and","or","in","on","to","for","with","is","are","be","what","how","why","when",
-  "where","this","that","these","those","it","its"
+  "where","this","that","these","those","it","its","puedo","puede","podes","podés","podrías","quiero",
+  "necesito","explicame","explícame","decime","contame","hace","hacé","dame"
 ]);
 
 function tokenize(s: string): string[] {
@@ -57,17 +58,23 @@ function scoreChunks(
   question: string,
   chunks: ChunkRow[],
 ): { chunk: ChunkRow; score: number }[] {
-  const qTokens = new Set(tokenize(question));
-  if (qTokens.size === 0) return chunks.slice(0, 6).map((c) => ({ chunk: c, score: 0 }));
+  const qTokens = tokenize(question);
+  const qSet = new Set(qTokens);
+  const qBigrams = new Set<string>();
+  for (let i = 0; i < qTokens.length - 1; i++) qBigrams.add(`${qTokens[i]} ${qTokens[i + 1]}`);
+
   return chunks
     .map((chunk) => {
       const tokens = tokenize(chunk.content);
+      const tokenSet = new Set(tokens);
       let hits = 0;
-      for (const t of tokens) if (qTokens.has(t)) hits += 1;
-      const score = hits / Math.max(1, Math.sqrt(tokens.length));
+      for (const t of qSet) if (tokenSet.has(t)) hits += 1;
+      const lower = chunk.content.toLowerCase();
+      let bigramBonus = 0;
+      for (const bg of qBigrams) if (lower.includes(bg)) bigramBonus += 1;
+      const score = (hits + bigramBonus * 2) / Math.max(1, Math.sqrt(tokens.length));
       return { chunk, score };
     })
-    .filter((r) => r.score > 0)
     .sort((a, b) => b.score - a.score);
 }
 
@@ -86,7 +93,14 @@ Deno.serve(async (req) => {
     const { notebookId, question, history = [] } = (await req.json()) as RequestBody;
     if (!notebookId || !question) throw new Error("notebookId y question requeridos");
 
-    // 1. Get all ready documents in this notebook
+    // Notebook metadata
+    const { data: nbMeta } = await supabase
+      .from("notebooks")
+      .select("title")
+      .eq("id", notebookId)
+      .maybeSingle();
+    const nbTitle = nbMeta?.title ?? "el cuaderno";
+
     const { data: docs, error: docsErr } = await supabase
       .from("documents")
       .select("id, title")
@@ -110,12 +124,11 @@ Deno.serve(async (req) => {
       (docs as DocMeta[]).map((d) => [d.id, d.title]),
     );
 
-    // 2. Pull chunks across all docs (capped to keep memory bounded)
     const { data: chunks, error: chunkErr } = await supabase
       .from("document_chunks")
       .select("id, content, chunk_index, page_number, document_id")
       .in("document_id", docIds)
-      .limit(500);
+      .limit(800);
 
     if (chunkErr) throw new Error(`Chunks: ${chunkErr.message}`);
     if (!chunks || chunks.length === 0) {
@@ -128,8 +141,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    const ranked = scoreChunks(question, chunks as ChunkRow[]).slice(0, 6);
-    const context = ranked
+    const ranked = scoreChunks(question, chunks as ChunkRow[]);
+    const top = ranked.slice(0, 7);
+    const hasGoodHits = top.some((r) => r.score >= 0.3);
+
+    const context = top
       .map((r, i) => {
         const title = docMap.get(r.chunk.document_id) ?? "Documento";
         const page = r.chunk.page_number ? ` · pág. ${r.chunk.page_number}` : "";
@@ -137,21 +153,35 @@ Deno.serve(async (req) => {
       })
       .join("\n\n---\n\n");
 
+    const docTitles = (docs as DocMeta[]).map((d) => `"${d.title}"`).join(", ");
+
     const messages: any[] = [
       {
         role: "system",
-        content: `Sos un tutor experto que responde preguntas SOLO con información de los documentos del cuaderno del estudiante. Reglas:
-- Respondé en español rioplatense, claro y conciso.
-- Si la respuesta no está en los fragmentos, decí: "No encuentro eso en el cuaderno" y sugerí qué buscar o subir.
-- Cuando la información venga de varios documentos, indicá de cuál proviene cada idea.
-- Citá los fragmentos relevantes así: (Fragmento 2).
-- No inventes datos, fechas ni cifras.
-- Máximo 280 palabras.`,
+        content: `Sos un tutor experto que ayuda a un estudiante a estudiar el cuaderno "${nbTitle}", que contiene ${docs.length} documento${docs.length === 1 ? "" : "s"}: ${docTitles}.
+
+REGLAS DE RESPUESTA:
+1. Si los fragmentos cubren la pregunta → respondé basándote en ellos y citá así: (Fragmento 2). Cuando la info venga de varios documentos, indicá de cuál.
+2. Si cubren parcialmente → mezclá documento + conocimiento general, marcando:
+   - "Según el cuaderno: …" / "(Fragmento N · Documento X)"
+   - "Como contexto adicional (no está en el cuaderno): …"
+3. Si no cubren la pregunta pero está relacionada con el tema → respondé con conocimiento general, aclarando "Esto no está en el cuaderno, pero como contexto general…".
+4. Si la pregunta es totalmente ajena al tema, decilo amablemente.
+5. Aceptá sinónimos y reformulaciones: encontrá el concepto equivalente aunque las palabras no coincidan.
+
+ESTILO:
+- Español rioplatense, conversacional y claro.
+- Usá ejemplos y analogías para enseñar, no solo recitar.
+- No inventes datos específicos (fechas, cifras, nombres) que no estén en el material. Si no los tenés, aclaralo.
+- Máximo 300 palabras.
+- Markdown ligero (**negrita**, listas con -, no headings).`,
       },
       ...history.slice(-6).map((m) => ({ role: m.role, content: m.content })),
       {
         role: "user",
-        content: `Fragmentos del cuaderno (${docs.length} documento${docs.length === 1 ? "" : "s"}):\n\n${context}\n\n---\n\nPregunta: ${question}`,
+        content: hasGoodHits
+          ? `Fragmentos relevantes del cuaderno:\n\n${context}\n\n---\n\nPregunta: ${question}`
+          : `Fragmentos del cuaderno (puede que no cubran exactamente la pregunta):\n\n${context}\n\n---\n\nPregunta: ${question}\n\nSi no está en los fragmentos, igual ayudame con conocimiento general del tema, marcando claramente que es contexto adicional.`,
       },
     ];
 
@@ -187,13 +217,16 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         answer,
-        sources: ranked.map((r, i) => ({
-          index: i + 1,
-          page: r.chunk.page_number,
-          documentId: r.chunk.document_id,
-          documentTitle: docMap.get(r.chunk.document_id) ?? "Documento",
-          excerpt: r.chunk.content.slice(0, 220),
-        })),
+        sources: top
+          .filter((r) => r.score > 0)
+          .map((r, i) => ({
+            index: i + 1,
+            page: r.chunk.page_number,
+            documentId: r.chunk.document_id,
+            documentTitle: docMap.get(r.chunk.document_id) ?? "Documento",
+            excerpt: r.chunk.content.slice(0, 220),
+          })),
+        usedGeneralKnowledge: !hasGoodHits,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
