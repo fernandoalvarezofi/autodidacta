@@ -138,13 +138,18 @@ function NotebookPage() {
         {/* Decorative radial glow */}
         <div className="absolute top-20 right-0 w-[500px] h-[400px] -z-10 opacity-30 bg-radial-orange pointer-events-none" />
 
-        <Link
-          to="/dashboard"
-          className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-[0.2em] text-ink/50 hover:text-orange mb-8 transition-colors group"
-        >
-          <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" strokeWidth={2} />
-          Biblioteca
-        </Link>
+        {/* Breadcrumb editorial */}
+        <nav className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-[0.18em] text-ink/40 mb-8 animate-fade-in">
+          <Link
+            to="/dashboard"
+            className="hover:text-orange transition-colors inline-flex items-center gap-1.5 group"
+          >
+            <ArrowLeft className="w-3 h-3 group-hover:-translate-x-0.5 transition-transform" strokeWidth={2} />
+            Biblioteca
+          </Link>
+          <span className="text-ink/25">/</span>
+          <span className="text-ink/60 truncate max-w-[300px]">{notebook.title}</span>
+        </nav>
 
         {/* Header */}
         <div className="pb-8 mb-10 border-b-2 border-ink animate-fade-up">

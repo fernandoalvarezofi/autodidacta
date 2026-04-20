@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Flame, Sparkles, Trophy } from "lucide-react";
+import { Flame, Sparkles, Trophy, TrendingUp } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
+import { useCountUp } from "@/hooks/use-count-up";
 
 interface ProfileStats {
   xp: number;
@@ -33,7 +34,15 @@ export function GamificationWidget() {
     })();
   }, [user]);
 
-  if (!stats) return null;
+  if (!stats) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="h-[124px] border border-border bg-cream/20 animate-pulse rounded-md" />
+        ))}
+      </div>
+    );
+  }
 
   const tier = LEVEL_THRESHOLDS.find((t) => t.level === stats.level) ?? LEVEL_THRESHOLDS[0];
   const progress =
@@ -42,45 +51,92 @@ export function GamificationWidget() {
       : Math.min(100, Math.round(((stats.xp - tier.min) / (tier.next - tier.min)) * 100));
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
-      <Stat
-        icon={<Flame className="w-5 h-5 text-orange" strokeWidth={1.75} />}
-        label="Racha"
-        value={`${stats.streak_days} ${stats.streak_days === 1 ? "día" : "días"}`}
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+      <StatCard
+        icon={<Flame className="w-4 h-4 text-orange" strokeWidth={2} />}
+        label="Racha actual"
+        target={stats.streak_days}
+        suffix={stats.streak_days === 1 ? " día" : " días"}
+        accent={stats.streak_days > 0}
+        sublabel={stats.streak_days >= 7 ? "🔥 ¡Imparable!" : stats.streak_days > 0 ? "Seguí así" : "Empezá hoy"}
       />
-      <Stat
-        icon={<Sparkles className="w-5 h-5 text-orange" strokeWidth={1.75} />}
-        label="XP total"
-        value={stats.xp.toLocaleString("es")}
+      <StatCard
+        icon={<Sparkles className="w-4 h-4 text-orange" strokeWidth={2} />}
+        label="XP acumulado"
+        target={stats.xp}
+        sublabel="Cada repaso suma"
       />
-      <div className="border border-border bg-cream/30 p-5">
-        <div className="flex items-center gap-2 mb-2">
-          <Trophy className="w-5 h-5 text-orange" strokeWidth={1.75} />
-          <p className="text-xs uppercase tracking-wider font-mono text-ink/60">Nivel</p>
+      <div className="relative border border-border bg-paper p-5 hover:border-ink/30 transition-all rounded-md group overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 -z-0 opacity-40 bg-radial-orange pointer-events-none" />
+        <div className="relative">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Trophy className="w-4 h-4 text-orange" strokeWidth={2} />
+              <p className="text-[10px] uppercase tracking-[0.2em] font-mono text-ink/50">Nivel</p>
+            </div>
+            {tier.next !== null && (
+              <span className="text-[10px] font-mono text-ink/40">{progress}%</span>
+            )}
+          </div>
+          <p className="font-display text-2xl font-semibold text-ink mb-3 leading-none">
+            {stats.level}
+          </p>
+          <div className="h-1 bg-border overflow-hidden rounded-full">
+            <div
+              className="h-full bg-gradient-orange transition-all duration-1000 ease-out"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <p className="text-[10px] uppercase tracking-wider font-mono text-ink/50 mt-2.5">
+            {tier.next === null
+              ? "Nivel máximo alcanzado"
+              : `${(tier.next - stats.xp).toLocaleString("es")} XP para subir`}
+          </p>
         </div>
-        <p className="font-display text-xl font-semibold text-ink mb-3">{stats.level}</p>
-        <div className="h-1 bg-border overflow-hidden">
-          <div
-            className="h-full bg-orange transition-all duration-500"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-        <p className="text-[10px] uppercase tracking-wider font-mono text-ink/50 mt-2">
-          {tier.next === null ? "Nivel máximo" : `${tier.next - stats.xp} XP para subir`}
-        </p>
       </div>
     </div>
   );
 }
 
-function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function StatCard({
+  icon,
+  label,
+  target,
+  suffix = "",
+  sublabel,
+  accent,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  target: number;
+  suffix?: string;
+  sublabel?: string;
+  accent?: boolean;
+}) {
+  const { ref, value } = useCountUp(target, 1400);
   return (
-    <div className="border border-border bg-cream/30 p-5">
-      <div className="flex items-center gap-2 mb-2">
-        {icon}
-        <p className="text-xs uppercase tracking-wider font-mono text-ink/60">{label}</p>
+    <div className="relative border border-border bg-paper p-5 hover:border-ink/30 transition-all rounded-md group overflow-hidden">
+      {accent && (
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-orange opacity-80" />
+      )}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          {icon}
+          <p className="text-[10px] uppercase tracking-[0.2em] font-mono text-ink/50">{label}</p>
+        </div>
+        {target > 0 && (
+          <TrendingUp className="w-3.5 h-3.5 text-ink/30 group-hover:text-orange transition-colors" strokeWidth={2} />
+        )}
       </div>
-      <p className="font-display text-2xl font-semibold text-ink">{value}</p>
+      <p className="font-display text-3xl font-semibold text-ink leading-none tabular-nums">
+        <span ref={ref}>{value.toLocaleString("es")}</span>
+        <span className="text-base text-ink/50 font-normal">{suffix}</span>
+      </p>
+      {sublabel && (
+        <p className="text-[10px] uppercase tracking-wider font-mono text-ink/40 mt-2.5">
+          {sublabel}
+        </p>
+      )}
     </div>
   );
 }
