@@ -256,6 +256,12 @@ export function ChatPanel({
   const padded = compact ? "p-4" : "p-6";
   const gap = compact ? "space-y-4" : "space-y-5";
   const isSocratic = activeSession?.mode === "socratic";
+  const isFullheight = variant === "fullheight";
+
+  // Clases del scroll central según variante
+  const scrollClasses = isFullheight
+    ? `flex-1 overflow-y-auto ${padded} ${gap}`
+    : `flex-1 overflow-y-auto bg-cream/30 border border-border rounded-lg ${padded} ${gap} relative`;
 
   return (
     <div className="relative flex flex-col h-full min-h-0">
@@ -305,7 +311,13 @@ export function ChatPanel({
       <div className="flex-1 flex flex-col min-h-0">
         {/* Header con toggle sidebar + título de sesión + toggle modo */}
         {activeSession && (
-          <div className="flex items-center justify-between gap-3 mb-2 px-1">
+          <div
+            className={`flex items-center justify-between gap-3 ${
+              isFullheight
+                ? "px-4 sm:px-6 py-3 border-b border-border/60 bg-paper/80 backdrop-blur-sm"
+                : "mb-2 px-1"
+            }`}
+          >
             <div className="flex items-center gap-2 min-w-0 flex-1">
               <button
                 onClick={() => setSidebarOpen(true)}
@@ -330,31 +342,33 @@ export function ChatPanel({
 
         <div
           ref={scrollRef}
-          className={`flex-1 overflow-y-auto bg-cream/30 border border-border rounded-lg ${padded} ${gap} relative`}
-          style={{ backgroundImage: "var(--gradient-radial-orange)" }}
+          className={scrollClasses}
+          style={isFullheight ? undefined : { backgroundImage: "var(--gradient-radial-orange)" }}
         >
-          {intro && messages.length === 0 && <div className="mb-2">{intro}</div>}
-          {loadingMessages ? (
-            <div className="flex justify-center py-10">
-              <Loader2 className="w-5 h-5 animate-spin text-ink/40" />
-            </div>
-          ) : messages.length === 0 ? (
-            <EmptyChat
-              onPick={send}
-              suggestions={isSocratic ? SOCRATIC_SUGGESTIONS : suggestions}
-              isSocratic={isSocratic}
-              scope={scope}
-            />
-          ) : (
-            messages.map((m, i) => (
-              <Bubble
-                key={m.id ?? i}
-                message={m}
-                compact={compact}
-                onSourceClick={setSelectedSource}
+          <div className={isFullheight ? "max-w-3xl mx-auto w-full space-y-5" : ""}>
+            {intro && messages.length === 0 && <div className="mb-2">{intro}</div>}
+            {loadingMessages ? (
+              <div className="flex justify-center py-10">
+                <Loader2 className="w-5 h-5 animate-spin text-ink/40" />
+              </div>
+            ) : messages.length === 0 ? (
+              <EmptyChat
+                onPick={send}
+                suggestions={isSocratic ? SOCRATIC_SUGGESTIONS : suggestions}
+                isSocratic={isSocratic}
+                scope={scope}
               />
-            ))
-          )}
+            ) : (
+              messages.map((m, i) => (
+                <Bubble
+                  key={m.id ?? i}
+                  message={m}
+                  compact={compact}
+                  onSourceClick={setSelectedSource}
+                />
+              ))
+            )}
+          </div>
         </div>
 
         <form
@@ -362,43 +376,88 @@ export function ChatPanel({
             e.preventDefault();
             void send(input);
           }}
-          className="mt-3 flex gap-2"
+          className={
+            isFullheight
+              ? "border-t border-border/60 bg-paper/90 backdrop-blur-sm px-4 sm:px-6 py-4"
+              : "mt-3 flex gap-2"
+          }
         >
-          <div className="flex-1 relative">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={
-                isSocratic
-                  ? "Escribí tu duda — te voy a guiar con preguntas…"
-                  : scope === "document"
-                    ? "Preguntale al documento…"
-                    : "Preguntale al cuaderno…"
-              }
-              disabled={sending || !activeSession}
-              className={`w-full ${compact ? "px-3.5 py-2.5 text-sm" : "px-4 py-3.5"} bg-paper border border-border focus:border-ink placeholder-ink/40 focus:outline-none transition-colors disabled:opacity-50 shadow-soft rounded-md`}
-            />
-          </div>
-          {sending ? (
-            <button
-              type="button"
-              onClick={stopStreaming}
-              className={`inline-flex items-center gap-2 ${compact ? "px-3.5 py-2.5" : "px-5 py-3.5"} bg-destructive/90 text-paper hover:bg-destructive transition-all active:scale-[0.98] rounded-md`}
-              title="Detener generación"
-            >
-              <Square className="w-4 h-4 fill-current" strokeWidth={1.75} />
-              {!compact && <span className="hidden sm:inline text-sm font-medium">Detener</span>}
-            </button>
+          {isFullheight ? (
+            <div className="max-w-3xl mx-auto w-full flex gap-2 items-end">
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder={
+                    isSocratic
+                      ? "Escribí tu duda — te voy a guiar con preguntas…"
+                      : scope === "document"
+                        ? "Preguntale al documento…"
+                        : "Preguntale al cuaderno…"
+                  }
+                  disabled={sending || !activeSession}
+                  className="w-full px-4 py-3.5 bg-paper border border-border focus:border-ink placeholder-ink/40 focus:outline-none transition-colors disabled:opacity-50 shadow-soft rounded-xl text-[15px]"
+                />
+              </div>
+              {sending ? (
+                <button
+                  type="button"
+                  onClick={stopStreaming}
+                  className="inline-flex items-center justify-center w-12 h-12 bg-destructive/90 text-paper hover:bg-destructive transition-all active:scale-[0.98] rounded-xl"
+                  title="Detener generación"
+                >
+                  <Square className="w-4 h-4 fill-current" strokeWidth={1.75} />
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={!input.trim() || !activeSession}
+                  className="inline-flex items-center justify-center w-12 h-12 bg-gradient-ink text-paper hover:shadow-orange transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:shadow-none active:scale-[0.98] rounded-xl"
+                >
+                  <Send className="w-4 h-4" strokeWidth={1.75} />
+                </button>
+              )}
+            </div>
           ) : (
-            <button
-              type="submit"
-              disabled={!input.trim() || !activeSession}
-              className={`inline-flex items-center gap-2 ${compact ? "px-3.5 py-2.5" : "px-5 py-3.5"} bg-gradient-ink text-paper hover:shadow-orange transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:shadow-none active:scale-[0.98] rounded-md`}
-            >
-              <Send className="w-4 h-4" strokeWidth={1.75} />
-              {!compact && <span className="hidden sm:inline text-sm font-medium">Enviar</span>}
-            </button>
+            <>
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder={
+                    isSocratic
+                      ? "Escribí tu duda — te voy a guiar con preguntas…"
+                      : scope === "document"
+                        ? "Preguntale al documento…"
+                        : "Preguntale al cuaderno…"
+                  }
+                  disabled={sending || !activeSession}
+                  className={`w-full ${compact ? "px-3.5 py-2.5 text-sm" : "px-4 py-3.5"} bg-paper border border-border focus:border-ink placeholder-ink/40 focus:outline-none transition-colors disabled:opacity-50 shadow-soft rounded-md`}
+                />
+              </div>
+              {sending ? (
+                <button
+                  type="button"
+                  onClick={stopStreaming}
+                  className={`inline-flex items-center gap-2 ${compact ? "px-3.5 py-2.5" : "px-5 py-3.5"} bg-destructive/90 text-paper hover:bg-destructive transition-all active:scale-[0.98] rounded-md`}
+                  title="Detener generación"
+                >
+                  <Square className="w-4 h-4 fill-current" strokeWidth={1.75} />
+                  {!compact && <span className="hidden sm:inline text-sm font-medium">Detener</span>}
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={!input.trim() || !activeSession}
+                  className={`inline-flex items-center gap-2 ${compact ? "px-3.5 py-2.5" : "px-5 py-3.5"} bg-gradient-ink text-paper hover:shadow-orange transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:shadow-none active:scale-[0.98] rounded-md`}
+                >
+                  <Send className="w-4 h-4" strokeWidth={1.75} />
+                  {!compact && <span className="hidden sm:inline text-sm font-medium">Enviar</span>}
+                </button>
+              )}
+            </>
           )}
         </form>
       </div>
