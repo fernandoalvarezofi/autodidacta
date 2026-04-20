@@ -12,6 +12,8 @@ import {
   Sparkles,
   Files,
   MessagesSquare,
+  CheckCircle2,
+  Clock,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,6 +40,7 @@ interface DocumentRow {
   progress: number;
   error_message: string | null;
   created_at: string;
+  size_bytes: number | null;
 }
 
 function NotebookPage() {
@@ -49,9 +52,13 @@ function NotebookPage() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [tab, setTab] = useState<"documents" | "chat">("documents");
+  const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const readyDocsCount = documents.filter((d) => d.status === "ready").length;
+  const processingCount = documents.filter((d) =>
+    ["pending", "processing", "chunked", "generating"].includes(d.status),
+  ).length;
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/auth" });
@@ -116,10 +123,8 @@ function NotebookPage() {
     setDocuments((data ?? []) as DocumentRow[]);
   };
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
-
+  const processFile = async (file: File) => {
+    if (!user) return;
     if (file.type !== "application/pdf") {
       toast.error("Por ahora solo se aceptan archivos PDF");
       return;
@@ -151,7 +156,6 @@ function NotebookPage() {
         .single();
       if (docErr || !doc) throw docErr ?? new Error("Insert failed");
 
-      // Trigger processing (fire and forget)
       void supabase.functions.invoke("process-document", {
         body: { documentId: doc.id },
       });
@@ -166,6 +170,18 @@ function NotebookPage() {
     }
   };
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) await processFile(file);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragActive(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) await processFile(file);
+  };
+
   if (authLoading || loading || !notebook) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-paper">
@@ -176,52 +192,86 @@ function NotebookPage() {
 
   return (
     <DashboardShell>
-      <div className="container mx-auto px-6 lg:px-10 max-w-[1200px] py-10">
+      <div className="container mx-auto px-6 lg:px-10 max-w-[1200px] py-10 relative">
+        {/* Decorative radial glow */}
+        <div className="absolute top-20 right-0 w-[500px] h-[400px] -z-10 opacity-30 bg-radial-orange pointer-events-none" />
+
         <Link
           to="/dashboard"
-          className="inline-flex items-center gap-2 text-sm text-ink/60 hover:text-ink mb-6 transition-colors"
+          className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-[0.2em] text-ink/50 hover:text-orange mb-8 transition-colors group"
         >
-          <ArrowLeft className="w-4 h-4" strokeWidth={1.75} />
-          Volver
+          <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" strokeWidth={2} />
+          Biblioteca
         </Link>
 
-        <div className="pb-8 mb-10 border-b-2 border-ink flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-orange font-mono mb-3">Cuaderno</p>
-            <h1 className="font-display text-4xl md:text-5xl font-semibold tracking-tight mb-3">
-              {notebook.title}
-            </h1>
-            {notebook.description && <p className="text-ink/60 max-w-2xl">{notebook.description}</p>}
+        {/* Header */}
+        <div className="pb-8 mb-10 border-b-2 border-ink animate-fade-up">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs uppercase tracking-[0.3em] text-orange font-mono mb-3">
+                Cuaderno
+              </p>
+              <h1 className="font-display text-5xl md:text-6xl font-semibold tracking-tight mb-3 leading-[1.05]">
+                {notebook.title}
+              </h1>
+              {notebook.description && (
+                <p className="text-ink/60 max-w-2xl leading-relaxed">{notebook.description}</p>
+              )}
+
+              {/* Stats line */}
+              <div className="flex items-center gap-5 mt-5 text-xs font-mono text-ink/50">
+                <span className="inline-flex items-center gap-1.5">
+                  <Files className="w-3.5 h-3.5" strokeWidth={2} />
+                  {documents.length} {documents.length === 1 ? "documento" : "documentos"}
+                </span>
+                {readyDocsCount > 0 && (
+                  <span className="inline-flex items-center gap-1.5 text-orange-deep">
+                    <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2} />
+                    {readyDocsCount} {readyDocsCount === 1 ? "listo" : "listos"}
+                  </span>
+                )}
+                {processingCount > 0 && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 animate-pulse" strokeWidth={2} />
+                    {processingCount} procesando
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {readyDocsCount > 0 && (
+              <Link
+                to="/review/$notebookId"
+                params={{ notebookId: id }}
+                className="group inline-flex items-center gap-2 px-5 py-3 text-sm font-medium bg-gradient-ink text-paper hover:shadow-orange transition-all active:scale-95 self-start md:self-auto"
+              >
+                <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform" strokeWidth={2} />
+                Repasar ahora
+              </Link>
+            )}
           </div>
-          <Link
-            to="/review/$notebookId"
-            params={{ notebookId: id }}
-            className="inline-flex items-center gap-2 px-5 py-3 text-sm font-medium bg-ink text-paper hover:bg-ink/90 transition-colors self-start md:self-auto"
-          >
-            <Sparkles className="w-4 h-4" strokeWidth={1.75} />
-            Repasar ahora
-          </Link>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 mb-8 border-b border-border">
+        <div className="flex gap-1 mb-8 border-b border-border animate-fade-up" style={{ animationDelay: "60ms" }}>
           <button
             onClick={() => setTab("documents")}
-            className={`inline-flex items-center gap-2 px-4 py-3 text-sm transition-colors -mb-px border-b-2 ${
+            className={`inline-flex items-center gap-2 px-4 py-3 text-sm transition-all -mb-px border-b-2 ${
               tab === "documents"
                 ? "border-orange text-ink font-medium"
-                : "border-transparent text-ink/60 hover:text-ink"
+                : "border-transparent text-ink/50 hover:text-ink"
             }`}
           >
             <Files className="w-4 h-4" strokeWidth={1.75} />
-            Documentos ({documents.length})
+            Documentos
+            <span className="text-xs font-mono text-ink/40">({documents.length})</span>
           </button>
           <button
             onClick={() => setTab("chat")}
-            className={`inline-flex items-center gap-2 px-4 py-3 text-sm transition-colors -mb-px border-b-2 ${
+            className={`inline-flex items-center gap-2 px-4 py-3 text-sm transition-all -mb-px border-b-2 ${
               tab === "chat"
                 ? "border-orange text-ink font-medium"
-                : "border-transparent text-ink/60 hover:text-ink"
+                : "border-transparent text-ink/50 hover:text-ink"
             }`}
           >
             <MessagesSquare className="w-4 h-4" strokeWidth={1.75} />
@@ -230,9 +280,9 @@ function NotebookPage() {
         </div>
 
         {tab === "documents" && (
-          <>
+          <div className="animate-fade-up" style={{ animationDelay: "120ms" }}>
             {/* Upload area */}
-            <div className="mb-12">
+            <div className="mb-10">
               <input
                 ref={fileInputRef}
                 type="file"
@@ -242,55 +292,87 @@ function NotebookPage() {
               />
               <button
                 onClick={() => fileInputRef.current?.click()}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragActive(true);
+                }}
+                onDragLeave={() => setDragActive(false)}
+                onDrop={handleDrop}
                 disabled={uploading}
-                className="w-full border-2 border-dashed border-border hover:border-ink hover:bg-cream/40 disabled:opacity-50 transition-colors py-12 text-center group"
+                className={`relative w-full border-2 border-dashed transition-all py-14 text-center group overflow-hidden ${
+                  dragActive
+                    ? "border-orange bg-orange/5 scale-[1.01]"
+                    : "border-border hover:border-ink hover:bg-cream/40"
+                } ${uploading ? "opacity-60 pointer-events-none" : ""}`}
               >
-                {uploading ? (
-                  <>
-                    <Loader2 className="w-7 h-7 mx-auto mb-3 animate-spin text-ink/40" />
-                    <p className="text-sm text-ink/60">Subiendo...</p>
-                  </>
-                ) : (
-                  <>
-                    <Upload
-                      className="w-7 h-7 mx-auto mb-3 text-ink/40 group-hover:text-orange transition-colors"
-                      strokeWidth={1.5}
-                    />
-                    <p className="text-base font-display font-medium text-ink mb-1">Subí tu PDF</p>
-                    <p className="text-xs text-ink/50 font-mono uppercase tracking-wider">
-                      Máx 10MB · Procesamiento automático
-                    </p>
-                  </>
-                )}
+                {/* Subtle glow on hover */}
+                <div className="absolute inset-0 bg-gradient-warm opacity-0 group-hover:opacity-30 transition-opacity pointer-events-none" />
+
+                <div className="relative">
+                  {uploading ? (
+                    <>
+                      <Loader2 className="w-8 h-8 mx-auto mb-4 animate-spin text-orange" />
+                      <p className="font-display text-base text-ink mb-1">Subiendo tu PDF...</p>
+                      <p className="text-xs text-ink/50 font-mono uppercase tracking-wider">
+                        Esto toma unos segundos
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <div className="inline-flex items-center justify-center w-14 h-14 mb-4 bg-gradient-orange shadow-orange rounded-full group-hover:scale-110 transition-transform">
+                        <Upload className="w-6 h-6 text-paper" strokeWidth={2} />
+                      </div>
+                      <p className="font-display text-xl font-medium text-ink mb-1.5">
+                        {dragActive ? "Soltá para subir" : "Arrastrá tu PDF acá"}
+                      </p>
+                      <p className="text-xs text-ink/50 font-mono uppercase tracking-wider">
+                        o hacé click · Máx 10MB · Procesamiento automático
+                      </p>
+                    </>
+                  )}
+                </div>
               </button>
             </div>
 
             {/* Documents list */}
             {documents.length === 0 ? (
-              <div className="text-center py-12 text-ink/50 text-sm">
-                Todavía no hay documentos en este cuaderno.
+              <div className="border-2 border-dashed border-border py-16 text-center bg-cream/20 animate-fade-up">
+                <div className="inline-flex items-center justify-center w-14 h-14 mb-5 bg-paper border border-border">
+                  <FileText className="w-6 h-6 text-ink/40" strokeWidth={1.5} />
+                </div>
+                <h3 className="font-display text-2xl font-semibold mb-2">Sin documentos todavía</h3>
+                <p className="text-sm text-ink/60 max-w-sm mx-auto">
+                  Subí tu primer PDF para generar resumen, flashcards y quiz automáticamente.
+                </p>
               </div>
             ) : (
               <div>
-                <h2 className="font-display text-2xl font-semibold mb-6 pb-3 border-b border-border">
-                  Documentos
-                </h2>
-                <div className="divide-y divide-border border-y border-border">
+                <div className="flex items-end justify-between mb-5">
+                  <h2 className="font-display text-2xl font-semibold tracking-tight">Documentos</h2>
+                  <p className="text-xs font-mono uppercase tracking-[0.2em] text-ink/40">
+                    {documents.length} {documents.length === 1 ? "archivo" : "archivos"}
+                  </p>
+                </div>
+                <div className="space-y-3 stagger">
                   {documents.map((doc) => (
-                    <DocumentRow key={doc.id} doc={doc} onChange={loadDocuments} />
+                    <DocumentCard key={doc.id} doc={doc} onChange={loadDocuments} />
                   ))}
                 </div>
               </div>
             )}
-          </>
+          </div>
         )}
 
         {tab === "chat" && (
-          <div className="max-w-3xl mx-auto h-[calc(100vh-360px)] min-h-[480px]">
+          <div className="animate-fade-up max-w-3xl mx-auto h-[calc(100vh-360px)] min-h-[480px]">
             {readyDocsCount === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center border-2 border-dashed border-border p-10">
-                <MessagesSquare className="w-8 h-8 mb-3 text-ink/30" strokeWidth={1.5} />
-                <p className="font-display text-lg mb-1">Todavía no hay nada para chatear</p>
+              <div className="h-full flex flex-col items-center justify-center text-center border-2 border-dashed border-border p-10 bg-cream/20">
+                <div className="inline-flex items-center justify-center w-14 h-14 mb-5 bg-paper border border-border">
+                  <MessagesSquare className="w-6 h-6 text-ink/40" strokeWidth={1.5} />
+                </div>
+                <h3 className="font-display text-2xl font-semibold mb-2">
+                  Todavía no hay nada para chatear
+                </h3>
                 <p className="text-sm text-ink/60 max-w-sm">
                   Subí al menos un PDF y esperá a que termine de procesarse para conversar con el
                   contenido de todo el cuaderno.
@@ -314,7 +396,13 @@ function NotebookPage() {
   );
 }
 
-function DocumentRow({ doc, onChange }: { doc: DocumentRow; onChange: () => void }) {
+function formatSize(bytes: number | null): string {
+  if (!bytes) return "";
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function DocumentCard({ doc, onChange }: { doc: DocumentRow; onChange: () => void }) {
   const isProcessing = ["pending", "processing", "chunked", "generating"].includes(doc.status);
   const isReady = doc.status === "ready";
   const isError = doc.status === "error";
@@ -352,65 +440,109 @@ function DocumentRow({ doc, onChange }: { doc: DocumentRow; onChange: () => void
   };
 
   return (
-    <div className="py-5 flex items-center gap-5">
-      <div className="w-10 h-10 border border-border flex items-center justify-center flex-shrink-0">
-        <FileText className="w-4 h-4 text-ink/60" strokeWidth={1.75} />
-      </div>
-      <div className="flex-1 min-w-0">
-        <h3 className="font-medium text-ink truncate">{doc.title}</h3>
-        <p className="text-xs font-mono uppercase tracking-wider text-ink/50 mt-1">
-          {doc.type} · {new Date(doc.created_at).toLocaleDateString("es")}
-        </p>
-        {isProcessing && (
-          <div className="mt-3 flex items-center gap-3">
-            <div className="flex-1 max-w-xs h-1 bg-border overflow-hidden">
-              <div
-                className="h-full bg-orange transition-all duration-500"
-                style={{ width: `${doc.progress}%` }}
-              />
+    <div
+      className={`group relative bg-paper border border-border p-5 hover:border-ink hover:shadow-elevated hover:-translate-y-0.5 transition-all overflow-hidden ${
+        isError ? "border-destructive/30" : ""
+      }`}
+    >
+      {/* Status accent bar */}
+      <div
+        className={`absolute top-0 left-0 right-0 h-0.5 transition-opacity ${
+          isReady
+            ? "bg-gradient-orange opacity-100"
+            : isError
+              ? "bg-destructive opacity-80"
+              : isProcessing
+                ? "bg-orange/40 opacity-100 animate-pulse"
+                : "opacity-0"
+        }`}
+      />
+
+      <div className="flex items-center gap-5">
+        {/* Icon */}
+        <div
+          className={`w-12 h-12 flex items-center justify-center flex-shrink-0 border transition-all ${
+            isReady
+              ? "border-orange/40 bg-orange/5 group-hover:bg-orange/10"
+              : isError
+                ? "border-destructive/30 bg-destructive/5"
+                : "border-border bg-cream/40"
+          }`}
+        >
+          <FileText
+            className={`w-5 h-5 ${
+              isReady ? "text-orange" : isError ? "text-destructive" : "text-ink/50"
+            }`}
+            strokeWidth={1.75}
+          />
+        </div>
+
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <h3 className="font-display text-lg font-medium text-ink truncate leading-tight">
+            {doc.title}
+          </h3>
+          <p className="text-[11px] font-mono uppercase tracking-[0.15em] text-ink/40 mt-1">
+            {doc.type}
+            {doc.size_bytes ? ` · ${formatSize(doc.size_bytes)}` : ""}
+            {" · "}
+            {new Date(doc.created_at).toLocaleDateString("es", {
+              day: "2-digit",
+              month: "short",
+            })}
+          </p>
+          {isProcessing && (
+            <div className="mt-3 flex items-center gap-3">
+              <div className="flex-1 max-w-xs h-1 bg-border overflow-hidden rounded-full">
+                <div
+                  className="h-full bg-gradient-orange transition-all duration-500"
+                  style={{ width: `${doc.progress}%` }}
+                />
+              </div>
+              <span className="text-[11px] font-mono uppercase tracking-wider text-ink/60">
+                {statusLabel(doc.status)}
+              </span>
             </div>
-            <span className="text-xs font-mono text-ink/60">{statusLabel(doc.status)}</span>
-          </div>
-        )}
-        {isError && doc.error_message && (
-          <p className="text-xs text-destructive mt-1.5">{doc.error_message}</p>
-        )}
-      </div>
-      <div className="flex items-center gap-2">
-        {isProcessing && <Loader2 className="w-5 h-5 animate-spin text-ink/40" />}
-        {isError && (
-          <>
-            <AlertCircle className="w-5 h-5 text-destructive" strokeWidth={1.75} />
+          )}
+          {isError && doc.error_message && (
+            <p className="text-xs text-destructive mt-2 line-clamp-2">{doc.error_message}</p>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {isProcessing && <Loader2 className="w-5 h-5 animate-spin text-orange" />}
+          {isError && (
             <button
               onClick={handleRetry}
               disabled={busy}
-              className="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium border border-ink hover:bg-ink hover:text-paper transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium border border-ink hover:bg-ink hover:text-paper transition-colors disabled:opacity-50"
             >
               <RotateCcw className="w-3.5 h-3.5" strokeWidth={1.75} />
               Reintentar
             </button>
-          </>
-        )}
-        {isReady && (
-          <Link
-            to="/document/$id"
-            params={{ id: doc.id }}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-ink text-paper hover:bg-ink/90 transition-colors"
-          >
-            <BookOpen className="w-4 h-4" strokeWidth={1.75} />
-            Estudiar
-          </Link>
-        )}
-        {!isProcessing && (
-          <button
-            onClick={handleDelete}
-            disabled={busy}
-            className="p-2 text-ink/40 hover:text-destructive transition-colors disabled:opacity-50"
-            title="Eliminar"
-          >
-            <Trash2 className="w-4 h-4" strokeWidth={1.75} />
-          </button>
-        )}
+          )}
+          {isReady && (
+            <Link
+              to="/document/$id"
+              params={{ id: doc.id }}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-gradient-ink text-paper hover:shadow-orange transition-all active:scale-95"
+            >
+              <BookOpen className="w-4 h-4" strokeWidth={1.75} />
+              Estudiar
+            </Link>
+          )}
+          {!isProcessing && (
+            <button
+              onClick={handleDelete}
+              disabled={busy}
+              className="p-2 text-ink/30 hover:text-destructive hover:bg-destructive/5 transition-all disabled:opacity-50"
+              title="Eliminar"
+            >
+              <Trash2 className="w-4 h-4" strokeWidth={1.75} />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
