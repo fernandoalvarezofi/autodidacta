@@ -317,29 +317,14 @@ export function ChatPanel({
                 {activeSession.title}
               </h3>
             </div>
-            <button
-              onClick={toggleMode}
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium rounded-md border transition-all flex-shrink-0 ${
-                isSocratic
-                  ? "bg-orange/10 border-orange/40 text-orange-deep hover:bg-orange/20"
-                  : "bg-paper border-border text-ink/70 hover:border-ink hover:text-ink"
-              }`}
-              title="Cambiar entre modo normal y socrático"
-            >
-              {isSocratic ? (
-                <>
-                  <Brain className="w-3.5 h-3.5" strokeWidth={2} />
-                  Socrático
-                </>
-              ) : (
-                <>
-                  <MessageCircle className="w-3.5 h-3.5" strokeWidth={2} />
-                  Normal
-                </>
-              )}
-            </button>
+            <ChatModeSelector
+              mode={activeSession.mode}
+              onChange={(m) => void changeMode(m)}
+              disabled={sending}
+            />
           </div>
         )}
+        {/* eslint-disable-next-line @typescript-eslint/no-unused-vars */}
 
         <div
           ref={scrollRef}
