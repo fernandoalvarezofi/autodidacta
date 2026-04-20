@@ -403,8 +403,8 @@ function NotebookCard({ notebook }: { notebook: NotebookRow }) {
       {/* Cover gradient zone con emoji */}
       <div className={`relative h-[88px] bg-gradient-to-br ${cover} overflow-hidden`}>
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/[0.04]" />
-        <div className="absolute top-3 left-3 w-8 h-8 inline-flex items-center justify-center bg-paper/90 backdrop-blur-sm rounded-full text-base shadow-soft">
-          {notebook.emoji ?? "📓"}
+        <div className="absolute top-3 left-3">
+          <EntityIcon value={notebook.emoji} size={44} />
         </div>
         {/* Status pill top-right */}
         <div className="absolute top-3 right-3 flex items-center gap-1">
@@ -463,8 +463,8 @@ function NotebookListRow({ notebook }: { notebook: NotebookRow }) {
       params={{ id: notebook.id }}
       className="group flex items-center gap-4 px-5 py-3.5 hover:bg-cream/40 transition-colors"
     >
-      <div className={`w-10 h-10 inline-flex items-center justify-center bg-gradient-to-br ${cover} rounded-lg text-base flex-shrink-0 shadow-soft`}>
-        {notebook.emoji ?? "📓"}
+      <div className="shrink-0">
+        <EntityIcon value={notebook.emoji} size={40} />
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2">
