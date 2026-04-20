@@ -67,6 +67,7 @@ export function ChatPanel({
   const [sending, setSending] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [sidebarRefreshKey, setSidebarRefreshKey] = useState(0);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
