@@ -52,11 +52,18 @@ export const Route = createRootRoute({
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Autodidactas" },
+      { name: "twitter:title", content: "Autodidacta" },
       {
         name: "twitter:description",
         content: "Convertí cualquier cosa en conocimiento.",
       },
+      { title: "Autodidacta" },
+      { property: "og:title", content: "Autodidacta" },
+      { name: "description", content: "Autodidactas: AI-powered SaaS for active, visual, and gamified learning." },
+      { property: "og:description", content: "Autodidactas: AI-powered SaaS for active, visual, and gamified learning." },
+      { name: "twitter:description", content: "Autodidactas: AI-powered SaaS for active, visual, and gamified learning." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/5c9aedf6-c017-4704-8781-59ff6f575dda/id-preview-4ea26a1f--5797afb1-73b0-4d29-a3d5-60378a437249.lovable.app-1776680338803.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/5c9aedf6-c017-4704-8781-59ff6f575dda/id-preview-4ea26a1f--5797afb1-73b0-4d29-a3d5-60378a437249.lovable.app-1776680338803.png" },
     ],
     links: [
       {
