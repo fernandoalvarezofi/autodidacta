@@ -4,6 +4,7 @@ import { Plus, Loader2, FileText, Clock, CheckCircle2, AlertCircle } from "lucid
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { GamificationWidget } from "@/components/dashboard/GamificationWidget";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard")({
@@ -94,6 +95,8 @@ function DashboardPage() {
             Nuevo cuaderno
           </button>
         </div>
+
+        <GamificationWidget />
 
         {showCreate && (
           <div className="mb-10 border border-ink bg-cream/40 p-6">
