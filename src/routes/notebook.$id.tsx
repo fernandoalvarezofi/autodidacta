@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowLeft,
-  Upload,
   Loader2,
   FileText,
-  AlertCircle,
+  FileType2,
+  Youtube,
+  Type,
   BookOpen,
   RotateCcw,
   Trash2,
@@ -19,6 +20,7 @@ import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { ChatPanel } from "@/components/chat/ChatPanel";
+import { SourceUploader } from "@/components/document/SourceUploader";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/notebook/$id")({
