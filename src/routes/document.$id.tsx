@@ -65,8 +65,8 @@ function DocumentPage() {
       if (outputs) {
         const sum = outputs.find((o) => o.type === "summary");
         const flash = outputs.find((o) => o.type === "flashcards");
-        if (sum) setSummary((sum.content as SummaryContent).markdown);
-        if (flash) setFlashcards(flash.content as FlashcardOutput[]);
+        if (sum) setSummary((sum.content as unknown as SummaryContent).markdown);
+        if (flash) setFlashcards(flash.content as unknown as FlashcardOutput[]);
       }
       setLoading(false);
     })();
