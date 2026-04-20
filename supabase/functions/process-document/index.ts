@@ -526,3 +526,127 @@ Reglas:
     return [];
   }
 }
+
+// =====================================================
+// MINDMAP — JSON estructurado con anclaje a chunks
+// =====================================================
+interface MindmapNode {
+  id: string;
+  label: string;
+  type: "main" | "sub" | "detail" | "formula" | "example";
+  chunk_id: string | null;
+  excerpt: string | null;
+}
+interface MindmapEdge {
+  source: string;
+  target: string;
+  label?: string;
+}
+interface MindmapOutput {
+  nodes: MindmapNode[];
+  edges: MindmapEdge[];
+}
+
+async function generateMindmap(
+  text: string,
+  chunkRefs: Array<{ id: string; index: number; preview: string }>,
+): Promise<MindmapOutput | null> {
+  if (chunkRefs.length === 0) return null;
+
+  const chunkCatalog = chunkRefs
+    .map((c) => `[chunk_${c.index}] ${c.preview.replace(/\s+/g, " ").slice(0, 140)}…`)
+    .join("\n");
+
+  const data = await callAi([
+    {
+      role: "system",
+      content: `Sos un experto en diseño de mapas mentales académicos. Devolvés SOLO JSON válido, sin markdown ni texto extra. Estructura exacta:
+{
+  "nodes": [
+    { "id": "n1", "label": "Tema central", "type": "main", "chunk_index": 0 },
+    { "id": "n2", "label": "Subtema", "type": "sub", "chunk_index": 1 },
+    { "id": "n3", "label": "Detalle", "type": "detail", "chunk_index": 2 }
+  ],
+  "edges": [
+    { "source": "n1", "target": "n2", "label": "incluye" }
+  ]
+}
+Reglas estrictas:
+- Entre 8 y 18 nodos en total
+- Exactamente 1 nodo "main" (concepto raíz del documento)
+- 3 a 6 nodos "sub" conectados al main
+- "detail" para ejemplos, "formula" para fórmulas, "example" para casos
+- label máximo 50 caracteres, sin emojis, sin markdown
+- chunk_index DEBE ser uno de los índices del catálogo provisto (entero)
+- Cada nodo NO-main debe tener al menos un edge entrante
+- edges.label opcional, máximo 20 caracteres
+- ids únicos tipo "n1", "n2"... sin espacios`,
+    },
+    {
+      role: "user",
+      content: `Catálogo de chunks disponibles (usá sus índices en chunk_index):
+${chunkCatalog}
+
+Texto fuente para construir el mapa mental:
+
+${text}`,
+    },
+  ]);
+
+  const raw = data.choices?.[0]?.message?.content ?? "{}";
+  try {
+    const parsed = JSON.parse(extractJson(raw));
+    const rawNodes = Array.isArray(parsed?.nodes) ? parsed.nodes : [];
+    const rawEdges = Array.isArray(parsed?.edges) ? parsed.edges : [];
+
+    const allowedTypes = new Set(["main", "sub", "detail", "formula", "example"]);
+    const refByIndex = new Map(chunkRefs.map((c) => [c.index, c]));
+
+    const nodes: MindmapNode[] = rawNodes
+      .filter(
+        (n: any) =>
+          typeof n?.id === "string" &&
+          typeof n?.label === "string" &&
+          n.label.trim().length > 0,
+      )
+      .slice(0, 25)
+      .map((n: any) => {
+        const idx = typeof n.chunk_index === "number" ? n.chunk_index : -1;
+        const ref = refByIndex.get(idx);
+        const type = allowedTypes.has(n.type) ? n.type : "detail";
+        return {
+          id: String(n.id),
+          label: String(n.label).replace(/\s+/g, " ").trim().slice(0, 60),
+          type,
+          chunk_id: ref ? ref.id : null,
+          excerpt: ref ? ref.preview : null,
+        } satisfies MindmapNode;
+      });
+
+    if (nodes.length < 3) return null;
+    const ids = new Set(nodes.map((n) => n.id));
+    const edges: MindmapEdge[] = rawEdges
+      .filter(
+        (e: any) =>
+          typeof e?.source === "string" &&
+          typeof e?.target === "string" &&
+          ids.has(e.source) &&
+          ids.has(e.target) &&
+          e.source !== e.target,
+      )
+      .slice(0, 40)
+      .map((e: any) => ({
+        source: String(e.source),
+        target: String(e.target),
+        label: typeof e.label === "string" ? String(e.label).slice(0, 24) : undefined,
+      }));
+
+    const hasMain = nodes.some((n) => n.type === "main");
+    if (!hasMain) nodes[0].type = "main";
+
+    return { nodes, edges };
+  } catch (error) {
+    console.error("[generateMindmap] JSON inválido:", raw, error);
+    return null;
+  }
+}
