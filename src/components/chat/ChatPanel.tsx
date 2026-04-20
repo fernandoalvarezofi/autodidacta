@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Send, Loader2, Sparkles, User as UserIcon, BookOpen } from "lucide-react";
+import { Send, Loader2, Sparkles, User as UserIcon, BookOpen, Globe2 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -15,25 +16,22 @@ export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   sources?: ChatSource[];
+  usedGeneralKnowledge?: boolean;
 }
 
 interface ChatPanelProps {
-  /** "document" → chat-document edge fn ; "notebook" → chat-notebook edge fn */
   scope: "document" | "notebook";
-  /** documentId or notebookId, depending on scope */
   contextId: string;
-  /** Suggestions shown in empty state */
   suggestions?: string[];
-  /** Compact mode reduces paddings & font sizes (used inside floating panel) */
   compact?: boolean;
-  /** Optional intro shown above messages */
   intro?: React.ReactNode;
 }
 
 const DEFAULT_SUGGESTIONS = [
   "Hacé un resumen en 3 puntos clave",
-  "Explicá el concepto principal con un ejemplo",
+  "Explicá el concepto principal con un ejemplo de la vida real",
   "¿Qué tendría que recordar para el examen?",
+  "Dame contexto general sobre este tema",
 ];
 
 export function ChatPanel({
@@ -48,7 +46,6 @@ export function ChatPanel({
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Reset history when context changes
   useEffect(() => {
     setMessages([]);
     setInput("");
@@ -77,7 +74,12 @@ export function ChatPanel({
       if (data?.error) throw new Error(data.error);
       setMessages((m) => [
         ...m,
-        { role: "assistant", content: data.answer ?? "Sin respuesta.", sources: data.sources },
+        {
+          role: "assistant",
+          content: data.answer ?? "Sin respuesta.",
+          sources: data.sources,
+          usedGeneralKnowledge: data.usedGeneralKnowledge,
+        },
       ]);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Error en el chat");
@@ -93,14 +95,17 @@ export function ChatPanel({
     }
   };
 
-  const padded = compact ? "p-4" : "p-5 md:p-7";
-  const gap = compact ? "space-y-4" : "space-y-5";
+  const padded = compact ? "p-4" : "p-6 md:p-8";
+  const gap = compact ? "space-y-4" : "space-y-6";
 
   return (
     <div className="flex flex-col h-full min-h-0">
       <div
         ref={scrollRef}
-        className={`flex-1 overflow-y-auto border-2 border-ink bg-cream/20 ${padded} ${gap}`}
+        className={`flex-1 overflow-y-auto bg-cream/30 border border-border ${padded} ${gap} relative`}
+        style={{
+          backgroundImage: "var(--gradient-radial-orange)",
+        }}
       >
         {intro && messages.length === 0 && <div className="mb-2">{intro}</div>}
         {messages.length === 0 ? (
@@ -110,19 +115,14 @@ export function ChatPanel({
             label={scope === "document" ? "Conversá con tu documento" : "Conversá con tu cuaderno"}
             sublabel={
               scope === "document"
-                ? "Pedí explicaciones, ejemplos o resúmenes del documento."
-                : "Hago búsqueda en todos los documentos del cuaderno."
+                ? "Pedí explicaciones, ejemplos, contexto adicional. Si la respuesta no está en el documento, te ayudo con conocimiento general."
+                : "Hago búsqueda en todos los documentos del cuaderno y completo con contexto general cuando hace falta."
             }
           />
         ) : (
           messages.map((m, i) => <Bubble key={i} message={m} compact={compact} />)
         )}
-        {sending && (
-          <div className="flex items-center gap-3 text-ink/60 text-sm">
-            <Loader2 className="w-4 h-4 animate-spin text-orange" />
-            <span className="font-mono uppercase tracking-wider text-xs">Pensando…</span>
-          </div>
-        )}
+        {sending && <ThinkingBubble />}
       </div>
 
       <form
@@ -132,18 +132,22 @@ export function ChatPanel({
         }}
         className="mt-3 flex gap-2"
       >
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder={scope === "document" ? "Preguntale al documento…" : "Preguntale al cuaderno…"}
-          disabled={sending}
-          className={`flex-1 ${compact ? "px-3 py-2.5 text-sm" : "px-4 py-3"} border-2 border-ink bg-paper text-ink placeholder-ink/40 focus:outline-none focus:bg-cream/30 disabled:opacity-50`}
-        />
+        <div className="flex-1 relative group">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder={
+              scope === "document" ? "Preguntale al documento…" : "Preguntale al cuaderno…"
+            }
+            disabled={sending}
+            className={`w-full ${compact ? "px-3.5 py-2.5 text-sm" : "px-4 py-3.5"} bg-paper border border-border focus:border-ink placeholder-ink/40 focus:outline-none transition-colors disabled:opacity-50 shadow-soft`}
+          />
+        </div>
         <button
           type="submit"
           disabled={sending || !input.trim()}
-          className={`inline-flex items-center gap-2 ${compact ? "px-3 py-2.5" : "px-5 py-3"} bg-ink text-paper hover:bg-ink/90 transition-colors disabled:opacity-30 disabled:cursor-not-allowed`}
+          className={`inline-flex items-center gap-2 ${compact ? "px-3.5 py-2.5" : "px-5 py-3.5"} bg-gradient-ink text-paper hover:shadow-orange transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:shadow-none active:scale-[0.98]`}
         >
           <Send className="w-4 h-4" strokeWidth={1.75} />
           {!compact && <span className="hidden sm:inline text-sm font-medium">Enviar</span>}
@@ -165,18 +169,20 @@ function EmptyChat({
   sublabel: string;
 }) {
   return (
-    <div className="text-center py-6">
-      <Sparkles className="w-7 h-7 mx-auto mb-3 text-orange" strokeWidth={1.5} />
-      <p className="font-display text-lg text-ink mb-1.5">{label}</p>
-      <p className="text-xs text-ink/60 mb-5 max-w-xs mx-auto">{sublabel}</p>
-      <div className="flex flex-col gap-2 max-w-md mx-auto">
+    <div className="text-center py-6 animate-fade-in">
+      <div className="inline-flex items-center justify-center w-12 h-12 mb-4 bg-gradient-orange shadow-orange rounded-full animate-pulse-glow">
+        <Sparkles className="w-5 h-5 text-paper" strokeWidth={1.75} />
+      </div>
+      <p className="font-display text-xl text-ink mb-2">{label}</p>
+      <p className="text-sm text-ink/60 mb-6 max-w-md mx-auto leading-relaxed">{sublabel}</p>
+      <div className="flex flex-col gap-2 max-w-md mx-auto stagger">
         {suggestions.map((s) => (
           <button
             key={s}
             onClick={() => onPick(s)}
-            className="text-left text-sm px-4 py-2.5 border border-border hover:border-ink hover:bg-cream/40 transition-colors"
+            className="text-left text-sm px-4 py-3 bg-paper border border-border hover:border-ink hover:shadow-soft transition-all hover:-translate-y-0.5 group"
           >
-            {s}
+            <span className="text-ink/80 group-hover:text-ink transition-colors">{s}</span>
           </button>
         ))}
       </div>
@@ -184,46 +190,81 @@ function EmptyChat({
   );
 }
 
+function ThinkingBubble() {
+  return (
+    <div className="flex gap-3 animate-fade-in">
+      <div className="w-8 h-8 flex items-center justify-center flex-shrink-0 bg-gradient-orange rounded-full shadow-orange">
+        <Sparkles className="w-4 h-4 text-paper" strokeWidth={1.75} />
+      </div>
+      <div className="inline-flex items-center gap-2 px-4 py-3 bg-paper border border-border rounded-sm">
+        <span className="w-1.5 h-1.5 bg-orange rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+        <span className="w-1.5 h-1.5 bg-orange rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+        <span className="w-1.5 h-1.5 bg-orange rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+        <span className="ml-2 text-xs font-mono uppercase tracking-wider text-ink/50">Pensando</span>
+      </div>
+    </div>
+  );
+}
+
 function Bubble({ message, compact }: { message: ChatMessage; compact: boolean }) {
   const isUser = message.role === "user";
-  const size = compact ? "w-7 h-7" : "w-8 h-8";
+  const size = compact ? "w-8 h-8" : "w-9 h-9";
   return (
-    <div className={`flex gap-2.5 ${isUser ? "flex-row-reverse" : ""}`}>
+    <div className={`flex gap-3 animate-slide-in-up ${isUser ? "flex-row-reverse" : ""}`}>
       <div
-        className={`${size} flex items-center justify-center flex-shrink-0 border ${
-          isUser ? "bg-ink text-paper border-ink" : "bg-cream/60 text-ink border-border"
+        className={`${size} flex items-center justify-center flex-shrink-0 rounded-full shadow-soft ${
+          isUser ? "bg-gradient-ink text-paper" : "bg-gradient-orange text-paper"
         }`}
       >
         {isUser ? (
           <UserIcon className="w-4 h-4" strokeWidth={1.75} />
         ) : (
-          <BookOpen className="w-4 h-4" strokeWidth={1.75} />
+          <Sparkles className="w-4 h-4" strokeWidth={1.75} />
         )}
       </div>
-      <div className={`flex-1 max-w-[85%] ${isUser ? "text-right" : ""}`}>
+      <div className={`flex-1 max-w-[88%] ${isUser ? "text-right" : ""}`}>
         <div
-          className={`inline-block text-left px-3.5 py-2.5 ${
-            isUser ? "bg-ink text-paper" : "bg-paper border border-border"
+          className={`inline-block text-left px-4 py-3 shadow-soft ${
+            isUser
+              ? "bg-gradient-ink text-paper rounded-tr-sm rounded-tl-2xl rounded-bl-2xl rounded-br-2xl"
+              : "bg-paper border border-border rounded-tl-sm rounded-tr-2xl rounded-br-2xl rounded-bl-2xl"
           }`}
         >
-          <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
-        </div>
-        {message.sources && message.sources.length > 0 && (
-          <div className="mt-2 space-y-1">
-            <p className="text-[10px] uppercase tracking-wider font-mono text-ink/50">Fuentes</p>
-            <div className="flex flex-wrap gap-1.5">
-              {message.sources.map((s) => (
-                <span
-                  key={s.index}
-                  title={`${s.documentTitle ? s.documentTitle + " · " : ""}${s.excerpt}`}
-                  className="text-[11px] font-mono px-2 py-0.5 border border-border text-ink/70 bg-cream/30"
-                >
-                  Frag. {s.index}
-                  {s.documentTitle ? ` · ${truncate(s.documentTitle, 22)}` : ""}
-                  {s.page ? ` · p.${s.page}` : ""}
-                </span>
-              ))}
+          {isUser ? (
+            <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+          ) : (
+            <div className="chat-markdown text-sm leading-relaxed text-ink">
+              <ReactMarkdown>{message.content}</ReactMarkdown>
             </div>
+          )}
+        </div>
+        {!isUser && (message.usedGeneralKnowledge || (message.sources && message.sources.length > 0)) && (
+          <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+            {message.usedGeneralKnowledge && (
+              <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider font-mono px-2 py-1 bg-orange/10 text-orange-deep border border-orange/30">
+                <Globe2 className="w-3 h-3" strokeWidth={2} />
+                Conocimiento general
+              </span>
+            )}
+            {message.sources && message.sources.length > 0 && (
+              <>
+                <span className="text-[10px] uppercase tracking-wider font-mono text-ink/40 mr-0.5">
+                  Fuentes
+                </span>
+                {message.sources.map((s) => (
+                  <span
+                    key={s.index}
+                    title={`${s.documentTitle ? s.documentTitle + " · " : ""}${s.excerpt}`}
+                    className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 bg-cream border border-border text-ink/70 hover:border-ink hover:text-ink transition-colors cursor-help"
+                  >
+                    <BookOpen className="w-2.5 h-2.5" strokeWidth={2} />
+                    {s.index}
+                    {s.documentTitle ? ` · ${truncate(s.documentTitle, 18)}` : ""}
+                    {s.page ? ` · p.${s.page}` : ""}
+                  </span>
+                ))}
+              </>
+            )}
           </div>
         )}
       </div>
