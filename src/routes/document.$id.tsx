@@ -186,7 +186,7 @@ function DocumentPage() {
 
           {tab === "flashcards" && <FlashcardDeck cards={flashcards} />}
 
-          {tab === "quiz" && <QuizRunner questions={quiz} />}
+          {tab === "quiz" && <QuizRunner questions={quiz} documentId={doc.id} documentTitle={doc.title} />}
 
           {tab === "chat" && <DocumentChat documentId={doc.id} />}
         </div>

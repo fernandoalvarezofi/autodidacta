@@ -176,6 +176,28 @@ export function QuizRunner({ questions, documentId, documentTitle }: QuizRunnerP
 
   return (
     <div className="max-w-2xl mx-auto">
+      {/* Multijugador CTA */}
+      {documentId && (
+        <div className="mb-6 flex items-center justify-between gap-3 p-3 border border-border bg-cream/30">
+          <div className="flex items-center gap-2.5">
+            <Users className="w-4 h-4 text-orange" strokeWidth={1.75} />
+            <span className="text-xs text-ink/70">¿Lo querés jugar con otros?</span>
+          </div>
+          <button
+            onClick={handleCreateRoom}
+            disabled={creatingRoom}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border-2 border-ink bg-paper hover:bg-ink hover:text-paper transition-colors disabled:opacity-50"
+          >
+            {creatingRoom ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Sparkles className="w-3.5 h-3.5" strokeWidth={2} />
+            )}
+            Crear sala
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <p className="text-xs uppercase tracking-[0.25em] font-mono text-ink/50">
