@@ -8,6 +8,7 @@ import {
   HelpCircle,
   MessagesSquare,
   Network,
+  PenLine,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +18,8 @@ import { FlashcardDeck, type FlashcardOutput } from "@/components/document/Flash
 import { QuizRunner, type QuizQuestion } from "@/components/document/QuizRunner";
 import { DocumentChat } from "@/components/document/DocumentChat";
 import { MindMapViewer, type MindmapContent } from "@/components/document/MindMapViewer";
+import { createNote } from "@/lib/notes";
+import { getTemplate } from "@/lib/note-templates";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/document/$id")({
@@ -43,6 +46,36 @@ function DocumentPage() {
   const [mindmap, setMindmap] = useState<MindmapContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>("summary");
+  const [creatingNote, setCreatingNote] = useState(false);
+
+  const handleEditAsNote = async () => {
+    if (!user || !doc) return;
+    setCreatingNote(true);
+    try {
+      const tpl = getTemplate("academic");
+      const built = tpl.build({ title: doc.title, sourceMarkdown: summary ?? "" });
+      const html = summary
+        ? `<h1>${escapeHtml(doc.title)}</h1>${markdownToHtml(summary)}`
+        : built.html;
+      const note = await createNote({
+        userId: user.id,
+        notebookId: doc.notebook_id,
+        documentId: doc.id,
+        title: doc.title,
+        contentHtml: html,
+        contentJson: {},
+        templateKey: summary ? "academic" : tpl.key,
+        emoji: "📝",
+        coverColor: "cream",
+      });
+      toast.success("Nota creada desde el resumen");
+      navigate({ to: "/editor/$id", params: { id: note.id } });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Error al crear nota");
+    } finally {
+      setCreatingNote(false);
+    }
+  };
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/auth" });
@@ -118,6 +151,24 @@ function DocumentPage() {
           <h1 className="font-display text-4xl md:text-5xl font-semibold tracking-tight leading-tight">
             {doc.title}
           </h1>
+
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <button
+              onClick={handleEditAsNote}
+              disabled={creatingNote}
+              className="group inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium border border-ink hover:bg-ink hover:text-paper transition-all active:scale-95 rounded-md disabled:opacity-50"
+            >
+              {creatingNote ? (
+                <Loader2 className="w-4 h-4 animate-spin" strokeWidth={2} />
+              ) : (
+                <PenLine className="w-4 h-4 group-hover:rotate-[-6deg] transition-transform" strokeWidth={1.75} />
+              )}
+              Editar como nota
+            </button>
+            <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-ink/40">
+              Abre el editor visual con el resumen como punto de partida
+            </p>
+          </div>
         </div>
 
         <div className="flex gap-1 mb-10 border-b border-border overflow-x-auto sticky top-16 bg-paper/85 backdrop-blur-xl z-30 -mx-6 px-6 lg:-mx-10 lg:px-10">
