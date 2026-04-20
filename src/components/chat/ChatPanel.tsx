@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, Fragment, useMemo } from "react";
 import {
   Send,
   Loader2,
@@ -7,7 +7,6 @@ import {
   BookOpen,
   Globe2,
   Brain,
-  MessageCircle,
   Square,
   PanelLeft,
   X,
@@ -16,6 +15,8 @@ import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { ChatSessionsSidebar } from "./ChatSessionsSidebar";
+import { ChatModeSelector } from "./ChatModeSelector";
+import { SourcePanel } from "./SourcePanel";
 import { streamChat, type ChatStreamSource } from "@/lib/chat-stream";
 import {
   type ChatMode,
