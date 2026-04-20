@@ -120,11 +120,30 @@ export function useSlashCommands(editor: Editor | null) {
     };
   }, [editor, close]);
 
+  const openAt = useCallback(
+    (pos: number, coords: { top: number; left: number }) => {
+      if (!editor) return;
+      // Posicionar cursor al final del bloque y abrir menú sin "/"
+      editor.chain().focus().setTextSelection(pos).run();
+      const adjLeft = Math.min(coords.left, window.innerWidth - 300);
+      const adjTop = Math.min(coords.top, window.innerHeight - 320);
+      setState({
+        open: true,
+        query: "",
+        position: { top: adjTop, left: adjLeft },
+        charsToDelete: 0,
+        startPos: pos,
+      });
+    },
+    [editor],
+  );
+
   return {
     open: state.open,
     query: state.query,
     position: state.position,
     charsToDelete: state.charsToDelete,
     close,
+    openAt,
   };
 }
