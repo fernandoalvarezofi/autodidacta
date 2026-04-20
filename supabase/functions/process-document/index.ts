@@ -99,9 +99,10 @@ async function processDocument(documentId: string) {
 
     await admin.from("documents").update({ status: "generating", progress: 75 }).eq("id", documentId);
 
-    const [summaryRes, flashcardsRes] = await Promise.allSettled([
+    const [summaryRes, flashcardsRes, quizRes] = await Promise.allSettled([
       generateSummary(aiInput),
       generateFlashcards(aiInput),
+      generateQuiz(aiInput),
     ]);
 
     if (summaryRes.status === "fulfilled" && summaryRes.value) {
@@ -135,6 +136,17 @@ async function processDocument(documentId: string) {
       );
     } else if (flashcardsRes.status === "rejected") {
       console.error("Flashcards failed:", flashcardsRes.reason);
+    }
+
+    if (quizRes.status === "fulfilled" && quizRes.value.length > 0) {
+      await admin.from("document_outputs").insert({
+        document_id: documentId,
+        user_id: doc.user_id,
+        type: "quiz",
+        content: quizRes.value,
+      });
+    } else if (quizRes.status === "rejected") {
+      console.error("Quiz failed:", quizRes.reason);
     }
 
     await admin
@@ -299,6 +311,69 @@ Reglas:
       .slice(0, 15);
   } catch (error) {
     console.error("[generateFlashcards] JSON inválido:", raw, error);
+    return [];
+  }
+}
+
+interface QuizQuestion {
+  question: string;
+  options: string[];
+  correct_index: number;
+  explanation: string;
+}
+
+async function generateQuiz(text: string): Promise<QuizQuestion[]> {
+  const data = await callAi([
+    {
+      role: "system",
+      content: `Sos un docente experto creando quizzes de opción múltiple en español rioplatense. Respondé SOLO JSON válido con este formato exacto:
+{
+  "questions": [
+    {
+      "question": "¿Pregunta clara?",
+      "options": ["Opción A", "Opción B", "Opción C", "Opción D"],
+      "correct_index": 0,
+      "explanation": "Por qué esta es la correcta, breve."
+    }
+  ]
+}
+Reglas:
+- Generá entre 6 y 10 preguntas
+- Exactamente 4 opciones por pregunta
+- correct_index: número entre 0 y 3
+- Distractores plausibles, no obvios
+- explanation: 1-2 oraciones
+- Sin markdown, sin texto fuera del JSON`,
+    },
+    {
+      role: "user",
+      content: `Texto fuente:\n\n${text}`,
+    },
+  ]);
+
+  const raw = data.choices?.[0]?.message?.content ?? "{}";
+  try {
+    const parsed = JSON.parse(raw);
+    const qs = Array.isArray(parsed?.questions) ? parsed.questions : [];
+    return qs
+      .filter(
+        (q: any) =>
+          typeof q?.question === "string" &&
+          Array.isArray(q?.options) &&
+          q.options.length === 4 &&
+          typeof q?.correct_index === "number" &&
+          q.correct_index >= 0 &&
+          q.correct_index <= 3,
+      )
+      .map((q: any) => ({
+        question: String(q.question).slice(0, 300),
+        options: q.options.slice(0, 4).map((o: any) => String(o).slice(0, 200)),
+        correct_index: q.correct_index,
+        explanation: String(q.explanation ?? "").slice(0, 400),
+      }))
+      .slice(0, 10);
+  } catch (error) {
+    console.error("[generateQuiz] JSON inválido:", raw, error);
     return [];
   }
 }
