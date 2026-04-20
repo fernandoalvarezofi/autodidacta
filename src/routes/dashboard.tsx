@@ -7,19 +7,16 @@ import {
   CheckCircle2,
   AlertCircle,
   Sparkles,
-  ArrowUpRight,
   Search,
   LayoutGrid,
   Rows3,
-  Flame,
-  Trophy,
-  BookOpen,
-  Zap,
+  Check,
+  ChevronDown,
+  Globe,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
-import { useCountUp } from "@/hooks/use-count-up";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard")({
@@ -35,27 +32,34 @@ interface NotebookRow {
   documents: { id: string; status: string }[];
 }
 
-interface ProfileStats {
-  xp: number;
-  streak_days: number;
-  level: string;
-}
+type ViewMode = "grid" | "list";
+type SortMode = "recent" | "alpha" | "sources";
 
-const LEVEL_THRESHOLDS: Array<{ level: string; min: number; next: number | null }> = [
-  { level: "Aprendiz", min: 0, next: 200 },
-  { level: "Estudioso", min: 200, next: 700 },
-  { level: "Erudito", min: 700, next: 2000 },
-  { level: "Maestro", min: 2000, next: 5000 },
-  { level: "Sabio", min: 5000, next: null },
+/**
+ * Paleta de "covers" para los cuadernos — derivado del id para mantener color estable.
+ * Estilo NotebookLM: gradientes suaves de color por cuaderno.
+ */
+const COVERS = [
+  "from-[#fde9d6] to-[#f7c89a]", // peach
+  "from-[#e0e7ff] to-[#a5b4fc]", // indigo
+  "from-[#dcfce7] to-[#86efac]", // green
+  "from-[#fee2e2] to-[#fca5a5]", // red
+  "from-[#fef3c7] to-[#fcd34d]", // amber
+  "from-[#e9d5ff] to-[#c4b5fd]", // purple
+  "from-[#cffafe] to-[#67e8f9]", // cyan
+  "from-[#fce7f3] to-[#f9a8d4]", // pink
 ];
 
-type ViewMode = "grid" | "list";
+function coverFor(id: string): string {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return COVERS[h % COVERS.length];
+}
 
 function DashboardPage() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const [notebooks, setNotebooks] = useState<NotebookRow[]>([]);
-  const [stats, setStats] = useState<ProfileStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
@@ -63,6 +67,8 @@ function DashboardPage() {
   const [description, setDescription] = useState("");
   const [search, setSearch] = useState("");
   const [view, setView] = useState<ViewMode>("grid");
+  const [sort, setSort] = useState<SortMode>("recent");
+  const [sortOpen, setSortOpen] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/auth" });
@@ -71,23 +77,12 @@ function DashboardPage() {
   useEffect(() => {
     if (!user) return;
     void (async () => {
-      const [nbRes, profileRes] = await Promise.all([
-        supabase
-          .from("notebooks")
-          .select("id, title, description, emoji, created_at, documents(id, status)")
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("profiles")
-          .select("xp, streak_days, level")
-          .eq("id", user.id)
-          .maybeSingle(),
-      ]);
-      if (nbRes.error) {
-        toast.error("Error al cargar cuadernos");
-      } else {
-        setNotebooks((nbRes.data ?? []) as NotebookRow[]);
-      }
-      if (profileRes.data) setStats(profileRes.data as ProfileStats);
+      const { data, error } = await supabase
+        .from("notebooks")
+        .select("id, title, description, emoji, created_at, documents(id, status)")
+        .order("created_at", { ascending: false });
+      if (error) toast.error("Error al cargar cuadernos");
+      else setNotebooks((data ?? []) as NotebookRow[]);
       setLoading(false);
     })();
   }, [user]);
@@ -110,19 +105,25 @@ function DashboardPage() {
   };
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return notebooks;
-    const q = search.toLowerCase();
-    return notebooks.filter(
-      (n) =>
-        n.title.toLowerCase().includes(q) ||
-        (n.description ?? "").toLowerCase().includes(q),
-    );
-  }, [notebooks, search]);
-
-  const totalDocs = useMemo(
-    () => notebooks.reduce((acc, nb) => acc + nb.documents.length, 0),
-    [notebooks],
-  );
+    let list = notebooks;
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(
+        (n) =>
+          n.title.toLowerCase().includes(q) ||
+          (n.description ?? "").toLowerCase().includes(q),
+      );
+    }
+    const sorted = [...list];
+    if (sort === "alpha") sorted.sort((a, b) => a.title.localeCompare(b.title));
+    else if (sort === "sources")
+      sorted.sort((a, b) => b.documents.length - a.documents.length);
+    else
+      sorted.sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      );
+    return sorted;
+  }, [notebooks, search, sort]);
 
   if (authLoading || !user) {
     return (
@@ -132,63 +133,121 @@ function DashboardPage() {
     );
   }
 
-  const greeting = getGreeting();
-  const firstName = (user.email ?? "").split("@")[0]?.split(/[._-]/)[0] ?? "";
-  const niceName = firstName ? firstName.charAt(0).toUpperCase() + firstName.slice(1) : "estudiante";
-
   return (
     <DashboardShell>
-      <div className="container mx-auto px-5 lg:px-10 max-w-[1280px] py-8 lg:py-12 relative">
-        <div className="absolute inset-x-0 top-0 h-[440px] bg-grid-fade -z-10 pointer-events-none" />
+      <div className="container mx-auto px-5 lg:px-10 max-w-[1280px] py-10 lg:py-14">
+        {/* HEADER limpio: solo título + subtítulo */}
+        <header className="mb-8 animate-fade-up">
+          <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-[-0.025em] text-ink">
+            Bienvenido a tu biblioteca
+          </h1>
+          <p className="text-ink/55 mt-1.5 text-[14px]">
+            Cada cuaderno es un espacio de estudio. Subí material y dejá que la IA haga el resto.
+          </p>
+        </header>
 
-        {/* HERO + STATS panel unificado */}
-        <section className="mb-12 animate-fade-up">
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-8 items-end">
-            {/* Lado izquierdo: saludo */}
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="w-1.5 h-1.5 bg-orange rounded-full shadow-[0_0_8px_var(--orange)]" />
-                <p className="text-[10.5px] uppercase tracking-[0.22em] text-ink/45 font-mono">
-                  {greeting}, {niceName}
-                </p>
-              </div>
-              <h1 className="font-display text-4xl md:text-5xl lg:text-[56px] font-semibold tracking-[-0.035em] leading-[1.02] text-ink">
-                Tu biblioteca
-              </h1>
-              <p className="text-ink/55 mt-3.5 max-w-xl text-[14.5px] leading-relaxed">
-                Organizá tu material en cuadernos. Subí PDFs, audios o videos y dejá que la IA arme
-                resúmenes, flashcards y quizzes en segundos.
-              </p>
-              <div className="mt-6 flex items-center gap-3">
-                <button
-                  onClick={() => setShowCreate(true)}
-                  className="group inline-flex items-center gap-2 px-4 py-2.5 text-[13px] font-medium bg-ink text-paper hover:bg-orange transition-colors active:scale-[0.98] rounded-md whitespace-nowrap shadow-soft"
-                >
-                  <Plus className="w-3.5 h-3.5 group-hover:rotate-90 transition-transform duration-300" strokeWidth={2.25} />
-                  Nuevo cuaderno
-                </button>
-                {notebooks.length > 0 && (
-                  <span className="text-[12px] text-ink/45">
-                    o usá <kbd className="px-1.5 py-0.5 bg-cream border border-border rounded text-[10px] font-mono text-ink/65">⌘K</kbd> para buscar
-                  </span>
-                )}
-              </div>
+        {/* TOOLBAR estilo NotebookLM: filtros chips a la izquierda, controles a la derecha */}
+        {!loading && notebooks.length > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-6 animate-fade-up" style={{ animationDelay: "60ms" }}>
+            {/* Filtros izquierda */}
+            <div className="flex items-center gap-1.5">
+              <FilterChip active>Todos</FilterChip>
+              <span className="text-[10px] font-mono text-ink/35 ml-1">
+                {filtered.length} {filtered.length === 1 ? "cuaderno" : "cuadernos"}
+              </span>
             </div>
 
-            {/* Lado derecho: stats compactas */}
-            {stats && <StatsPanel stats={stats} totalNotebooks={notebooks.length} totalDocs={totalDocs} />}
-          </div>
-        </section>
+            {/* Controles derecha */}
+            <div className="flex items-center gap-2">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink/35" strokeWidth={2} />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Buscar..."
+                  className="w-40 sm:w-52 pl-8 pr-3 py-1.5 text-[12.5px] bg-paper border border-border rounded-full focus:border-ink/40 focus:ring-2 focus:ring-ink/5 focus:outline-none transition-all placeholder:text-ink/35"
+                />
+              </div>
 
-        {/* Crear cuaderno (modal inline) */}
+              {/* View toggle */}
+              <div className="hidden sm:flex items-center bg-cream border border-border rounded-full p-0.5">
+                <button
+                  onClick={() => setView("grid")}
+                  className={`p-1.5 rounded-full transition-colors ${view === "grid" ? "bg-paper shadow-soft text-ink" : "text-ink/45 hover:text-ink"}`}
+                  title="Cuadrícula"
+                >
+                  <LayoutGrid className="w-3.5 h-3.5" strokeWidth={2} />
+                </button>
+                <button
+                  onClick={() => setView("list")}
+                  className={`p-1.5 rounded-full transition-colors ${view === "list" ? "bg-paper shadow-soft text-ink" : "text-ink/45 hover:text-ink"}`}
+                  title="Lista"
+                >
+                  <Rows3 className="w-3.5 h-3.5" strokeWidth={2} />
+                </button>
+              </div>
+
+              {/* Sort */}
+              <div className="relative">
+                <button
+                  onClick={() => setSortOpen((v) => !v)}
+                  onBlur={() => setTimeout(() => setSortOpen(false), 150)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12.5px] bg-paper border border-border rounded-full hover:border-ink/30 transition-colors text-ink/75"
+                >
+                  {sort === "recent" ? "Más recientes" : sort === "alpha" ? "Alfabético" : "Más fuentes"}
+                  <ChevronDown className="w-3 h-3" strokeWidth={2} />
+                </button>
+                {sortOpen && (
+                  <div className="absolute right-0 top-full mt-1 bg-paper border border-border rounded-lg shadow-elevated overflow-hidden z-10 min-w-[160px] animate-scale-in">
+                    {([
+                      ["recent", "Más recientes"],
+                      ["alpha", "Alfabético"],
+                      ["sources", "Más fuentes"],
+                    ] as const).map(([k, label]) => (
+                      <button
+                        key={k}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          setSort(k);
+                          setSortOpen(false);
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-[12.5px] hover:bg-cream/60 text-ink/75 text-left"
+                      >
+                        {sort === k ? (
+                          <Check className="w-3.5 h-3.5 text-orange" strokeWidth={2.5} />
+                        ) : (
+                          <span className="w-3.5" />
+                        )}
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Crear nuevo (CTA principal, derecha) */}
+              <button
+                onClick={() => setShowCreate(true)}
+                className="group inline-flex items-center gap-1.5 pl-3 pr-4 py-2 text-[12.5px] font-medium bg-ink text-paper hover:bg-orange transition-colors active:scale-[0.98] rounded-full whitespace-nowrap shadow-soft"
+              >
+                <Plus className="w-3.5 h-3.5 group-hover:rotate-90 transition-transform duration-300" strokeWidth={2.5} />
+                Crear nuevo
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Crear cuaderno inline */}
         {showCreate && (
-          <div className="mb-10 border border-border bg-cream/40 backdrop-blur-sm p-6 shadow-elevated animate-scale-in rounded-lg">
-            <div className="flex items-start justify-between mb-5">
+          <div className="mb-8 border border-border bg-paper p-5 shadow-elevated animate-scale-in rounded-xl">
+            <div className="flex items-start justify-between mb-4">
               <div>
-                <p className="text-[10px] uppercase tracking-[0.22em] text-orange font-mono mb-1.5">
+                <p className="text-[10px] uppercase tracking-[0.22em] text-orange font-mono mb-1">
                   Nuevo cuaderno
                 </p>
-                <h2 className="font-display text-xl">Empezá a organizar</h2>
+                <h2 className="font-display text-lg">Empezá a organizar</h2>
               </div>
             </div>
             <div className="space-y-2.5">
@@ -231,69 +290,39 @@ function DashboardPage() {
           </div>
         )}
 
-        {/* Toolbar: search + view toggle */}
-        {!loading && notebooks.length > 0 && (
-          <div className="flex items-center justify-between gap-4 mb-5">
-            <div className="flex items-center gap-2.5">
-              <h2 className="text-[11px] font-mono uppercase tracking-[0.22em] text-ink/55">
-                Cuadernos
-              </h2>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 bg-cream border border-border rounded text-ink/60">
-                {filtered.length}{filtered.length !== notebooks.length && `/${notebooks.length}`}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink/35" strokeWidth={2} />
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Buscar..."
-                  className="w-44 sm:w-56 pl-8 pr-3 py-1.5 text-[12.5px] bg-paper border border-border rounded-md focus:border-orange/50 focus:ring-1 focus:ring-orange/30 focus:outline-none transition-all placeholder:text-ink/35"
-                />
-              </div>
-              <div className="hidden sm:flex items-center bg-cream border border-border rounded-md p-0.5">
-                <button
-                  onClick={() => setView("grid")}
-                  className={`p-1.5 rounded transition-colors ${view === "grid" ? "bg-paper shadow-soft text-ink" : "text-ink/45 hover:text-ink"}`}
-                  title="Cuadrícula"
-                >
-                  <LayoutGrid className="w-3.5 h-3.5" strokeWidth={2} />
-                </button>
-                <button
-                  onClick={() => setView("list")}
-                  className={`p-1.5 rounded transition-colors ${view === "list" ? "bg-paper shadow-soft text-ink" : "text-ink/45 hover:text-ink"}`}
-                  title="Lista"
-                >
-                  <Rows3 className="w-3.5 h-3.5" strokeWidth={2} />
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Notebooks grid/list */}
+        {/* GRID/LIST */}
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[0, 1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="h-[170px] border border-border bg-cream/20 animate-pulse rounded-lg" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+              <div key={i} className="h-[210px] border border-border bg-cream/20 animate-pulse rounded-xl" />
             ))}
           </div>
         ) : notebooks.length === 0 ? (
           <EmptyState onCreate={() => setShowCreate(true)} />
         ) : filtered.length === 0 ? (
-          <div className="border border-dashed border-border py-16 text-center bg-cream/20 rounded-lg">
+          <div className="border border-dashed border-border py-16 text-center bg-cream/20 rounded-xl">
             <p className="text-[13px] text-ink/50">No hay cuadernos que coincidan con "{search}"</p>
           </div>
         ) : view === "grid" ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 stagger">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 stagger">
+            {/* Card "Crear cuaderno" cuando hay pocos */}
+            {notebooks.length < 8 && !search && (
+              <button
+                onClick={() => setShowCreate(true)}
+                className="group h-[210px] border-2 border-dashed border-border hover:border-ink/40 hover:bg-cream/40 transition-all rounded-xl flex flex-col items-center justify-center gap-2.5 text-ink/45 hover:text-ink"
+              >
+                <div className="w-10 h-10 inline-flex items-center justify-center bg-cream group-hover:bg-paper border border-border group-hover:border-ink/30 rounded-full transition-all">
+                  <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" strokeWidth={2} />
+                </div>
+                <span className="text-[13px] font-medium">Crear cuaderno</span>
+              </button>
+            )}
             {filtered.map((nb) => (
               <NotebookCard key={nb.id} notebook={nb} />
             ))}
           </div>
         ) : (
-          <div className="border border-border rounded-lg bg-paper overflow-hidden divide-y divide-border stagger">
+          <div className="border border-border rounded-xl bg-paper overflow-hidden divide-y divide-border stagger">
             {filtered.map((nb) => (
               <NotebookListRow key={nb.id} notebook={nb} />
             ))}
@@ -304,121 +333,24 @@ function DashboardPage() {
   );
 }
 
-/* ───────────────────────── Stats Panel (compact, inline) ───────────────────────── */
+/* ───────────────────────── Filter chip ───────────────────────── */
 
-function StatsPanel({
-  stats,
-  totalNotebooks,
-  totalDocs,
-}: {
-  stats: ProfileStats;
-  totalNotebooks: number;
-  totalDocs: number;
-}) {
-  const tier = LEVEL_THRESHOLDS.find((t) => t.level === stats.level) ?? LEVEL_THRESHOLDS[0];
-  const progress =
-    tier.next === null
-      ? 100
-      : Math.min(100, Math.round(((stats.xp - tier.min) / (tier.next - tier.min)) * 100));
-  const xpToNext = tier.next ? tier.next - stats.xp : 0;
-
-  const { ref: xpRef, value: xpAnim } = useCountUp(stats.xp, 1200);
-  const { ref: streakRef, value: streakAnim } = useCountUp(stats.streak_days, 900);
-
+function FilterChip({ active, children }: { active?: boolean; children: React.ReactNode }) {
   return (
-    <div className="bg-paper border border-border rounded-xl p-5 shadow-soft min-w-[280px] lg:min-w-[340px]">
-      {/* Nivel + progreso */}
-      <div className="mb-4">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <Trophy className="w-3.5 h-3.5 text-orange" strokeWidth={2} />
-            <span className="text-[10px] uppercase tracking-[0.2em] font-mono text-ink/50">
-              Nivel
-            </span>
-          </div>
-          {tier.next !== null && (
-            <span className="text-[10px] font-mono text-ink/45 tabular-nums">{progress}%</span>
-          )}
-        </div>
-        <div className="flex items-baseline justify-between gap-2 mb-2.5">
-          <p className="font-display text-xl font-semibold text-ink leading-none">
-            {stats.level}
-          </p>
-          {tier.next !== null && (
-            <span className="text-[10.5px] font-mono text-ink/45">
-              {xpToNext.toLocaleString("es")} XP
-            </span>
-          )}
-        </div>
-        <div className="h-1.5 bg-cream rounded-full overflow-hidden">
-          <div
-            className="h-full bg-gradient-orange transition-all duration-1000 ease-out rounded-full"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-      </div>
-
-      {/* Mini stats grid 2x2 */}
-      <div className="grid grid-cols-2 gap-2.5 pt-4 border-t border-border/60">
-        <MiniStat
-          icon={<Flame className="w-3.5 h-3.5 text-orange" strokeWidth={2} />}
-          label="Racha"
-          value={
-            <span ref={streakRef} className="tabular-nums">
-              {streakAnim}
-              <span className="text-[11px] text-ink/45 font-normal ml-1">
-                {stats.streak_days === 1 ? "día" : "días"}
-              </span>
-            </span>
-          }
-        />
-        <MiniStat
-          icon={<Sparkles className="w-3.5 h-3.5 text-orange" strokeWidth={2} />}
-          label="XP total"
-          value={
-            <span ref={xpRef} className="tabular-nums">
-              {xpAnim.toLocaleString("es")}
-            </span>
-          }
-        />
-        <MiniStat
-          icon={<BookOpen className="w-3.5 h-3.5 text-ink/55" strokeWidth={2} />}
-          label="Cuadernos"
-          value={<span className="tabular-nums">{totalNotebooks}</span>}
-        />
-        <MiniStat
-          icon={<Zap className="w-3.5 h-3.5 text-ink/55" strokeWidth={2} />}
-          label="Fuentes"
-          value={<span className="tabular-nums">{totalDocs}</span>}
-        />
-      </div>
-    </div>
+    <button
+      className={`inline-flex items-center gap-1 px-3 py-1.5 text-[12.5px] rounded-full transition-all ${
+        active
+          ? "bg-cream text-ink font-medium"
+          : "text-ink/55 hover:text-ink hover:bg-cream/50"
+      }`}
+    >
+      {active && <Check className="w-3 h-3" strokeWidth={2.5} />}
+      {children}
+    </button>
   );
 }
 
-function MiniStat({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: React.ReactNode;
-}) {
-  return (
-    <div className="bg-cream/40 rounded-md px-2.5 py-2">
-      <div className="flex items-center gap-1.5 mb-1">
-        {icon}
-        <span className="text-[9.5px] uppercase tracking-[0.18em] font-mono text-ink/50">
-          {label}
-        </span>
-      </div>
-      <p className="font-display text-[18px] font-semibold text-ink leading-none">{value}</p>
-    </div>
-  );
-}
-
-/* ───────────────────────── Notebook Card (grid) ───────────────────────── */
+/* ───────────────────────── Notebook Card (NotebookLM-style) ───────────────────────── */
 
 function NotebookCard({ notebook }: { notebook: NotebookRow }) {
   const total = notebook.documents.length;
@@ -427,75 +359,55 @@ function NotebookCard({ notebook }: { notebook: NotebookRow }) {
     ["pending", "processing", "chunked", "generating"].includes(d.status),
   ).length;
   const errors = notebook.documents.filter((d) => d.status === "error").length;
-  const readyPct = total > 0 ? Math.round((ready / total) * 100) : 0;
+  const cover = coverFor(notebook.id);
 
   return (
     <Link
       to="/notebook/$id"
       params={{ id: notebook.id }}
-      className="group relative bg-paper hover:bg-cream/30 border border-border hover:border-ink/30 p-5 transition-all flex flex-col overflow-hidden rounded-lg hover:shadow-elevated hover:-translate-y-0.5"
+      className="group relative h-[210px] bg-paper border border-border hover:border-ink/30 transition-all flex flex-col overflow-hidden rounded-xl hover:shadow-elevated hover:-translate-y-0.5"
     >
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-orange to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-
-      <div className="flex items-start justify-between mb-4">
-        <div className="w-10 h-10 inline-flex items-center justify-center bg-cream border border-border group-hover:border-orange/40 group-hover:bg-orange/10 transition-all rounded-md text-lg">
+      {/* Cover gradient zone con emoji */}
+      <div className={`relative h-[88px] bg-gradient-to-br ${cover} overflow-hidden`}>
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/[0.04]" />
+        <div className="absolute top-3 left-3 w-8 h-8 inline-flex items-center justify-center bg-paper/90 backdrop-blur-sm rounded-full text-base shadow-soft">
           {notebook.emoji ?? "📓"}
         </div>
-        <ArrowUpRight
-          className="w-4 h-4 text-ink/25 group-hover:text-orange group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all"
-          strokeWidth={2}
-        />
-      </div>
-
-      <h3 className="font-display text-[18px] font-semibold tracking-tight text-ink mb-1 line-clamp-2 leading-snug">
-        {notebook.title}
-      </h3>
-      {notebook.description ? (
-        <p className="text-[13px] text-ink/55 mb-4 line-clamp-2 leading-relaxed">
-          {notebook.description}
-        </p>
-      ) : (
-        <p className="text-[13px] text-ink/30 italic mb-4">Sin descripción</p>
-      )}
-
-      {/* Barra de progreso (listos / total) */}
-      {total > 0 && (
-        <div className="mb-3">
-          <div className="flex items-center justify-between text-[10px] font-mono text-ink/45 mb-1">
-            <span>{ready}/{total} procesados</span>
-            <span className="tabular-nums">{readyPct}%</span>
-          </div>
-          <div className="h-1 bg-cream rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-orange transition-all duration-700 ease-out rounded-full"
-              style={{ width: `${readyPct}%` }}
-            />
-          </div>
-        </div>
-      )}
-
-      <div className="mt-auto pt-3 border-t border-border/60 flex items-center gap-3 text-[11px] font-mono">
-        <span className="text-ink/55">
-          {total} {total === 1 ? "fuente" : "fuentes"}
-        </span>
-        <span className="text-ink/25">·</span>
-        <span className="text-ink/40 truncate">{relativeDate(notebook.created_at)}</span>
-        <div className="flex items-center gap-1.5 ml-auto">
+        {/* Status pill top-right */}
+        <div className="absolute top-3 right-3 flex items-center gap-1">
           {processing > 0 && (
-            <span className="inline-flex items-center gap-0.5 text-ink/50" title={`${processing} procesando`}>
-              <Clock className="w-3 h-3 animate-pulse" strokeWidth={2.5} /> {processing}
+            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-paper/85 backdrop-blur-sm rounded-full text-[10px] font-mono text-ink/65">
+              <Clock className="w-2.5 h-2.5 animate-pulse" strokeWidth={2.5} /> {processing}
             </span>
           )}
           {errors > 0 && (
-            <span className="inline-flex items-center gap-0.5 text-destructive" title={`${errors} con error`}>
-              <AlertCircle className="w-3 h-3" strokeWidth={2.5} /> {errors}
+            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-paper/85 backdrop-blur-sm rounded-full text-[10px] font-mono text-destructive">
+              <AlertCircle className="w-2.5 h-2.5" strokeWidth={2.5} /> {errors}
             </span>
           )}
           {ready > 0 && processing === 0 && errors === 0 && (
-            <span className="inline-flex items-center gap-0.5 text-orange-deep" title="Todos listos">
-              <CheckCircle2 className="w-3 h-3" strokeWidth={2.5} />
+            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-paper/85 backdrop-blur-sm rounded-full text-[10px] font-mono text-orange-deep">
+              <CheckCircle2 className="w-2.5 h-2.5" strokeWidth={2.5} />
             </span>
           )}
+        </div>
+      </div>
+
+      {/* Body */}
+      <div className="flex-1 flex flex-col px-4 pt-3 pb-3.5 min-h-0">
+        <h3 className="font-display text-[15.5px] font-semibold tracking-tight text-ink line-clamp-2 leading-snug">
+          {notebook.title}
+        </h3>
+        {notebook.description && (
+          <p className="text-[12px] text-ink/55 mt-1 line-clamp-1 leading-relaxed">
+            {notebook.description}
+          </p>
+        )}
+        <div className="mt-auto pt-2 flex items-center gap-2 text-[11px] font-mono text-ink/45">
+          <span>{relativeDate(notebook.created_at)}</span>
+          <span className="text-ink/20">·</span>
+          <span>{total} {total === 1 ? "fuente" : "fuentes"}</span>
+          <Globe className="w-3 h-3 ml-auto text-ink/30" strokeWidth={2} />
         </div>
       </div>
     </Link>
@@ -510,6 +422,7 @@ function NotebookListRow({ notebook }: { notebook: NotebookRow }) {
   const processing = notebook.documents.filter((d) =>
     ["pending", "processing", "chunked", "generating"].includes(d.status),
   ).length;
+  const cover = coverFor(notebook.id);
 
   return (
     <Link
@@ -517,7 +430,7 @@ function NotebookListRow({ notebook }: { notebook: NotebookRow }) {
       params={{ id: notebook.id }}
       className="group flex items-center gap-4 px-5 py-3.5 hover:bg-cream/40 transition-colors"
     >
-      <div className="w-9 h-9 inline-flex items-center justify-center bg-cream border border-border group-hover:border-orange/40 transition-all rounded-md text-base flex-shrink-0">
+      <div className={`w-10 h-10 inline-flex items-center justify-center bg-gradient-to-br ${cover} rounded-lg text-base flex-shrink-0 shadow-soft`}>
         {notebook.emoji ?? "📓"}
       </div>
       <div className="min-w-0 flex-1">
@@ -546,23 +459,11 @@ function NotebookListRow({ notebook }: { notebook: NotebookRow }) {
           </span>
         )}
       </div>
-      <ArrowUpRight
-        className="w-4 h-4 text-ink/25 group-hover:text-orange group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all flex-shrink-0"
-        strokeWidth={2}
-      />
     </Link>
   );
 }
 
 /* ───────────────────────── Helpers ───────────────────────── */
-
-function getGreeting(): string {
-  const h = new Date().getHours();
-  if (h < 6) return "Madrugada";
-  if (h < 12) return "Buen día";
-  if (h < 19) return "Buenas tardes";
-  return "Buenas noches";
-}
 
 function relativeDate(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
