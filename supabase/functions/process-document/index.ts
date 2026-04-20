@@ -15,20 +15,41 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
 
+// @ts-ignore - EdgeRuntime is available in Deno Deploy
+declare const EdgeRuntime: { waitUntil: (p: Promise<unknown>) => void };
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
-  const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-  let documentId = "";
-
   try {
     const body = (await req.json()) as RequestBody;
-    documentId = body.documentId;
+    const documentId = body.documentId;
     if (!documentId) throw new Error("documentId requerido");
 
+    console.log(`[process-document] Encolando ${documentId}`);
+
+    // Offload heavy work so we return immediately and avoid CPU time limit
+    EdgeRuntime.waitUntil(processDocument(documentId));
+
+    return new Response(JSON.stringify({ ok: true, queued: true }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[process-document] Error inicial:", message);
+    return new Response(JSON.stringify({ ok: false, error: message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+});
+
+async function processDocument(documentId: string) {
+  const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+  try {
     console.log(`[process-document] Iniciando ${documentId}`);
 
-    // Fetch document
     const { data: doc, error: docErr } = await admin
       .from("documents")
       .select("*")
@@ -38,7 +59,6 @@ Deno.serve(async (req) => {
 
     await admin.from("documents").update({ status: "processing", progress: 10 }).eq("id", documentId);
 
-    // Download file
     const { data: fileBlob, error: dlErr } = await admin.storage
       .from("documents")
       .download(doc.storage_path);
@@ -47,16 +67,19 @@ Deno.serve(async (req) => {
     await admin.from("documents").update({ progress: 25 }).eq("id", documentId);
 
     // Extract text from PDF
-    const text = await extractPdfText(fileBlob);
-    if (!text || text.trim().length < 50) {
+    const fullText = await extractPdfText(fileBlob);
+    if (!fullText || fullText.trim().length < 50) {
       throw new Error("No se pudo extraer suficiente texto del PDF");
     }
 
-    console.log(`[process-document] Texto extraído: ${text.length} chars`);
+    // Cap total text to avoid CPU blowup on huge PDFs (keep first ~80k chars for chunks)
+    const text = fullText.slice(0, 80000);
+    console.log(`[process-document] Texto extraído: ${fullText.length} chars (usando ${text.length})`);
+
     await admin.from("documents").update({ progress: 45 }).eq("id", documentId);
 
-    // Chunk
-    const chunks = chunkText(text, 1500);
+    // Chunk (limit number of chunks)
+    const chunks = chunkText(text, 1500).slice(0, 50);
     const chunkRows = chunks.map((content, idx) => ({
       document_id: documentId,
       user_id: doc.user_id,
@@ -71,10 +94,9 @@ Deno.serve(async (req) => {
       .update({ status: "chunked", progress: 60 })
       .eq("id", documentId);
 
-    // Truncate input for AI (use first ~12k chars to stay safe)
+    // Truncate input for AI (first ~12k chars)
     const aiInput = text.slice(0, 12000);
 
-    // Generate summary + flashcards in parallel
     await admin.from("documents").update({ status: "generating", progress: 75 }).eq("id", documentId);
 
     const [summaryRes, flashcardsRes] = await Promise.allSettled([
@@ -101,7 +123,6 @@ Deno.serve(async (req) => {
         type: "flashcards",
         content: cards,
       });
-      // Also insert into flashcards table
       await admin.from("flashcards").insert(
         cards.map((c) => ({
           user_id: doc.user_id,
@@ -122,24 +143,15 @@ Deno.serve(async (req) => {
       .eq("id", documentId);
 
     console.log(`[process-document] OK ${documentId}`);
-    return new Response(JSON.stringify({ ok: true }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[process-document] Error:", message);
-    if (documentId) {
-      await admin
-        .from("documents")
-        .update({ status: "error", error_message: message })
-        .eq("id", documentId);
-    }
-    return new Response(JSON.stringify({ ok: false, error: message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    await admin
+      .from("documents")
+      .update({ status: "error", error_message: message })
+      .eq("id", documentId);
   }
-});
+}
 
 // =====================================================
 // PDF text extraction (using unpdf - works in Deno)
