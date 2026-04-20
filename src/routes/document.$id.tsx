@@ -117,6 +117,13 @@ function DocumentPage() {
           >
             Quiz ({quiz.length})
           </TabButton>
+          <TabButton
+            active={tab === "chat"}
+            onClick={() => setTab("chat")}
+            icon={<MessagesSquare className="w-4 h-4" strokeWidth={1.75} />}
+          >
+            Chat
+          </TabButton>
         </div>
 
         {tab === "summary" && (
@@ -132,6 +139,8 @@ function DocumentPage() {
         {tab === "flashcards" && <FlashcardDeck cards={flashcards} />}
 
         {tab === "quiz" && <QuizRunner questions={quiz} />}
+
+        {tab === "chat" && <DocumentChat documentId={doc.id} />}
       </div>
     </DashboardShell>
   );
