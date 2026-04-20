@@ -511,7 +511,7 @@ function relativeDate(iso: string): string {
 function EmptyState({ onCreate }: { onCreate: () => void }) {
   return (
     <div className="relative border border-dashed border-border py-20 px-6 text-center bg-cream/20 animate-fade-up overflow-hidden rounded-xl">
-      <div className="absolute inset-0 -z-10 bg-grid pointer-events-none opacity-40" />
+      {/* halo orange decorativo */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[200px] bg-orange/10 blur-[80px] -z-10 rounded-full" />
 
       <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-orange shadow-orange rounded-xl mb-5 animate-pulse-glow">
