@@ -283,13 +283,15 @@ export function QuizRunner({ questions, documentId, documentTitle }: QuizRunnerP
 
         {answered && (
           <div
-            className={`mt-6 p-5 border-l-2 animate-fade-up ${
-              isCorrect ? "border-orange bg-orange/5" : "border-destructive bg-destructive/5"
+            className={`mt-6 p-5 border-l-2 rounded-r animate-fade-up ${
+              isCorrect
+                ? "border-[#1a4d30] bg-[#0d2018]"
+                : "border-[#4d1a1a] bg-[#200d0d]"
             }`}
           >
             <p
               className={`text-xs uppercase tracking-[0.25em] font-mono mb-2 inline-flex items-center gap-1.5 ${
-                isCorrect ? "text-orange-deep" : "text-destructive"
+                isCorrect ? "text-[#4ade80]" : "text-[#f87171]"
               }`}
             >
               {isCorrect ? (
@@ -304,7 +306,7 @@ export function QuizRunner({ questions, documentId, documentTitle }: QuizRunnerP
                 </>
               )}
             </p>
-            <p className="text-sm text-ink/80 leading-relaxed">{q.explanation}</p>
+            <p className="text-sm text-[#cccccc] leading-relaxed">{q.explanation}</p>
           </div>
         )}
       </div>

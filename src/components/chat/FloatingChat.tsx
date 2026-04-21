@@ -97,14 +97,15 @@ export function FloatingChat() {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="group fixed bottom-6 right-6 z-50 inline-flex items-center gap-2.5 pl-4 pr-5 py-3.5 bg-gradient-ink text-paper hover:shadow-orange transition-all shadow-ink rounded-full animate-fade-in active:scale-95"
+          className="group fixed bottom-20 right-4 md:bottom-6 md:right-6 z-50 inline-flex items-center gap-2.5 pl-4 pr-5 py-3.5 bg-gradient-orange text-paper hover:shadow-orange transition-all shadow-ink rounded-full animate-fade-in active:scale-95 min-h-[44px]"
           aria-label="Abrir chat"
         >
           <span className="relative flex">
-            <span className="absolute inset-0 rounded-full bg-orange/40 animate-ping" />
+            <span className="absolute inset-0 rounded-full bg-paper/30 animate-ping" />
             <MessagesSquare className="w-4 h-4 relative" strokeWidth={2} />
           </span>
-          <span className="text-sm font-medium tracking-wide">Chat con tu material</span>
+          <span className="text-sm font-medium tracking-wide hidden sm:inline">Chat con tu material</span>
+          <span className="text-sm font-medium tracking-wide sm:hidden">Chat</span>
         </button>
       )}
 
