@@ -58,59 +58,100 @@
   --color-orange: var(--orange);
   --color-orange-deep: var(--orange-deep);
   --color-cream: var(--cream);
+
+  /* Tokens dark adicionales (Fase 1) */
+  --color-sidebar-bg: var(--sidebar-bg);
+  --color-active-bg: var(--active-bg);
+  --color-hover-bg: var(--hover-bg);
+  --color-input-bg: var(--input-bg);
+  --color-ink-secondary: var(--ink-secondary);
+  --color-ink-tertiary: var(--ink-tertiary);
+  --color-ink-disabled: var(--ink-disabled);
+  --color-orange-subtle: var(--orange-subtle);
+  --color-border-hover: var(--border-hover);
+  --color-border-active: var(--border-active);
 }
 
 :root {
   --radius: 4px;
 
-  /* Surfaces editoriales — papel crema cálido */
-  --paper: oklch(97.5% 0.012 80);            /* papel crema, fondo principal */
-  --cream: oklch(94.5% 0.018 75);            /* tinte cálido, surfaces elevadas */
-  --ink: oklch(20% 0.012 60);                /* tinta densa, casi negro cálido */
-  --rule: oklch(82% 0.015 70);               /* líneas finas */
+  /*
+   * ====================================================================
+   * AUTODIDACTAS — DARK THEME (Fase 1)
+   * Tokens exactos especificados por el usuario.
+   * Mantenemos los mismos NOMBRES de variables (paper, cream, ink,
+   * orange, border) para que toda la app migre automáticamente sin
+   * tocar componente por componente. Lo único que cambia son los
+   * valores hex: ahora son oscuros.
+   * Nada de negro puro, nada de blanco puro.
+   * ====================================================================
+   */
 
-  /* Acento: CRIMSON HARVARD #A51C30 — convertido a oklch */
-  --orange: oklch(43% 0.165 18);             /* crimson Harvard principal */
-  --orange-deep: oklch(36% 0.16 18);         /* crimson más oscuro / hover */
+  /* Superficies (de más oscura a más clara) */
+  --paper: #0f0f0f;            /* fondo base */
+  --cream: #161616;            /* cards, paneles secundarios */
+  --sidebar-bg: #111111;       /* sidebar y header */
+  --active-bg: #1e1e1e;        /* ítem activo */
+  --hover-bg: #1a1a1a;         /* hover */
+  --input-bg: #1a1a1a;         /* inputs y textareas */
 
-  --background: oklch(97.5% 0.012 80);
-  --foreground: oklch(20% 0.012 60);
+  /* Texto (jerarquía de contraste) */
+  --ink: #e8e8e8;              /* texto principal */
+  --ink-secondary: #bbbbbb;    /* texto secundario */
+  --ink-tertiary: #666666;     /* hints, placeholders, labels */
+  --ink-disabled: #333333;     /* deshabilitado */
 
-  --card: oklch(98.5% 0.01 80);
-  --card-foreground: oklch(20% 0.012 60);
+  /* Bordes */
+  --border: #222222;
+  --border-hover: #2e2e2e;
+  --border-active: #3a3a3a;
+  --rule: #222222;
 
-  --popover: oklch(98.5% 0.01 80);
-  --popover-foreground: oklch(20% 0.012 60);
+  /* Acento crimson */
+  --orange: #a32d2d;
+  --orange-deep: #7a1f1f;
+  --orange-subtle: #1e1010;
 
-  --primary: oklch(43% 0.165 18);
-  --primary-foreground: oklch(97.5% 0.012 80);
+  /* shadcn aliases — mismos valores con propósito semántico */
+  --background: #0f0f0f;
+  --foreground: #e8e8e8;
 
-  --secondary: oklch(94.5% 0.018 75);
-  --secondary-foreground: oklch(20% 0.012 60);
+  --card: #161616;
+  --card-foreground: #e8e8e8;
 
-  --muted: oklch(93% 0.015 75);
-  --muted-foreground: oklch(32% 0.012 65);
+  --popover: #161616;
+  --popover-foreground: #e8e8e8;
 
-  --accent: oklch(43% 0.165 18);
-  --accent-foreground: oklch(97.5% 0.012 80);
+  --primary: #a32d2d;
+  --primary-foreground: #f0f0f0;
 
-  --destructive: oklch(50% 0.2 25);
-  --destructive-foreground: oklch(97.5% 0.012 80);
+  --secondary: #161616;
+  --secondary-foreground: #e8e8e8;
 
-  --border: oklch(85% 0.015 70);
-  --input: oklch(90% 0.015 70);
-  --ring: oklch(43% 0.165 18);
+  --muted: #1a1a1a;
+  --muted-foreground: #bbbbbb;
 
-  --shadow-paper: 0 1px 0 oklch(80% 0.015 70 / 0.6), 0 18px 40px -22px oklch(20% 0.012 60 / 0.18);
-  --shadow-soft: 0 1px 2px oklch(20% 0.012 60 / 0.08), 0 6px 18px -10px oklch(20% 0.012 60 / 0.12);
-  --shadow-elevated: 0 2px 4px oklch(20% 0.012 60 / 0.1), 0 14px 36px -14px oklch(20% 0.012 60 / 0.18);
-  --shadow-orange: 0 0 0 1px oklch(43% 0.165 18 / 0.25), 0 8px 24px -8px oklch(43% 0.165 18 / 0.35);
-  --shadow-ink: 0 10px 28px -12px oklch(20% 0.012 60 / 0.35);
+  --accent: #a32d2d;
+  --accent-foreground: #f0f0f0;
 
-  --gradient-warm: linear-gradient(180deg, oklch(97.5% 0.012 80) 0%, oklch(95% 0.018 75) 100%);
-  --gradient-orange: linear-gradient(135deg, oklch(43% 0.165 18) 0%, oklch(36% 0.16 18) 100%);
-  --gradient-ink: linear-gradient(180deg, oklch(25% 0.012 60) 0%, oklch(15% 0.012 60) 100%);
-  --gradient-radial-orange: radial-gradient(circle at 30% 0%, oklch(43% 0.165 18 / 0.1), transparent 60%);
+  --destructive: #b03333;
+  --destructive-foreground: #f0f0f0;
+
+  --input: #1a1a1a;
+  --ring: #a32d2d;
+
+  /* Sombras adaptadas a dark — más profundas, más oscuras, glow crimson */
+  --shadow-paper: 0 1px 0 #0a0a0a, 0 18px 40px -22px #000000;
+  --shadow-soft: 0 1px 2px #000000cc, 0 6px 18px -10px #000000aa;
+  --shadow-elevated: 0 2px 6px #00000099, 0 18px 40px -14px #000000cc;
+  --shadow-orange: 0 0 0 1px #a32d2d40, 0 8px 24px -8px #a32d2d55;
+  --shadow-ink: 0 10px 28px -12px #000000ee;
+
+  /* Gradientes en clave dark */
+  --gradient-warm: linear-gradient(180deg, #161616 0%, #111111 100%);
+  --gradient-orange: linear-gradient(135deg, #a32d2d 0%, #7a1f1f 100%);
+  --gradient-ink: linear-gradient(180deg, #1e1e1e 0%, #0f0f0f 100%);
+  --gradient-radial-orange: radial-gradient(circle at 30% 0%, #a32d2d22, transparent 60%);
 
   --transition-base: 180ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-smooth: 280ms cubic-bezier(0.4, 0, 0.2, 1);
