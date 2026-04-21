@@ -58,100 +58,59 @@
   --color-orange: var(--orange);
   --color-orange-deep: var(--orange-deep);
   --color-cream: var(--cream);
-
-  /* Tokens dark adicionales (Fase 1) */
-  --color-sidebar-bg: var(--sidebar-bg);
-  --color-active-bg: var(--active-bg);
-  --color-hover-bg: var(--hover-bg);
-  --color-input-bg: var(--input-bg);
-  --color-ink-secondary: var(--ink-secondary);
-  --color-ink-tertiary: var(--ink-tertiary);
-  --color-ink-disabled: var(--ink-disabled);
-  --color-orange-subtle: var(--orange-subtle);
-  --color-border-hover: var(--border-hover);
-  --color-border-active: var(--border-active);
 }
 
 :root {
   --radius: 4px;
 
-  /*
-   * ====================================================================
-   * AUTODIDACTAS — DARK THEME (Fase 1)
-   * Tokens exactos especificados por el usuario.
-   * Mantenemos los mismos NOMBRES de variables (paper, cream, ink,
-   * orange, border) para que toda la app migre automáticamente sin
-   * tocar componente por componente. Lo único que cambia son los
-   * valores hex: ahora son oscuros.
-   * Nada de negro puro, nada de blanco puro.
-   * ====================================================================
-   */
+  /* Surfaces editoriales — papel crema cálido */
+  --paper: oklch(97.5% 0.012 80);            /* papel crema, fondo principal */
+  --cream: oklch(94.5% 0.018 75);            /* tinte cálido, surfaces elevadas */
+  --ink: oklch(20% 0.012 60);                /* tinta densa, casi negro cálido */
+  --rule: oklch(82% 0.015 70);               /* líneas finas */
 
-  /* Superficies (de más oscura a más clara) */
-  --paper: #0f0f0f;            /* fondo base */
-  --cream: #161616;            /* cards, paneles secundarios */
-  --sidebar-bg: #111111;       /* sidebar y header */
-  --active-bg: #1e1e1e;        /* ítem activo */
-  --hover-bg: #1a1a1a;         /* hover */
-  --input-bg: #1a1a1a;         /* inputs y textareas */
+  /* Acento: CRIMSON HARVARD #A51C30 — convertido a oklch */
+  --orange: oklch(43% 0.165 18);             /* crimson Harvard principal */
+  --orange-deep: oklch(36% 0.16 18);         /* crimson más oscuro / hover */
 
-  /* Texto (jerarquía de contraste) */
-  --ink: #e8e8e8;              /* texto principal */
-  --ink-secondary: #bbbbbb;    /* texto secundario */
-  --ink-tertiary: #666666;     /* hints, placeholders, labels */
-  --ink-disabled: #333333;     /* deshabilitado */
+  --background: oklch(97.5% 0.012 80);
+  --foreground: oklch(20% 0.012 60);
 
-  /* Bordes */
-  --border: #222222;
-  --border-hover: #2e2e2e;
-  --border-active: #3a3a3a;
-  --rule: #222222;
+  --card: oklch(98.5% 0.01 80);
+  --card-foreground: oklch(20% 0.012 60);
 
-  /* Acento crimson */
-  --orange: #a32d2d;
-  --orange-deep: #7a1f1f;
-  --orange-subtle: #1e1010;
+  --popover: oklch(98.5% 0.01 80);
+  --popover-foreground: oklch(20% 0.012 60);
 
-  /* shadcn aliases — mismos valores con propósito semántico */
-  --background: #0f0f0f;
-  --foreground: #e8e8e8;
+  --primary: oklch(43% 0.165 18);
+  --primary-foreground: oklch(97.5% 0.012 80);
 
-  --card: #161616;
-  --card-foreground: #e8e8e8;
+  --secondary: oklch(94.5% 0.018 75);
+  --secondary-foreground: oklch(20% 0.012 60);
 
-  --popover: #161616;
-  --popover-foreground: #e8e8e8;
+  --muted: oklch(93% 0.015 75);
+  --muted-foreground: oklch(32% 0.012 65);
 
-  --primary: #a32d2d;
-  --primary-foreground: #f0f0f0;
+  --accent: oklch(43% 0.165 18);
+  --accent-foreground: oklch(97.5% 0.012 80);
 
-  --secondary: #161616;
-  --secondary-foreground: #e8e8e8;
+  --destructive: oklch(50% 0.2 25);
+  --destructive-foreground: oklch(97.5% 0.012 80);
 
-  --muted: #1a1a1a;
-  --muted-foreground: #bbbbbb;
+  --border: oklch(85% 0.015 70);
+  --input: oklch(90% 0.015 70);
+  --ring: oklch(43% 0.165 18);
 
-  --accent: #a32d2d;
-  --accent-foreground: #f0f0f0;
+  --shadow-paper: 0 1px 0 oklch(80% 0.015 70 / 0.6), 0 18px 40px -22px oklch(20% 0.012 60 / 0.18);
+  --shadow-soft: 0 1px 2px oklch(20% 0.012 60 / 0.08), 0 6px 18px -10px oklch(20% 0.012 60 / 0.12);
+  --shadow-elevated: 0 2px 4px oklch(20% 0.012 60 / 0.1), 0 14px 36px -14px oklch(20% 0.012 60 / 0.18);
+  --shadow-orange: 0 0 0 1px oklch(43% 0.165 18 / 0.25), 0 8px 24px -8px oklch(43% 0.165 18 / 0.35);
+  --shadow-ink: 0 10px 28px -12px oklch(20% 0.012 60 / 0.35);
 
-  --destructive: #b03333;
-  --destructive-foreground: #f0f0f0;
-
-  --input: #1a1a1a;
-  --ring: #a32d2d;
-
-  /* Sombras adaptadas a dark — más profundas, más oscuras, glow crimson */
-  --shadow-paper: 0 1px 0 #0a0a0a, 0 18px 40px -22px #000000;
-  --shadow-soft: 0 1px 2px #000000cc, 0 6px 18px -10px #000000aa;
-  --shadow-elevated: 0 2px 6px #00000099, 0 18px 40px -14px #000000cc;
-  --shadow-orange: 0 0 0 1px #a32d2d40, 0 8px 24px -8px #a32d2d55;
-  --shadow-ink: 0 10px 28px -12px #000000ee;
-
-  /* Gradientes en clave dark */
-  --gradient-warm: linear-gradient(180deg, #161616 0%, #111111 100%);
-  --gradient-orange: linear-gradient(135deg, #a32d2d 0%, #7a1f1f 100%);
-  --gradient-ink: linear-gradient(180deg, #1e1e1e 0%, #0f0f0f 100%);
-  --gradient-radial-orange: radial-gradient(circle at 30% 0%, #a32d2d22, transparent 60%);
+  --gradient-warm: linear-gradient(180deg, oklch(97.5% 0.012 80) 0%, oklch(95% 0.018 75) 100%);
+  --gradient-orange: linear-gradient(135deg, oklch(43% 0.165 18) 0%, oklch(36% 0.16 18) 100%);
+  --gradient-ink: linear-gradient(180deg, oklch(25% 0.012 60) 0%, oklch(15% 0.012 60) 100%);
+  --gradient-radial-orange: radial-gradient(circle at 30% 0%, oklch(43% 0.165 18 / 0.1), transparent 60%);
 
   --transition-base: 180ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-smooth: 280ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -162,34 +121,25 @@
     border-color: var(--color-border);
   }
 
-  /*
-   * Compatibilidad con clases existentes text-ink/40, /50, /60.
-   * En dark, las opacidades muy bajas matan la legibilidad. Las elevamos
-   * a colores plenos del tier de texto correspondiente. Esto migra el
-   * "lavado" del tema light a una jerarquía clara en dark sin tocar
-   * componente por componente.
-   */
+  /* Subir contraste global: cuando se use text-ink con opacidad baja
+     (40/45/50/55/60) lo elevamos para que sea legible sobre el papel crema.
+     Esto evita el look "lavado" sin tener que tocar cada componente. */
   [class*="text-ink/40"],
   [class*="text-ink/45"] {
-    color: var(--ink-tertiary) !important;     /* #666 — hints, labels */
+    color: color-mix(in oklab, var(--ink) 68%, transparent) !important;
   }
   [class*="text-ink/50"],
   [class*="text-ink/55"] {
-    color: #888888 !important;                  /* tier intermedio */
+    color: color-mix(in oklab, var(--ink) 72%, transparent) !important;
   }
   [class*="text-ink/60"],
-  [class*="text-ink/65"],
-  [class*="text-ink/70"] {
-    color: var(--ink-secondary) !important;    /* #bbb — secundario */
-  }
-  [class*="text-ink/80"],
-  [class*="text-ink/85"] {
-    color: #cccccc !important;                  /* lectura larga */
+  [class*="text-ink/65"] {
+    color: color-mix(in oklab, var(--ink) 80%, transparent) !important;
   }
 
   html {
     scroll-behavior: smooth;
-    color-scheme: dark;
+    color-scheme: light;
   }
 
   body {
@@ -199,14 +149,13 @@
     font-feature-settings: "kern", "liga", "onum";
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-    /* halo crimson sutil sobre el fondo oscuro */
     background-image:
-      radial-gradient(ellipse 80% 40% at 50% -10%, #a32d2d14, transparent),
-      radial-gradient(ellipse 60% 30% at 90% 100%, #a32d2d10, transparent);
+      radial-gradient(ellipse 80% 40% at 50% -10%, oklch(43% 0.165 18 / 0.04), transparent),
+      radial-gradient(ellipse 60% 30% at 90% 100%, oklch(43% 0.165 18 / 0.03), transparent);
     background-attachment: fixed;
   }
 
-  /* Focus ring crimson sobre dark */
+  /* Focus ring sutil crimson */
   button:focus-visible,
   a:focus-visible,
   input:focus-visible,
@@ -219,8 +168,8 @@
   }
 
   ::selection {
-    background: #a32d2d55;
-    color: #f0f0f0;
+    background: oklch(43% 0.165 18 / 0.22);
+    color: var(--ink);
   }
 
   kbd {
@@ -229,7 +178,7 @@
     line-height: 1;
   }
 
-  /* Headings: serif clásico, color principal */
+  /* Headings: serif clásico Harvard */
   h1,
   h2,
   h3,
@@ -241,26 +190,7 @@
     font-weight: 400;
   }
 
-  /* Inputs y textareas: fondo dark consistente, font-size 16px en mobile (anti-zoom iOS) */
-  input,
-  textarea,
-  select {
-    background-color: var(--input-bg);
-    color: var(--ink);
-  }
-  input::placeholder,
-  textarea::placeholder {
-    color: var(--ink-tertiary);
-  }
-  @media (max-width: 767px) {
-    input:not([type="checkbox"]):not([type="radio"]),
-    textarea,
-    select {
-      font-size: 16px;
-    }
-  }
-
-  /* Scrollbar dark */
+  /* Scrollbar fina cálida */
   ::-webkit-scrollbar {
     width: 10px;
     height: 10px;
@@ -269,12 +199,12 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: #2a2a2a;
+    background: oklch(78% 0.015 70);
     border: 2px solid var(--color-paper);
     border-radius: 999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #3a3a3a;
+    background: oklch(65% 0.015 70);
   }
 }
 
@@ -327,28 +257,28 @@
   background-image: var(--gradient-radial-orange);
 }
 
-/* Grid pattern sutil — adaptado a dark */
+/* Grid pattern sutil */
 @utility bg-grid {
   background-image:
-    linear-gradient(to right, #22222266 1px, transparent 1px),
-    linear-gradient(to bottom, #22222266 1px, transparent 1px);
+    linear-gradient(to right, oklch(80% 0.015 70 / 0.4) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(80% 0.015 70 / 0.4) 1px, transparent 1px);
   background-size: 32px 32px;
 }
 
 @utility bg-grid-fade {
   background-image:
-    linear-gradient(to right, #22222255 1px, transparent 1px),
-    linear-gradient(to bottom, #22222255 1px, transparent 1px);
+    linear-gradient(to right, oklch(80% 0.015 70 / 0.35) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(80% 0.015 70 / 0.35) 1px, transparent 1px);
   background-size: 48px 48px;
   mask-image: radial-gradient(ellipse 70% 50% at 50% 0%, black 30%, transparent 80%);
   -webkit-mask-image: radial-gradient(ellipse 70% 50% at 50% 0%, black 30%, transparent 80%);
 }
 
-/* Grid de fondo de app — opacidad muy baja sobre dark */
+/* Grid sutil para fondos de app — cubre todo el viewport, opacidad baja */
 @utility bg-grid-app {
   background-image:
-    linear-gradient(to right, #1c1c1c 1px, transparent 1px),
-    linear-gradient(to bottom, #1c1c1c 1px, transparent 1px);
+    linear-gradient(to right, oklch(80% 0.015 70 / 0.28) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(80% 0.015 70 / 0.28) 1px, transparent 1px);
   background-size: 40px 40px;
   background-position: 0 0;
 }
@@ -361,7 +291,7 @@
   content: "";
   position: absolute;
   inset: -1px;
-  background: linear-gradient(135deg, #a32d2d55, transparent 50%);
+  background: linear-gradient(135deg, oklch(43% 0.165 18 / 0.35), transparent 50%);
   border-radius: inherit;
   z-index: -1;
   opacity: 0;
@@ -394,7 +324,7 @@
   transition: all var(--transition-smooth);
 }
 @utility card-editorial-hover {
-  border-color: var(--border-active);
+  border-color: oklch(20% 0.012 60 / 0.25);
   box-shadow: var(--shadow-elevated);
   transform: translateY(-2px);
 }
@@ -421,8 +351,8 @@
   to { opacity: 1; transform: translateY(0); }
 }
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 #a32d2d77; }
-  50% { box-shadow: 0 0 0 10px #a32d2d00; }
+  0%, 100% { box-shadow: 0 0 0 0 oklch(43% 0.165 18 / 0.45); }
+  50% { box-shadow: 0 0 0 10px oklch(43% 0.165 18 / 0); }
 }
 @keyframes pulse-slow {
   0%, 100% { opacity: 0.5; transform: scale(1); }
@@ -441,7 +371,7 @@
 .animate-slide-in-up { animation: slide-in-up 0.3s cubic-bezier(0.4, 0, 0.2, 1) both; }
 .animate-pulse-glow { animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
 .animate-shimmer {
-  background: linear-gradient(90deg, transparent, #a32d2d33, transparent);
+  background: linear-gradient(90deg, transparent, oklch(43% 0.165 18 / 0.15), transparent);
   background-size: 200% 100%;
   animation: shimmer 2s ease-in-out infinite;
 }
@@ -469,20 +399,17 @@
 .chat-markdown code {
   font-family: var(--font-mono);
   font-size: 0.85em;
-  background: #1a1a1a;
-  color: #e8a4a4;
+  background: oklch(91% 0.018 75);
+  color: var(--orange-deep);
   padding: 0.1em 0.4em;
   border-radius: 3px;
-  border: 1px solid #2a2a2a;
 }
 .chat-markdown blockquote {
   border-left: 2px solid var(--orange);
-  padding: 0.5rem 0.75rem;
-  background: #111111;
-  color: #999999;
+  padding-left: 0.75rem;
+  color: oklch(40% 0.012 65);
   margin: 0.5rem 0;
   font-style: italic;
-  border-radius: 0 4px 4px 0;
 }
 
 /* === 3D card flip === */
@@ -501,8 +428,8 @@
 
 @keyframes correct-pop {
   0% { transform: scale(1); }
-  40% { transform: scale(1.03); box-shadow: 0 0 0 8px #1a4d3055; }
-  100% { transform: scale(1); box-shadow: 0 0 0 0 #1a4d3000; }
+  40% { transform: scale(1.03); box-shadow: 0 0 0 8px oklch(43% 0.165 18 / 0.2); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 oklch(43% 0.165 18 / 0); }
 }
 .animate-correct-pop { animation: correct-pop 0.6s ease-out both; }
 
@@ -522,7 +449,7 @@
   }
 }
 
-/* === Editor TipTap (dark) === */
+/* === Editor TipTap (editorial light) === */
 .tiptap-content {
   font-family: var(--font-sans);
   color: var(--ink);
@@ -542,10 +469,10 @@
 }
 .tiptap-content h1 { font-size: 2.2rem; margin-top: 1.4em; }
 .tiptap-content h2 { font-size: 1.6rem; margin-top: 1.3em; padding-bottom: 0.35em; border-bottom: 1px solid var(--rule); }
-.tiptap-content h3 { font-size: 1.25rem; margin-top: 1.1em; color: #d97676; }
+.tiptap-content h3 { font-size: 1.25rem; margin-top: 1.1em; color: var(--orange-deep); }
 .tiptap-content p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
-  color: var(--ink-tertiary);
+  color: oklch(60% 0.012 65);
   float: left;
   height: 0;
   pointer-events: none;
@@ -556,24 +483,22 @@
 .tiptap-content li { margin: 0.25em 0; }
 .tiptap-content blockquote {
   border-left: 3px solid var(--orange);
-  padding: 0.5em 0 0.5em 1em;
-  color: #999999;
+  padding: 0.4em 0 0.4em 1em;
+  color: oklch(38% 0.012 65);
   font-style: italic;
-  background: #111111;
-  border-radius: 0 4px 4px 0;
+  background: oklch(43% 0.165 18 / 0.04);
 }
 .tiptap-content code {
   font-family: var(--font-mono);
   font-size: 0.88em;
-  background: #1a1a1a;
-  color: #e8a4a4;
+  background: oklch(91% 0.018 75);
+  color: var(--orange-deep);
   padding: 0.1em 0.4em;
   border-radius: 3px;
-  border: 1px solid #2a2a2a;
 }
 .tiptap-content pre {
-  background: #0a0a0a;
-  color: #e8e8e8;
+  background: oklch(22% 0.012 60);
+  color: oklch(95% 0.012 80);
   padding: 1em 1.25em;
   border-radius: 4px;
   border: 1px solid var(--border);
@@ -581,9 +506,9 @@
   font-family: var(--font-mono);
   font-size: 0.85em;
 }
-.tiptap-content pre code { background: transparent; padding: 0; color: inherit; border: none; }
+.tiptap-content pre code { background: transparent; padding: 0; color: inherit; }
 .tiptap-content mark {
-  background: #a32d2d44;
+  background: oklch(43% 0.165 18 / 0.18);
   color: var(--ink);
   padding: 0.05em 0.2em;
   border-radius: 2px;
@@ -606,12 +531,12 @@
   text-align: left;
 }
 .tiptap-content th {
-  background: #1a1a1a;
+  background: var(--cream);
   font-family: var(--font-mono);
   font-size: 0.72em;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: var(--ink-secondary);
+  color: oklch(38% 0.012 65);
   font-weight: 500;
 }
 .tiptap-content ul[data-type="taskList"] { list-style: none; padding-left: 0.25em; }
@@ -623,21 +548,21 @@
   width: 1em; height: 1em;
 }
 .tiptap-content a {
-  color: #d97676;
+  color: var(--orange);
   text-decoration: underline;
   text-underline-offset: 2px;
   text-decoration-thickness: 1px;
 }
-.tiptap-content a:hover { color: var(--orange); }
+.tiptap-content a:hover { color: var(--orange-deep); }
 .ProseMirror-focused { outline: none; }
 
-/* === Callouts (dark) === */
+/* === Callouts === */
 .note-callout {
   margin: 1.2em 0;
   padding: 0.9em 1.1em;
-  border-left: 3px solid var(--ink-secondary);
+  border-left: 3px solid var(--ink);
   border-radius: 4px;
-  background: #161616;
+  background: color-mix(in oklab, var(--cream) 60%, transparent);
 }
 .note-callout > p { margin: 0.3em 0; }
 .note-callout > p:first-child { margin-top: 0; }
@@ -646,20 +571,20 @@
 .note-callout li { margin: 0.15em 0; }
 
 .note-callout--definition {
-  border-left-color: #5a8fd9;
-  background: #0e1622;
+  border-left-color: oklch(45% 0.13 240);
+  background: color-mix(in oklab, oklch(45% 0.13 240) 8%, var(--cream));
 }
 .note-callout--question {
   border-left-color: var(--orange);
-  background: #1e1010;
+  background: color-mix(in oklab, var(--orange) 8%, var(--cream));
 }
 .note-callout--summary {
-  border-left-color: #4ade80;
-  background: #0d2018;
+  border-left-color: oklch(45% 0.13 150);
+  background: color-mix(in oklab, oklch(45% 0.13 150) 8%, var(--cream));
 }
 .note-callout--example {
-  border-left-color: #d4a04a;
-  background: #1c1408;
+  border-left-color: oklch(55% 0.14 75);
+  background: color-mix(in oklab, oklch(55% 0.14 75) 8%, var(--cream));
 }
 
 /* === Botón + lateral === */
@@ -672,7 +597,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 3px;
-  color: var(--ink-tertiary);
+  color: oklch(50% 0.012 65 / 0.6);
   background: transparent;
   border: 1px dashed transparent;
   transition: all 0.15s ease;
@@ -681,6 +606,6 @@
 }
 .slash-add-btn:hover {
   color: var(--orange);
-  border-color: #a32d2d66;
-  background: #a32d2d14;
+  border-color: oklch(43% 0.165 18 / 0.4);
+  background: oklch(43% 0.165 18 / 0.06);
 }

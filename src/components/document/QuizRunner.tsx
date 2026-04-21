@@ -220,11 +220,11 @@ export function QuizRunner({ questions, documentId, documentTitle }: QuizRunnerP
 
       <div
         key={index}
-        className={`border border-[#222] p-8 md:p-10 mb-6 bg-[#161616] rounded-md transition-opacity ${
+        className={`border-2 border-ink p-8 md:p-10 mb-6 bg-paper shadow-elevated transition-opacity ${
           transitioning ? "opacity-0" : "opacity-100 animate-fade-up"
         }`}
       >
-        <h3 className="font-display text-xl md:text-2xl text-[#e8e8e8] leading-snug mb-8">
+        <h3 className="font-display text-xl md:text-2xl text-ink leading-snug mb-8">
           {q.question}
         </h3>
 
@@ -232,21 +232,20 @@ export function QuizRunner({ questions, documentId, documentTitle }: QuizRunnerP
           {q.options.map((opt, i) => {
             const isSel = selected === i;
             const isRight = i === q.correct_index;
-            // Default state
-            let cls = "border-[#222] bg-[#161616] hover:border-[#2e2e2e] hover:bg-[#1e1e1e] hover:translate-x-0.5";
+            let cls = "border-border hover:border-ink hover:bg-cream/40 hover:translate-x-1";
             let extraAnim = "";
             if (answered) {
               if (isRight) {
-                cls = "border-[#1a4d30] bg-[#0d2018] text-[#4ade80]";
+                cls = "border-orange bg-orange/10 text-ink";
                 extraAnim = "animate-correct-pop";
               } else if (isSel) {
-                cls = "border-[#4d1a1a] bg-[#200d0d] text-[#f87171]";
+                cls = "border-destructive bg-destructive/10 text-ink";
                 extraAnim = "animate-shake";
               } else {
-                cls = "border-[#222] bg-[#161616] opacity-40";
+                cls = "border-border opacity-40";
               }
             } else if (isSel) {
-              cls = "border-[#3a3a3a] bg-[#1e1e1e] translate-x-0.5";
+              cls = "border-ink bg-ink/5 translate-x-1";
             }
             const letter = String.fromCharCode(65 + i); // A, B, C, D
             return (
@@ -254,27 +253,27 @@ export function QuizRunner({ questions, documentId, documentTitle }: QuizRunnerP
                 key={i}
                 onClick={() => !answered && setSelected(i)}
                 disabled={answered}
-                className={`w-full text-left px-5 py-4 border transition-all duration-150 flex items-center gap-4 rounded-md ${cls} ${extraAnim}`}
+                className={`w-full text-left px-5 py-4 border-2 transition-all duration-200 flex items-center gap-4 ${cls} ${extraAnim}`}
               >
                 <span
-                  className={`flex-shrink-0 w-8 h-8 inline-flex items-center justify-center text-xs font-mono font-medium border rounded transition-colors ${
+                  className={`flex-shrink-0 w-8 h-8 inline-flex items-center justify-center text-xs font-mono font-medium border transition-colors ${
                     answered && isRight
-                      ? "bg-[#1a4d30] text-[#4ade80] border-[#1a4d30]"
+                      ? "bg-orange text-paper border-orange"
                       : answered && isSel && !isRight
-                        ? "bg-[#4d1a1a] text-[#f87171] border-[#4d1a1a]"
+                        ? "bg-destructive text-paper border-destructive"
                         : isSel
-                          ? "bg-[#3a3a3a] text-[#e8e8e8] border-[#3a3a3a]"
-                          : "border-[#2e2e2e] text-[#888]"
+                          ? "bg-ink text-paper border-ink"
+                          : "border-border text-ink/60"
                   }`}
                 >
                   {letter}
                 </span>
                 <span className="text-base flex-1">{opt}</span>
                 {answered && isRight && (
-                  <Check className="w-5 h-5 text-[#4ade80] flex-shrink-0" strokeWidth={2.5} />
+                  <Check className="w-5 h-5 text-orange flex-shrink-0" strokeWidth={2.5} />
                 )}
                 {answered && isSel && !isRight && (
-                  <X className="w-5 h-5 text-[#f87171] flex-shrink-0" strokeWidth={2.5} />
+                  <X className="w-5 h-5 text-destructive flex-shrink-0" strokeWidth={2.5} />
                 )}
               </button>
             );
@@ -283,15 +282,13 @@ export function QuizRunner({ questions, documentId, documentTitle }: QuizRunnerP
 
         {answered && (
           <div
-            className={`mt-6 p-5 border-l-2 rounded-r animate-fade-up ${
-              isCorrect
-                ? "border-[#1a4d30] bg-[#0d2018]"
-                : "border-[#4d1a1a] bg-[#200d0d]"
+            className={`mt-6 p-5 border-l-2 animate-fade-up ${
+              isCorrect ? "border-orange bg-orange/5" : "border-destructive bg-destructive/5"
             }`}
           >
             <p
               className={`text-xs uppercase tracking-[0.25em] font-mono mb-2 inline-flex items-center gap-1.5 ${
-                isCorrect ? "text-[#4ade80]" : "text-[#f87171]"
+                isCorrect ? "text-orange-deep" : "text-destructive"
               }`}
             >
               {isCorrect ? (
@@ -306,7 +303,7 @@ export function QuizRunner({ questions, documentId, documentTitle }: QuizRunnerP
                 </>
               )}
             </p>
-            <p className="text-sm text-[#cccccc] leading-relaxed">{q.explanation}</p>
+            <p className="text-sm text-ink/80 leading-relaxed">{q.explanation}</p>
           </div>
         )}
       </div>
