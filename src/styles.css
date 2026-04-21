@@ -162,25 +162,34 @@
     border-color: var(--color-border);
   }
 
-  /* Subir contraste global: cuando se use text-ink con opacidad baja
-     (40/45/50/55/60) lo elevamos para que sea legible sobre el papel crema.
-     Esto evita el look "lavado" sin tener que tocar cada componente. */
+  /*
+   * Compatibilidad con clases existentes text-ink/40, /50, /60.
+   * En dark, las opacidades muy bajas matan la legibilidad. Las elevamos
+   * a colores plenos del tier de texto correspondiente. Esto migra el
+   * "lavado" del tema light a una jerarquía clara en dark sin tocar
+   * componente por componente.
+   */
   [class*="text-ink/40"],
   [class*="text-ink/45"] {
-    color: color-mix(in oklab, var(--ink) 68%, transparent) !important;
+    color: var(--ink-tertiary) !important;     /* #666 — hints, labels */
   }
   [class*="text-ink/50"],
   [class*="text-ink/55"] {
-    color: color-mix(in oklab, var(--ink) 72%, transparent) !important;
+    color: #888888 !important;                  /* tier intermedio */
   }
   [class*="text-ink/60"],
-  [class*="text-ink/65"] {
-    color: color-mix(in oklab, var(--ink) 80%, transparent) !important;
+  [class*="text-ink/65"],
+  [class*="text-ink/70"] {
+    color: var(--ink-secondary) !important;    /* #bbb — secundario */
+  }
+  [class*="text-ink/80"],
+  [class*="text-ink/85"] {
+    color: #cccccc !important;                  /* lectura larga */
   }
 
   html {
     scroll-behavior: smooth;
-    color-scheme: light;
+    color-scheme: dark;
   }
 
   body {
@@ -190,13 +199,14 @@
     font-feature-settings: "kern", "liga", "onum";
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    /* halo crimson sutil sobre el fondo oscuro */
     background-image:
-      radial-gradient(ellipse 80% 40% at 50% -10%, oklch(43% 0.165 18 / 0.04), transparent),
-      radial-gradient(ellipse 60% 30% at 90% 100%, oklch(43% 0.165 18 / 0.03), transparent);
+      radial-gradient(ellipse 80% 40% at 50% -10%, #a32d2d14, transparent),
+      radial-gradient(ellipse 60% 30% at 90% 100%, #a32d2d10, transparent);
     background-attachment: fixed;
   }
 
-  /* Focus ring sutil crimson */
+  /* Focus ring crimson sobre dark */
   button:focus-visible,
   a:focus-visible,
   input:focus-visible,
@@ -209,8 +219,8 @@
   }
 
   ::selection {
-    background: oklch(43% 0.165 18 / 0.22);
-    color: var(--ink);
+    background: #a32d2d55;
+    color: #f0f0f0;
   }
 
   kbd {
@@ -219,7 +229,7 @@
     line-height: 1;
   }
 
-  /* Headings: serif clásico Harvard */
+  /* Headings: serif clásico, color principal */
   h1,
   h2,
   h3,
@@ -231,7 +241,26 @@
     font-weight: 400;
   }
 
-  /* Scrollbar fina cálida */
+  /* Inputs y textareas: fondo dark consistente, font-size 16px en mobile (anti-zoom iOS) */
+  input,
+  textarea,
+  select {
+    background-color: var(--input-bg);
+    color: var(--ink);
+  }
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--ink-tertiary);
+  }
+  @media (max-width: 767px) {
+    input:not([type="checkbox"]):not([type="radio"]),
+    textarea,
+    select {
+      font-size: 16px;
+    }
+  }
+
+  /* Scrollbar dark */
   ::-webkit-scrollbar {
     width: 10px;
     height: 10px;
@@ -240,12 +269,12 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: oklch(78% 0.015 70);
+    background: #2a2a2a;
     border: 2px solid var(--color-paper);
     border-radius: 999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: oklch(65% 0.015 70);
+    background: #3a3a3a;
   }
 }
 
