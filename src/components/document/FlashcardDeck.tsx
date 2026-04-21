@@ -82,24 +82,26 @@ export function FlashcardDeck({ cards }: { cards: FlashcardOutput[] }) {
           style={{ transitionTimingFunction: "cubic-bezier(0.4, 0.0, 0.2, 1)" }}
         >
           {/* Front face */}
-          <div className="absolute inset-0 backface-hidden bg-paper border-2 border-ink p-10 md:p-14 flex flex-col justify-between text-left shadow-elevated group-hover:shadow-orange transition-shadow">
+          <div
+            className="absolute inset-0 backface-hidden bg-[#161616] border border-[#2e2e2e] p-10 md:p-14 flex flex-col justify-between text-left rounded-md transition-shadow group-hover:shadow-[0_0_0_1px_#a32d2d33,0_8px_24px_-8px_#a32d2d22]"
+          >
             <div>
               <p className="text-[10px] uppercase tracking-[0.35em] text-orange font-mono mb-5 inline-flex items-center gap-2">
                 <span className="w-6 h-px bg-orange" />
                 Pregunta
               </p>
-              <p className="font-display text-2xl md:text-3xl text-ink leading-snug">
+              <p className="font-display text-2xl md:text-3xl text-[#e8e8e8] leading-snug">
                 {card.front}
               </p>
             </div>
-            <div className="flex items-center justify-between mt-8 pt-5 border-t border-border">
-              <p className="text-[11px] text-ink/40 font-mono uppercase tracking-wider inline-flex items-center gap-1.5">
+            <div className="flex items-center justify-between mt-8 pt-5 border-t border-[#222]">
+              <p className="text-[11px] text-[#666] font-mono uppercase tracking-wider inline-flex items-center gap-1.5">
                 <Eye className="w-3 h-3" strokeWidth={2} />
                 Click o espacio para revelar
               </p>
-              <div className="w-7 h-7 inline-flex items-center justify-center border border-border group-hover:border-orange group-hover:bg-orange/5 transition-all">
+              <div className="w-7 h-7 inline-flex items-center justify-center border border-[#2e2e2e] group-hover:border-orange group-hover:bg-orange/10 transition-all rounded">
                 <RotateCw
-                  className="w-3 h-3 text-ink/40 group-hover:text-orange group-hover:rotate-180 transition-all duration-500"
+                  className="w-3 h-3 text-[#666] group-hover:text-orange group-hover:rotate-180 transition-all duration-500"
                   strokeWidth={2}
                 />
               </div>
@@ -107,22 +109,24 @@ export function FlashcardDeck({ cards }: { cards: FlashcardOutput[] }) {
           </div>
 
           {/* Back face */}
-          <div className="absolute inset-0 backface-hidden rotate-y-180 bg-gradient-warm border-2 border-orange p-10 md:p-14 flex flex-col justify-between text-left shadow-orange">
+          <div
+            className="absolute inset-0 backface-hidden rotate-y-180 bg-[#1a1a1a] border border-orange p-10 md:p-14 flex flex-col justify-between text-left rounded-md shadow-[0_0_0_1px_#a32d2d33,0_8px_24px_-8px_#a32d2d33]"
+          >
             <div>
-              <p className="text-[10px] uppercase tracking-[0.35em] text-orange-deep font-mono mb-5 inline-flex items-center gap-2">
-                <span className="w-6 h-px bg-orange-deep" />
+              <p className="text-[10px] uppercase tracking-[0.35em] text-orange font-mono mb-5 inline-flex items-center gap-2">
+                <span className="w-6 h-px bg-orange" />
                 Respuesta
               </p>
-              <p className="font-display text-2xl md:text-3xl text-ink leading-snug">
+              <p className="font-sans text-xl md:text-2xl text-[#cccccc] leading-relaxed">
                 {card.back}
               </p>
             </div>
             <div className="flex items-center justify-between mt-8 pt-5 border-t border-orange/30">
-              <p className="text-[11px] text-ink/50 font-mono uppercase tracking-wider">
+              <p className="text-[11px] text-[#888] font-mono uppercase tracking-wider">
                 ← / → para navegar
               </p>
-              <p className="text-[11px] text-orange-deep font-mono uppercase tracking-wider">
-                Pregunta {card.front.length > 30 ? `${card.front.slice(0, 30)}…` : card.front}
+              <p className="text-[11px] text-orange font-mono uppercase tracking-wider truncate max-w-[50%]">
+                {card.front.length > 30 ? `${card.front.slice(0, 30)}…` : card.front}
               </p>
             </div>
           </div>
