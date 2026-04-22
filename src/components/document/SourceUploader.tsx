@@ -208,7 +208,7 @@ export function SourceUploader({ notebookId, onUploaded }: SourceUploaderProps) 
   return (
     <div className="border-2 border-dashed border-border bg-paper hover:border-ink/40 transition-colors">
       {/* Tabs */}
-      <div className="flex flex-wrap border-b border-border">
+      <div className="grid grid-cols-2 sm:flex sm:flex-wrap border-b border-border">
         {TABS.map((t) => {
           const active = tab === t.key;
           const Icon = t.icon;
@@ -216,7 +216,7 @@ export function SourceUploader({ notebookId, onUploaded }: SourceUploaderProps) 
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`flex-1 min-w-[120px] inline-flex items-center justify-center gap-2 px-4 py-3.5 text-sm transition-all border-b-2 -mb-px ${
+              className={`flex-1 sm:min-w-[120px] inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-3.5 text-sm transition-all border-b-2 -mb-px min-h-[44px] ${
                 active
                   ? "border-orange text-ink font-medium bg-cream/30"
                   : "border-transparent text-ink/50 hover:text-ink hover:bg-cream/20"
