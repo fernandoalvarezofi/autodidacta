@@ -32,7 +32,7 @@ interface NotebookRow {
   description: string | null;
   emoji: string | null;
   created_at: string;
-  documents: { id: string; status: string }[];
+  documents: { id: string; title: string; status: string; type: string }[];
 }
 
 type ViewMode = "grid" | "list";
