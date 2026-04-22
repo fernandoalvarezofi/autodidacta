@@ -29,6 +29,7 @@ export interface DocumentRow {
   error_message: string | null;
   created_at: string;
   size_bytes: number | null;
+  notebook_id: string;
 }
 
 interface Props {
