@@ -263,7 +263,7 @@ export function DocumentCard({ doc, onChange }: Props) {
         {isReady && outputs.has("flashcards") && (
           <Link
             to="/review/$notebookId"
-            params={{ notebookId: notebookId ?? "" }}
+            params={{ notebookId: doc.notebook_id }}
             className="inline-flex items-center gap-1 mt-2.5 text-xs text-orange hover:text-orange-deep font-medium"
           >
             Repasar flashcards →
