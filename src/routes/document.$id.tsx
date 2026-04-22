@@ -58,6 +58,7 @@ type Tab = "chat" | "summary" | "mindmap" | "flashcards" | "quiz" | "generate";
 
 function DocumentPage() {
   const { id } = Route.useParams();
+  const search = Route.useSearch();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const [doc, setDoc] = useState<DocumentRow | null>(null);
@@ -69,8 +70,36 @@ function DocumentPage() {
     Partial<Record<GeneratedDocType, GeneratedContent>>
   >({});
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<Tab>("chat");
+  const [tab, setTab] = useState<Tab>((search?.tab as Tab) ?? "summary");
   const [creatingNote, setCreatingNote] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
+
+  const handleRegenerate = async (type: "flashcards" | "quiz") => {
+    if (!doc) return;
+    setRegenerating(true);
+    try {
+      await supabase.functions.invoke("generate-output", {
+        body: { documentId: doc.id, type },
+      });
+      toast.success("Regenerando…");
+      setTimeout(async () => {
+        const { data } = await supabase
+          .from("document_outputs")
+          .select("type, content")
+          .eq("document_id", doc.id)
+          .eq("type", type);
+        if (data?.[0]) {
+          if (type === "flashcards")
+            setFlashcards(data[0].content as unknown as FlashcardOutput[]);
+          if (type === "quiz") setQuiz(data[0].content as unknown as QuizQuestion[]);
+        }
+        setRegenerating(false);
+      }, 3000);
+    } catch {
+      setRegenerating(false);
+      toast.error("No se pudo regenerar");
+    }
+  };
 
   const handleEditAsNote = async () => {
     if (!user || !doc) return;
