@@ -84,7 +84,7 @@ function DashboardPage() {
     void (async () => {
       const { data, error } = await supabase
         .from("notebooks")
-        .select("id, title, description, emoji, created_at, documents(id, status)")
+        .select("id, title, description, emoji, created_at, documents(id, title, status, type)")
         .order("created_at", { ascending: false });
       if (error) toast.error("Error al cargar cuadernos");
       else setNotebooks((data ?? []) as NotebookRow[]);
