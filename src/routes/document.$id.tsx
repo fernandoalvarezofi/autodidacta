@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import {
   Loader2,
   BookOpen,
@@ -9,16 +9,17 @@ import {
   Network,
   PenLine,
   Wand2,
+  RefreshCw,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { WorkspaceLayout } from "@/components/workspace/WorkspaceLayout";
 import { SummaryRender, type SummaryContent } from "@/components/document/SummaryRender";
-import { FlashcardDeck, type FlashcardOutput } from "@/components/document/FlashcardDeck";
-import { QuizRunner, type QuizQuestion } from "@/components/document/QuizRunner";
+import type { FlashcardOutput } from "@/components/document/FlashcardDeck";
+import type { QuizQuestion } from "@/components/document/QuizRunner";
 import { DocumentChat } from "@/components/document/DocumentChat";
-import { MindMapViewer, type MindmapContent } from "@/components/document/MindMapViewer";
+import type { MindmapContent } from "@/components/document/MindMapViewer";
 import {
   GeneratedDocPanel,
   type GeneratedDocType,
@@ -28,6 +29,16 @@ import { ExportButton } from "@/components/ui/ExportButton";
 import { createNote } from "@/lib/notes";
 import { getTemplate } from "@/lib/note-templates";
 import { toast } from "sonner";
+
+const FlashcardDeckLazy = lazy(() =>
+  import("@/components/document/FlashcardDeck").then((m) => ({ default: m.FlashcardDeck })),
+);
+const QuizRunnerLazy = lazy(() =>
+  import("@/components/document/QuizRunner").then((m) => ({ default: m.QuizRunner })),
+);
+const MindMapViewerLazy = lazy(() =>
+  import("@/components/document/MindMapViewer").then((m) => ({ default: m.MindMapViewer })),
+);
 
 export const Route = createFileRoute("/document/$id")({
   validateSearch: (s: Record<string, unknown>): { tab?: string } => ({
