@@ -30,6 +30,9 @@ import { getTemplate } from "@/lib/note-templates";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/document/$id")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    tab: s.tab as string | undefined,
+  }),
   component: DocumentPage,
 });
 
