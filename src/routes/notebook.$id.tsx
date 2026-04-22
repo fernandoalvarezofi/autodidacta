@@ -174,16 +174,6 @@ function NotebookPage() {
         backTo={{ to: "/dashboard", label: "Biblioteca" }}
         groups={[
           {
-            items: [
-              {
-                key: "chat",
-                label: "Chat del cuaderno",
-                icon: <MessagesSquare className="w-4 h-4" strokeWidth={1.75} />,
-                badge: "IA",
-              },
-            ],
-          },
-          {
             label: "Contenido",
             items: [
               {
@@ -197,6 +187,16 @@ function NotebookPage() {
                 label: "Notas",
                 icon: <NotebookPen className="w-4 h-4" strokeWidth={1.75} />,
                 count: notesCount || undefined,
+              },
+            ],
+          },
+          {
+            items: [
+              {
+                key: "chat",
+                label: "Chat del cuaderno",
+                icon: <MessagesSquare className="w-4 h-4" strokeWidth={1.75} />,
+                badge: "IA",
               },
             ],
           },
