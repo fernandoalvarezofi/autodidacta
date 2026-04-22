@@ -300,7 +300,9 @@ function DocumentPage() {
         {tab === "mindmap" && (
           <div className="p-6 h-full">
             {mindmap ? (
-              <MindMapViewer content={mindmap} />
+              <Suspense fallback={<Loader2 className="w-5 h-5 animate-spin text-ink/40 mx-auto mt-12" />}>
+                <MindMapViewerLazy content={mindmap} />
+              </Suspense>
             ) : (
               <div className="border-2 border-dashed border-border bg-paper p-12 text-center rounded-lg">
                 <p className="text-ink/50 text-sm">El mapa mental aún no está disponible para este documento.</p>
@@ -312,13 +314,45 @@ function DocumentPage() {
 
         {tab === "flashcards" && (
           <div className="p-6 h-full overflow-y-auto">
-            <FlashcardDeck cards={flashcards} />
+            <div className="max-w-2xl mx-auto flex items-center justify-end mb-3">
+              <button
+                onClick={() => handleRegenerate("flashcards")}
+                disabled={regenerating}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-border rounded hover:border-ink/40 hover:bg-cream transition-colors disabled:opacity-50 min-h-[36px]"
+              >
+                {regenerating ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-3.5 h-3.5" strokeWidth={2} />
+                )}
+                Regenerar
+              </button>
+            </div>
+            <Suspense fallback={<Loader2 className="w-5 h-5 animate-spin text-ink/40 mx-auto mt-12" />}>
+              <FlashcardDeckLazy cards={flashcards} />
+            </Suspense>
           </div>
         )}
 
         {tab === "quiz" && (
           <div className="p-6 h-full overflow-y-auto">
-            <QuizRunner questions={quiz} documentId={doc.id} documentTitle={doc.title} />
+            <div className="max-w-2xl mx-auto flex items-center justify-end mb-3">
+              <button
+                onClick={() => handleRegenerate("quiz")}
+                disabled={regenerating}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-border rounded hover:border-ink/40 hover:bg-cream transition-colors disabled:opacity-50 min-h-[36px]"
+              >
+                {regenerating ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-3.5 h-3.5" strokeWidth={2} />
+                )}
+                Regenerar
+              </button>
+            </div>
+            <Suspense fallback={<Loader2 className="w-5 h-5 animate-spin text-ink/40 mx-auto mt-12" />}>
+              <QuizRunnerLazy questions={quiz} documentId={doc.id} documentTitle={doc.title} />
+            </Suspense>
           </div>
         )}
 
