@@ -99,7 +99,7 @@ async function processDocument(documentId: string) {
       .eq("id", documentId);
 
     // Truncate input for AI (first ~12k chars)
-    const aiInput = text.slice(0, 12000);
+    const aiInput = text.slice(0, 25000);
 
     await admin.from("documents").update({ status: "generating", progress: 75 }).eq("id", documentId);
 

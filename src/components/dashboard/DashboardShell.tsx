@@ -1,7 +1,6 @@
 import { Link, useNavigate, useLocation } from "@tanstack/react-router";
 import { BookMarked, LogOut, LayoutGrid, Search, Gamepad2, Home } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import { FloatingChat } from "@/components/chat/FloatingChat";
 import { CommandPalette } from "@/components/dashboard/CommandPalette";
 import { useEffect, useState, type ReactNode } from "react";
 
@@ -122,7 +121,6 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       </header>
 
       <main>{children}</main>
-      <FloatingChat />
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
     </div>
   );

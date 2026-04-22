@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import {
   Loader2,
   BookOpen,
@@ -9,16 +9,17 @@ import {
   Network,
   PenLine,
   Wand2,
+  RefreshCw,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { WorkspaceLayout } from "@/components/workspace/WorkspaceLayout";
 import { SummaryRender, type SummaryContent } from "@/components/document/SummaryRender";
-import { FlashcardDeck, type FlashcardOutput } from "@/components/document/FlashcardDeck";
-import { QuizRunner, type QuizQuestion } from "@/components/document/QuizRunner";
+import type { FlashcardOutput } from "@/components/document/FlashcardDeck";
+import type { QuizQuestion } from "@/components/document/QuizRunner";
 import { DocumentChat } from "@/components/document/DocumentChat";
-import { MindMapViewer, type MindmapContent } from "@/components/document/MindMapViewer";
+import type { MindmapContent } from "@/components/document/MindMapViewer";
 import {
   GeneratedDocPanel,
   type GeneratedDocType,
@@ -29,7 +30,20 @@ import { createNote } from "@/lib/notes";
 import { getTemplate } from "@/lib/note-templates";
 import { toast } from "sonner";
 
+const FlashcardDeckLazy = lazy(() =>
+  import("@/components/document/FlashcardDeck").then((m) => ({ default: m.FlashcardDeck })),
+);
+const QuizRunnerLazy = lazy(() =>
+  import("@/components/document/QuizRunner").then((m) => ({ default: m.QuizRunner })),
+);
+const MindMapViewerLazy = lazy(() =>
+  import("@/components/document/MindMapViewer").then((m) => ({ default: m.MindMapViewer })),
+);
+
 export const Route = createFileRoute("/document/$id")({
+  validateSearch: (s: Record<string, unknown>): { tab?: string } => ({
+    tab: typeof s.tab === "string" ? s.tab : undefined,
+  }),
   component: DocumentPage,
 });
 
@@ -44,6 +58,7 @@ type Tab = "chat" | "summary" | "mindmap" | "flashcards" | "quiz" | "generate";
 
 function DocumentPage() {
   const { id } = Route.useParams();
+  const search = Route.useSearch();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const [doc, setDoc] = useState<DocumentRow | null>(null);
@@ -55,8 +70,36 @@ function DocumentPage() {
     Partial<Record<GeneratedDocType, GeneratedContent>>
   >({});
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<Tab>("chat");
+  const [tab, setTab] = useState<Tab>((search?.tab as Tab) ?? "summary");
   const [creatingNote, setCreatingNote] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
+
+  const handleRegenerate = async (type: "flashcards" | "quiz") => {
+    if (!doc) return;
+    setRegenerating(true);
+    try {
+      await supabase.functions.invoke("generate-output", {
+        body: { documentId: doc.id, type },
+      });
+      toast.success("Regenerando…");
+      setTimeout(async () => {
+        const { data } = await supabase
+          .from("document_outputs")
+          .select("type, content")
+          .eq("document_id", doc.id)
+          .eq("type", type);
+        if (data?.[0]) {
+          if (type === "flashcards")
+            setFlashcards(data[0].content as unknown as FlashcardOutput[]);
+          if (type === "quiz") setQuiz(data[0].content as unknown as QuizQuestion[]);
+        }
+        setRegenerating(false);
+      }, 3000);
+    } catch {
+      setRegenerating(false);
+      toast.error("No se pudo regenerar");
+    }
+  };
 
   const handleEditAsNote = async () => {
     if (!user || !doc) return;
@@ -257,7 +300,9 @@ function DocumentPage() {
         {tab === "mindmap" && (
           <div className="p-6 h-full">
             {mindmap ? (
-              <MindMapViewer content={mindmap} />
+              <Suspense fallback={<Loader2 className="w-5 h-5 animate-spin text-ink/40 mx-auto mt-12" />}>
+                <MindMapViewerLazy content={mindmap} />
+              </Suspense>
             ) : (
               <div className="border-2 border-dashed border-border bg-paper p-12 text-center rounded-lg">
                 <p className="text-ink/50 text-sm">El mapa mental aún no está disponible para este documento.</p>
@@ -269,13 +314,45 @@ function DocumentPage() {
 
         {tab === "flashcards" && (
           <div className="p-6 h-full overflow-y-auto">
-            <FlashcardDeck cards={flashcards} />
+            <div className="max-w-2xl mx-auto flex items-center justify-end mb-3">
+              <button
+                onClick={() => handleRegenerate("flashcards")}
+                disabled={regenerating}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-border rounded hover:border-ink/40 hover:bg-cream transition-colors disabled:opacity-50 min-h-[36px]"
+              >
+                {regenerating ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-3.5 h-3.5" strokeWidth={2} />
+                )}
+                Regenerar
+              </button>
+            </div>
+            <Suspense fallback={<Loader2 className="w-5 h-5 animate-spin text-ink/40 mx-auto mt-12" />}>
+              <FlashcardDeckLazy cards={flashcards} />
+            </Suspense>
           </div>
         )}
 
         {tab === "quiz" && (
           <div className="p-6 h-full overflow-y-auto">
-            <QuizRunner questions={quiz} documentId={doc.id} documentTitle={doc.title} />
+            <div className="max-w-2xl mx-auto flex items-center justify-end mb-3">
+              <button
+                onClick={() => handleRegenerate("quiz")}
+                disabled={regenerating}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-border rounded hover:border-ink/40 hover:bg-cream transition-colors disabled:opacity-50 min-h-[36px]"
+              >
+                {regenerating ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-3.5 h-3.5" strokeWidth={2} />
+                )}
+                Regenerar
+              </button>
+            </div>
+            <Suspense fallback={<Loader2 className="w-5 h-5 animate-spin text-ink/40 mx-auto mt-12" />}>
+              <QuizRunnerLazy questions={quiz} documentId={doc.id} documentTitle={doc.title} />
+            </Suspense>
           </div>
         )}
 

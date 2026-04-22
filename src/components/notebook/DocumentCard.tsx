@@ -29,6 +29,7 @@ export interface DocumentRow {
   error_message: string | null;
   created_at: string;
   size_bytes: number | null;
+  notebook_id: string;
 }
 
 interface Props {
@@ -195,7 +196,7 @@ export function DocumentCard({ doc, onChange }: Props) {
             <Link
               to="/document/$id"
               params={{ id: doc.id }}
-              className="group/btn flex-1 inline-flex items-center justify-center gap-1.5 h-8 text-[12.5px] font-medium bg-ink text-paper hover:bg-orange transition-colors rounded-md"
+              className="group/btn flex-1 inline-flex items-center justify-center gap-1.5 h-8 text-[12.5px] font-medium bg-ink text-paper hover:bg-orange transition-colors rounded-md min-h-[44px] sm:min-h-0"
             >
               Estudiar
               <ArrowUpRight className="w-3 h-3 transition-transform group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5" strokeWidth={2.25} />
@@ -205,7 +206,7 @@ export function DocumentCard({ doc, onChange }: Props) {
             <button
               onClick={handleRetry}
               disabled={busy}
-              className="flex-1 inline-flex items-center justify-center gap-1.5 h-8 text-[12.5px] font-medium border border-ink/80 text-ink hover:bg-ink hover:text-paper transition-colors disabled:opacity-50 rounded-md"
+              className="flex-1 inline-flex items-center justify-center gap-1.5 h-8 text-[12.5px] font-medium border border-ink/80 text-ink hover:bg-ink hover:text-paper transition-colors disabled:opacity-50 rounded-md min-h-[44px] sm:min-h-0"
             >
               <RotateCcw className="w-3 h-3" strokeWidth={2} />
               Reintentar
@@ -221,13 +222,53 @@ export function DocumentCard({ doc, onChange }: Props) {
             <button
               onClick={handleDelete}
               disabled={busy}
-              className="inline-flex items-center justify-center w-8 h-8 text-ink/40 hover:text-destructive hover:bg-destructive/[0.06] transition-all disabled:opacity-50 rounded-md"
+              className="inline-flex items-center justify-center w-8 h-8 text-ink/40 hover:text-destructive hover:bg-destructive/[0.06] transition-all disabled:opacity-50 rounded-md min-h-[44px] min-w-[44px] sm:min-h-[32px] sm:min-w-[32px] sm:w-8 sm:h-8"
               title="Eliminar"
             >
               <Trash2 className="w-3.5 h-3.5" strokeWidth={1.75} />
             </button>
           )}
         </footer>
+
+        {/* Quick tools row */}
+        {isReady && outputs.size > 0 && (
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-1.5 mt-2.5">
+            {OUTPUT_BADGES.filter((b) => outputs.has(b.type)).map((b) => {
+              const BIcon = b.icon;
+              const tabKey =
+                b.type === "summary"
+                  ? "summary"
+                  : b.type === "flashcards"
+                    ? "flashcards"
+                    : b.type === "quiz"
+                      ? "quiz"
+                      : "mindmap";
+              return (
+                <Link
+                  key={b.type}
+                  to="/document/$id"
+                  params={{ id: doc.id }}
+                  search={{ tab: tabKey }}
+                  className="inline-flex items-center justify-center sm:justify-start gap-1 px-2 py-1.5 text-xs border border-border rounded hover:bg-cream hover:border-ink/40 transition-colors"
+                >
+                  <BIcon className="w-3 h-3" strokeWidth={2} />
+                  {b.label}
+                </Link>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Repasar flashcards */}
+        {isReady && outputs.has("flashcards") && (
+          <Link
+            to="/review/$notebookId"
+            params={{ notebookId: doc.notebook_id }}
+            className="inline-flex items-center gap-1 mt-2.5 text-xs text-orange hover:text-orange-deep font-medium"
+          >
+            Repasar flashcards →
+          </Link>
+        )}
       </div>
     </article>
   );

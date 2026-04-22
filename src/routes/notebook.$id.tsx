@@ -43,7 +43,7 @@ function NotebookPage() {
   const [documents, setDocuments] = useState<DocumentRow[]>([]);
   const [notesCount, setNotesCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<Tab>("chat");
+  const [tab, setTab] = useState<Tab>("documents");
   const [showUploader, setShowUploader] = useState(false);
 
   const readyDocsCount = documents.filter((d) => d.status === "ready").length;
@@ -174,16 +174,6 @@ function NotebookPage() {
         backTo={{ to: "/dashboard", label: "Biblioteca" }}
         groups={[
           {
-            items: [
-              {
-                key: "chat",
-                label: "Chat del cuaderno",
-                icon: <MessagesSquare className="w-4 h-4" strokeWidth={1.75} />,
-                badge: "IA",
-              },
-            ],
-          },
-          {
             label: "Contenido",
             items: [
               {
@@ -197,6 +187,16 @@ function NotebookPage() {
                 label: "Notas",
                 icon: <NotebookPen className="w-4 h-4" strokeWidth={1.75} />,
                 count: notesCount || undefined,
+              },
+            ],
+          },
+          {
+            items: [
+              {
+                key: "chat",
+                label: "Chat del cuaderno",
+                icon: <MessagesSquare className="w-4 h-4" strokeWidth={1.75} />,
+                badge: "IA",
               },
             ],
           },

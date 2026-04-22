@@ -32,7 +32,7 @@ interface NotebookRow {
   description: string | null;
   emoji: string | null;
   created_at: string;
-  documents: { id: string; status: string }[];
+  documents: { id: string; title: string; status: string; type: string }[];
 }
 
 type ViewMode = "grid" | "list";
@@ -84,7 +84,7 @@ function DashboardPage() {
     void (async () => {
       const { data, error } = await supabase
         .from("notebooks")
-        .select("id, title, description, emoji, created_at, documents(id, status)")
+        .select("id, title, description, emoji, created_at, documents(id, title, status, type)")
         .order("created_at", { ascending: false });
       if (error) toast.error("Error al cargar cuadernos");
       else setNotebooks((data ?? []) as NotebookRow[]);
@@ -387,7 +387,8 @@ function FilterChip({ active, children }: { active?: boolean; children: React.Re
 
 function NotebookCard({ notebook }: { notebook: NotebookRow }) {
   const total = notebook.documents.length;
-  const ready = notebook.documents.filter((d) => d.status === "ready").length;
+  const readyDocs = notebook.documents.filter((d) => d.status === "ready");
+  const ready = readyDocs.length;
   const processing = notebook.documents.filter((d) =>
     ["pending", "processing", "chunked", "generating"].includes(d.status),
   ).length;
@@ -398,7 +399,7 @@ function NotebookCard({ notebook }: { notebook: NotebookRow }) {
     <Link
       to="/notebook/$id"
       params={{ id: notebook.id }}
-      className="group relative h-[210px] bg-paper border border-border hover:border-ink/30 transition-all flex flex-col overflow-hidden rounded-xl hover:shadow-elevated hover:-translate-y-0.5"
+      className="group relative h-auto min-h-[210px] bg-paper border border-border hover:border-ink/30 transition-all flex flex-col overflow-hidden rounded-xl hover:shadow-elevated hover:-translate-y-0.5"
     >
       {/* Cover gradient zone con emoji */}
       <div className={`relative h-[88px] bg-gradient-to-br ${cover} overflow-hidden`}>
@@ -436,6 +437,51 @@ function NotebookCard({ notebook }: { notebook: NotebookRow }) {
             {notebook.description}
           </p>
         )}
+
+        {/* Acceso rápido a documentos */}
+        {ready > 0 && (
+          <div
+            className="flex flex-wrap gap-1 mt-2.5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {readyDocs.slice(0, 3).map((d) => (
+              <Link
+                key={d.id}
+                to="/document/$id"
+                params={{ id: d.id }}
+                className="inline-flex items-center gap-1 px-2 py-1 bg-cream border border-border rounded text-xs hover:border-ink/40 transition-colors truncate max-w-[130px]"
+                title={d.title}
+              >
+                {d.title}
+              </Link>
+            ))}
+            {ready > 3 && (
+              <Link
+                to="/notebook/$id"
+                params={{ id: notebook.id }}
+                className="inline-flex items-center gap-1 px-2 py-1 bg-cream border border-border rounded text-xs hover:border-ink/40 transition-colors text-orange-deep"
+              >
+                + {ready - 3} más →
+              </Link>
+            )}
+          </div>
+        )}
+        {ready === 0 && processing > 0 && (
+          <p className="text-xs text-ink/50 mt-2.5 inline-flex items-center gap-1">
+            <Loader2 className="w-3 h-3 animate-spin" /> Procesando...
+          </p>
+        )}
+        {total === 0 && (
+          <Link
+            to="/notebook/$id"
+            params={{ id: notebook.id }}
+            onClick={(e) => e.stopPropagation()}
+            className="text-xs text-orange hover:text-orange-deep mt-2.5 inline-block font-medium"
+          >
+            Subí tu primer material →
+          </Link>
+        )}
+
         <div className="mt-auto pt-2 flex items-center gap-2 text-[11px] font-mono text-ink/45">
           <span>{relativeDate(notebook.created_at)}</span>
           <span className="text-ink/20">·</span>
