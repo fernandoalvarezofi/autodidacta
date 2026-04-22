@@ -43,7 +43,7 @@ function NotebookPage() {
   const [documents, setDocuments] = useState<DocumentRow[]>([]);
   const [notesCount, setNotesCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<Tab>("chat");
+  const [tab, setTab] = useState<Tab>("documents");
   const [showUploader, setShowUploader] = useState(false);
 
   const readyDocsCount = documents.filter((d) => d.status === "ready").length;
