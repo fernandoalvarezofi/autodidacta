@@ -249,7 +249,7 @@ export function SourceUploader({ notebookId, onUploaded }: SourceUploaderProps) 
               onDragLeave={() => setDragActive(false)}
               onDrop={handleDrop}
               disabled={uploading}
-              className={`relative w-full border-2 border-dashed transition-all py-12 text-center group overflow-hidden ${
+              className={`relative w-full border-2 border-dashed transition-all py-8 sm:py-12 text-center group overflow-hidden ${
                 dragActive
                   ? "border-orange bg-orange/5 scale-[1.005]"
                   : "border-border hover:border-ink hover:bg-cream/40"
