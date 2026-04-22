@@ -121,7 +121,6 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       </header>
 
       <main>{children}</main>
-      <FloatingChat />
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
     </div>
   );
