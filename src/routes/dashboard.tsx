@@ -544,7 +544,7 @@ function NotebookListRow({ notebook }: { notebook: NotebookRow }) {
       className="group flex items-center gap-4 px-5 py-3.5 hover:bg-cream/40 transition-colors"
     >
       <div className="shrink-0">
-        <EntityIcon value={notebook.emoji} size={40} />
+        <ClayIcon icon={resolveIcon(notebook.emoji)} size={40} />
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2">
