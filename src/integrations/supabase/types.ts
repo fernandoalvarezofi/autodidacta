@@ -352,6 +352,146 @@ export type Database = {
           },
         ]
       }
+      iq_answers: {
+        Row: {
+          attempt_id: string
+          created_at: string | null
+          es_correcto: boolean
+          id: string
+          indice_seleccionado: number
+          question_id: string
+          tiempo_ms: number | null
+        }
+        Insert: {
+          attempt_id: string
+          created_at?: string | null
+          es_correcto: boolean
+          id?: string
+          indice_seleccionado: number
+          question_id: string
+          tiempo_ms?: number | null
+        }
+        Update: {
+          attempt_id?: string
+          created_at?: string | null
+          es_correcto?: boolean
+          id?: string
+          indice_seleccionado?: number
+          question_id?: string
+          tiempo_ms?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "iq_answers_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "iq_attempts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "iq_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "iq_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      iq_attempts: {
+        Row: {
+          area_scores: Json | null
+          completed_at: string | null
+          created_at: string | null
+          edad: number
+          email: string | null
+          id: string
+          iq_score: number | null
+          nombre: string
+          percentil: number | null
+          respuestas_correctas: number | null
+          started_at: string | null
+          total_preguntas: number | null
+          user_id: string | null
+        }
+        Insert: {
+          area_scores?: Json | null
+          completed_at?: string | null
+          created_at?: string | null
+          edad: number
+          email?: string | null
+          id?: string
+          iq_score?: number | null
+          nombre: string
+          percentil?: number | null
+          respuestas_correctas?: number | null
+          started_at?: string | null
+          total_preguntas?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          area_scores?: Json | null
+          completed_at?: string | null
+          created_at?: string | null
+          edad?: number
+          email?: string | null
+          id?: string
+          iq_score?: number | null
+          nombre?: string
+          percentil?: number | null
+          respuestas_correctas?: number | null
+          started_at?: string | null
+          total_preguntas?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "iq_attempts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      iq_questions: {
+        Row: {
+          area: string
+          created_at: string | null
+          dificultad: string
+          es_espacial: boolean | null
+          explicacion: string | null
+          id: string
+          indice_correcto: number
+          is_active: boolean | null
+          opciones: Json
+          pregunta: string
+        }
+        Insert: {
+          area: string
+          created_at?: string | null
+          dificultad: string
+          es_espacial?: boolean | null
+          explicacion?: string | null
+          id?: string
+          indice_correcto: number
+          is_active?: boolean | null
+          opciones: Json
+          pregunta: string
+        }
+        Update: {
+          area?: string
+          created_at?: string | null
+          dificultad?: string
+          es_espacial?: boolean | null
+          explicacion?: string | null
+          id?: string
+          indice_correcto?: number
+          is_active?: boolean | null
+          opciones?: Json
+          pregunta?: string
+        }
+        Relationships: []
+      }
       notebooks: {
         Row: {
           cover_color: string | null
