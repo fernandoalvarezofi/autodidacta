@@ -19,7 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EntityIcon } from "@/components/ui/EntityIcon";
 import { IconPicker } from "@/components/ui/IconPicker";
-import type { ClayIconKey } from "@/lib/clay-icons";
+import { ClayIcon } from "@/lib/clay-icons";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard")({
@@ -118,20 +118,12 @@ function DashboardPage() {
     let list = notebooks;
     if (search.trim()) {
       const q = search.toLowerCase();
-      list = list.filter(
-        (n) =>
-          n.title.toLowerCase().includes(q) ||
-          (n.description ?? "").toLowerCase().includes(q),
-      );
+      list = list.filter((n) => n.title.toLowerCase().includes(q) || (n.description ?? "").toLowerCase().includes(q));
     }
     const sorted = [...list];
     if (sort === "alpha") sorted.sort((a, b) => a.title.localeCompare(b.title));
-    else if (sort === "sources")
-      sorted.sort((a, b) => b.documents.length - a.documents.length);
-    else
-      sorted.sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-      );
+    else if (sort === "sources") sorted.sort((a, b) => b.documents.length - a.documents.length);
+    else sorted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     return sorted;
   }, [notebooks, search, sort]);
 
@@ -158,7 +150,10 @@ function DashboardPage() {
 
         {/* TOOLBAR estilo NotebookLM: filtros chips a la izquierda, controles a la derecha */}
         {!loading && notebooks.length > 0 && (
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-6 animate-fade-up" style={{ animationDelay: "60ms" }}>
+          <div
+            className="flex flex-wrap items-center justify-between gap-3 mb-6 animate-fade-up"
+            style={{ animationDelay: "60ms" }}
+          >
             {/* Filtros izquierda */}
             <div className="flex items-center gap-1.5">
               <FilterChip active>Todos</FilterChip>
@@ -171,7 +166,10 @@ function DashboardPage() {
             <div className="flex items-center gap-2">
               {/* Search */}
               <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink/35" strokeWidth={2} />
+                <Search
+                  className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink/35"
+                  strokeWidth={2}
+                />
                 <input
                   type="text"
                   value={search}
@@ -211,11 +209,13 @@ function DashboardPage() {
                 </button>
                 {sortOpen && (
                   <div className="absolute right-0 top-full mt-1 bg-paper border border-border rounded-lg shadow-elevated overflow-hidden z-10 min-w-[160px] animate-scale-in">
-                    {([
-                      ["recent", "Más recientes"],
-                      ["alpha", "Alfabético"],
-                      ["sources", "Más fuentes"],
-                    ] as const).map(([k, label]) => (
+                    {(
+                      [
+                        ["recent", "Más recientes"],
+                        ["alpha", "Alfabético"],
+                        ["sources", "Más fuentes"],
+                      ] as const
+                    ).map(([k, label]) => (
                       <button
                         key={k}
                         onMouseDown={(e) => {
@@ -242,7 +242,10 @@ function DashboardPage() {
                 onClick={() => setShowCreate(true)}
                 className="group inline-flex items-center gap-1.5 pl-3 pr-4 py-2 text-[12.5px] font-medium bg-ink text-paper hover:bg-orange transition-colors active:scale-[0.98] rounded-full whitespace-nowrap shadow-soft"
               >
-                <Plus className="w-3.5 h-3.5 group-hover:rotate-90 transition-transform duration-300" strokeWidth={2.5} />
+                <Plus
+                  className="w-3.5 h-3.5 group-hover:rotate-90 transition-transform duration-300"
+                  strokeWidth={2.5}
+                />
                 Crear nuevo
               </button>
             </div>
@@ -254,9 +257,7 @@ function DashboardPage() {
           <div className="mb-8 border border-border bg-paper p-5 shadow-elevated animate-scale-in rounded-xl">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <p className="text-[10px] uppercase tracking-[0.22em] text-orange font-mono mb-1">
-                  Nuevo cuaderno
-                </p>
+                <p className="text-[10px] uppercase tracking-[0.22em] text-orange font-mono mb-1">Nuevo cuaderno</p>
                 <h2 className="font-display text-lg">Empezá a organizar</h2>
               </div>
             </div>
@@ -372,9 +373,7 @@ function FilterChip({ active, children }: { active?: boolean; children: React.Re
   return (
     <button
       className={`inline-flex items-center gap-1 px-3 py-1.5 text-[12.5px] rounded-full transition-all ${
-        active
-          ? "bg-cream text-ink font-medium"
-          : "text-ink/55 hover:text-ink hover:bg-cream/50"
+        active ? "bg-cream text-ink font-medium" : "text-ink/55 hover:text-ink hover:bg-cream/50"
       }`}
     >
       {active && <Check className="w-3 h-3" strokeWidth={2.5} />}
@@ -433,17 +432,12 @@ function NotebookCard({ notebook }: { notebook: NotebookRow }) {
           {notebook.title}
         </h3>
         {notebook.description && (
-          <p className="text-[12px] text-ink/55 mt-1 line-clamp-1 leading-relaxed">
-            {notebook.description}
-          </p>
+          <p className="text-[12px] text-ink/55 mt-1 line-clamp-1 leading-relaxed">{notebook.description}</p>
         )}
 
         {/* Acceso rápido a documentos */}
         {ready > 0 && (
-          <div
-            className="flex flex-wrap gap-1 mt-2.5"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="flex flex-wrap gap-1 mt-2.5" onClick={(e) => e.stopPropagation()}>
             {readyDocs.slice(0, 3).map((d) => (
               <Link
                 key={d.id}
@@ -485,7 +479,9 @@ function NotebookCard({ notebook }: { notebook: NotebookRow }) {
         <div className="mt-auto pt-2 flex items-center gap-2 text-[11px] font-mono text-ink/45">
           <span>{relativeDate(notebook.created_at)}</span>
           <span className="text-ink/20">·</span>
-          <span>{total} {total === 1 ? "fuente" : "fuentes"}</span>
+          <span>
+            {total} {total === 1 ? "fuente" : "fuentes"}
+          </span>
           <Globe className="w-3 h-3 ml-auto text-ink/30" strokeWidth={2} />
         </div>
       </div>
@@ -514,19 +510,15 @@ function NotebookListRow({ notebook }: { notebook: NotebookRow }) {
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2">
-          <h3 className="font-display text-[15px] font-semibold tracking-tight text-ink truncate">
-            {notebook.title}
-          </h3>
-          <span className="text-[10px] font-mono text-ink/40 flex-shrink-0">
-            {relativeDate(notebook.created_at)}
-          </span>
+          <h3 className="font-display text-[15px] font-semibold tracking-tight text-ink truncate">{notebook.title}</h3>
+          <span className="text-[10px] font-mono text-ink/40 flex-shrink-0">{relativeDate(notebook.created_at)}</span>
         </div>
-        {notebook.description && (
-          <p className="text-[12.5px] text-ink/55 truncate">{notebook.description}</p>
-        )}
+        {notebook.description && <p className="text-[12.5px] text-ink/55 truncate">{notebook.description}</p>}
       </div>
       <div className="hidden sm:flex items-center gap-3 text-[11px] font-mono text-ink/55 flex-shrink-0">
-        <span>{total} {total === 1 ? "fuente" : "fuentes"}</span>
+        <span>
+          {total} {total === 1 ? "fuente" : "fuentes"}
+        </span>
         {processing > 0 && (
           <span className="inline-flex items-center gap-1 text-ink/50">
             <Clock className="w-3 h-3 animate-pulse" /> {processing}
@@ -563,9 +555,7 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
       <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-orange shadow-orange rounded-xl mb-5 animate-pulse-glow">
         <Sparkles className="w-5 h-5 text-paper" strokeWidth={2} />
       </div>
-      <p className="text-[10px] uppercase tracking-[0.28em] font-mono text-orange mb-2.5">
-        Empezá acá
-      </p>
+      <p className="text-[10px] uppercase tracking-[0.28em] font-mono text-orange mb-2.5">Empezá acá</p>
       <h3 className="font-display text-3xl font-semibold mb-2.5 leading-tight tracking-tight">
         Tu biblioteca está vacía
       </h3>
