@@ -165,7 +165,8 @@ function IQTestRunner() {
           respuestas_correctas: correctas,
           iq_score: iq,
           percentil,
-          area_scores: areaScores as unknown as Record<string, unknown>,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          area_scores: areaScores as any,
         })
         .eq("id", intentoId);
       navigate({ to: "/iq/resultado/$intentoId", params: { intentoId }, replace: true });
