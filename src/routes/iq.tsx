@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Brain, Calculator, Shapes, BookText, Lock, Check, Sparkles } from "lucide-react";
+import { ArrowRight, Brain, Calculator, Shapes, BookText, Check, Sparkles, Crown } from "lucide-react";
 import { Navbar } from "@/components/landing/Navbar";
 import { NeuralBackground } from "@/components/NeuralBackground";
 
@@ -123,30 +123,42 @@ function IQLanding() {
                 <span className="text-[11px] font-mono uppercase tracking-[0.18em] text-ink/45">
                   Gratis
                 </span>
-                <Lock className="w-4 h-4 text-ink/40" strokeWidth={2} />
+                <span className="text-[11px] text-ink/45">$0</span>
               </div>
-              <p className="font-display text-2xl mb-4">Vista bloqueada</p>
-              <ul className="space-y-2 text-[13.5px] text-ink/55">
-                <li className="filter blur-sm select-none">Puntuación IQ exacta</li>
-                <li className="filter blur-sm select-none">Percentil global</li>
-                <li className="filter blur-sm select-none">Análisis por área</li>
-                <li className="filter blur-sm select-none">Certificado PDF</li>
+              <p className="font-display text-2xl mb-4">Resultado básico</p>
+              <ul className="space-y-2 text-[13.5px] text-ink/80">
+                <ProItem>Puntuación IQ exacta</ProItem>
+                <ProItem>Clasificación cognitiva</ProItem>
+                <ProItem>Rango aproximado de percentil</ProItem>
+                <ProItem>Total de respuestas correctas</ProItem>
               </ul>
             </div>
 
             {/* Pro */}
             <div className="rounded-xl border-2 border-orange bg-paper p-6 shadow-orange relative">
-              <span className="absolute -top-3 left-6 px-2 py-0.5 bg-orange text-paper text-[10px] font-mono uppercase tracking-wider rounded">
-                Plan Pro
+              <span className="absolute -top-3 left-6 inline-flex items-center gap-1 px-2 py-0.5 bg-orange text-paper text-[10px] font-mono uppercase tracking-wider rounded">
+                <Crown className="w-3 h-3" strokeWidth={2.5} /> Plan Pro
               </span>
-              <p className="font-display text-2xl mb-4">Resultado completo</p>
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-[11px] font-mono uppercase tracking-[0.18em] text-orange">
+                  Suscripción
+                </span>
+                <span className="text-[11px] text-ink/60">
+                  <span className="font-semibold text-ink">$12</span> USD/mes
+                </span>
+              </div>
+              <p className="font-display text-2xl mb-4">Análisis completo</p>
               <ul className="space-y-2 text-[13.5px] text-ink/80">
-                <ProItem>Puntuación IQ exacta</ProItem>
-                <ProItem>Percentil y comparativa global</ProItem>
-                <ProItem>Análisis detallado por área</ProItem>
+                <ProItem>Todo lo del plan gratuito</ProItem>
+                <ProItem>Percentil exacto y comparativa global</ProItem>
+                <ProItem>Análisis detallado por área cognitiva</ProItem>
                 <ProItem>Certificado PDF descargable</ProItem>
+                <ProItem>Tests ilimitados con historial</ProItem>
                 <ProItem>Acceso completo a Autodidactas</ProItem>
               </ul>
+              <p className="mt-4 text-[11.5px] text-ink/50">
+                Renovación automática mensual · cancelá cuando quieras.
+              </p>
             </div>
           </div>
 
