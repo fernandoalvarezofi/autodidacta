@@ -10,18 +10,27 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PlayRouteImport } from './routes/play'
+import { Route as IqRouteImport } from './routes/iq'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ReviewNotebookIdRouteImport } from './routes/review.$notebookId'
 import { Route as PlayRoomIdRouteImport } from './routes/play.$roomId'
 import { Route as NotebookIdRouteImport } from './routes/notebook.$id'
+import { Route as IqInicioRouteImport } from './routes/iq.inicio'
 import { Route as EditorIdRouteImport } from './routes/editor.$id'
 import { Route as DocumentIdRouteImport } from './routes/document.$id'
+import { Route as IqTestIntentoIdRouteImport } from './routes/iq.test.$intentoId'
+import { Route as IqResultadoIntentoIdRouteImport } from './routes/iq.resultado.$intentoId'
 
 const PlayRoute = PlayRouteImport.update({
   id: '/play',
   path: '/play',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IqRoute = IqRouteImport.update({
+  id: '/iq',
+  path: '/iq',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -54,6 +63,11 @@ const NotebookIdRoute = NotebookIdRouteImport.update({
   path: '/notebook/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IqInicioRoute = IqInicioRouteImport.update({
+  id: '/inicio',
+  path: '/inicio',
+  getParentRoute: () => IqRoute,
+} as any)
 const EditorIdRoute = EditorIdRouteImport.update({
   id: '/editor/$id',
   path: '/editor/$id',
@@ -64,40 +78,62 @@ const DocumentIdRoute = DocumentIdRouteImport.update({
   path: '/document/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IqTestIntentoIdRoute = IqTestIntentoIdRouteImport.update({
+  id: '/test/$intentoId',
+  path: '/test/$intentoId',
+  getParentRoute: () => IqRoute,
+} as any)
+const IqResultadoIntentoIdRoute = IqResultadoIntentoIdRouteImport.update({
+  id: '/resultado/$intentoId',
+  path: '/resultado/$intentoId',
+  getParentRoute: () => IqRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/iq': typeof IqRouteWithChildren
   '/play': typeof PlayRouteWithChildren
   '/document/$id': typeof DocumentIdRoute
   '/editor/$id': typeof EditorIdRoute
+  '/iq/inicio': typeof IqInicioRoute
   '/notebook/$id': typeof NotebookIdRoute
   '/play/$roomId': typeof PlayRoomIdRoute
   '/review/$notebookId': typeof ReviewNotebookIdRoute
+  '/iq/resultado/$intentoId': typeof IqResultadoIntentoIdRoute
+  '/iq/test/$intentoId': typeof IqTestIntentoIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/iq': typeof IqRouteWithChildren
   '/play': typeof PlayRouteWithChildren
   '/document/$id': typeof DocumentIdRoute
   '/editor/$id': typeof EditorIdRoute
+  '/iq/inicio': typeof IqInicioRoute
   '/notebook/$id': typeof NotebookIdRoute
   '/play/$roomId': typeof PlayRoomIdRoute
   '/review/$notebookId': typeof ReviewNotebookIdRoute
+  '/iq/resultado/$intentoId': typeof IqResultadoIntentoIdRoute
+  '/iq/test/$intentoId': typeof IqTestIntentoIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
+  '/iq': typeof IqRouteWithChildren
   '/play': typeof PlayRouteWithChildren
   '/document/$id': typeof DocumentIdRoute
   '/editor/$id': typeof EditorIdRoute
+  '/iq/inicio': typeof IqInicioRoute
   '/notebook/$id': typeof NotebookIdRoute
   '/play/$roomId': typeof PlayRoomIdRoute
   '/review/$notebookId': typeof ReviewNotebookIdRoute
+  '/iq/resultado/$intentoId': typeof IqResultadoIntentoIdRoute
+  '/iq/test/$intentoId': typeof IqTestIntentoIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -105,40 +141,53 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/dashboard'
+    | '/iq'
     | '/play'
     | '/document/$id'
     | '/editor/$id'
+    | '/iq/inicio'
     | '/notebook/$id'
     | '/play/$roomId'
     | '/review/$notebookId'
+    | '/iq/resultado/$intentoId'
+    | '/iq/test/$intentoId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/dashboard'
+    | '/iq'
     | '/play'
     | '/document/$id'
     | '/editor/$id'
+    | '/iq/inicio'
     | '/notebook/$id'
     | '/play/$roomId'
     | '/review/$notebookId'
+    | '/iq/resultado/$intentoId'
+    | '/iq/test/$intentoId'
   id:
     | '__root__'
     | '/'
     | '/auth'
     | '/dashboard'
+    | '/iq'
     | '/play'
     | '/document/$id'
     | '/editor/$id'
+    | '/iq/inicio'
     | '/notebook/$id'
     | '/play/$roomId'
     | '/review/$notebookId'
+    | '/iq/resultado/$intentoId'
+    | '/iq/test/$intentoId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   DashboardRoute: typeof DashboardRoute
+  IqRoute: typeof IqRouteWithChildren
   PlayRoute: typeof PlayRouteWithChildren
   DocumentIdRoute: typeof DocumentIdRoute
   EditorIdRoute: typeof EditorIdRoute
@@ -153,6 +202,13 @@ declare module '@tanstack/react-router' {
       path: '/play'
       fullPath: '/play'
       preLoaderRoute: typeof PlayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/iq': {
+      id: '/iq'
+      path: '/iq'
+      fullPath: '/iq'
+      preLoaderRoute: typeof IqRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -197,6 +253,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NotebookIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/iq/inicio': {
+      id: '/iq/inicio'
+      path: '/inicio'
+      fullPath: '/iq/inicio'
+      preLoaderRoute: typeof IqInicioRouteImport
+      parentRoute: typeof IqRoute
+    }
     '/editor/$id': {
       id: '/editor/$id'
       path: '/editor/$id'
@@ -211,8 +274,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DocumentIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/iq/test/$intentoId': {
+      id: '/iq/test/$intentoId'
+      path: '/test/$intentoId'
+      fullPath: '/iq/test/$intentoId'
+      preLoaderRoute: typeof IqTestIntentoIdRouteImport
+      parentRoute: typeof IqRoute
+    }
+    '/iq/resultado/$intentoId': {
+      id: '/iq/resultado/$intentoId'
+      path: '/resultado/$intentoId'
+      fullPath: '/iq/resultado/$intentoId'
+      preLoaderRoute: typeof IqResultadoIntentoIdRouteImport
+      parentRoute: typeof IqRoute
+    }
   }
 }
+
+interface IqRouteChildren {
+  IqInicioRoute: typeof IqInicioRoute
+  IqResultadoIntentoIdRoute: typeof IqResultadoIntentoIdRoute
+  IqTestIntentoIdRoute: typeof IqTestIntentoIdRoute
+}
+
+const IqRouteChildren: IqRouteChildren = {
+  IqInicioRoute: IqInicioRoute,
+  IqResultadoIntentoIdRoute: IqResultadoIntentoIdRoute,
+  IqTestIntentoIdRoute: IqTestIntentoIdRoute,
+}
+
+const IqRouteWithChildren = IqRoute._addFileChildren(IqRouteChildren)
 
 interface PlayRouteChildren {
   PlayRoomIdRoute: typeof PlayRoomIdRoute
@@ -228,6 +319,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   DashboardRoute: DashboardRoute,
+  IqRoute: IqRouteWithChildren,
   PlayRoute: PlayRouteWithChildren,
   DocumentIdRoute: DocumentIdRoute,
   EditorIdRoute: EditorIdRoute,

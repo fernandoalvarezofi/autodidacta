@@ -47,6 +47,9 @@ export function Navbar() {
             <a href="#planes" className="text-ink/60 hover:text-ink transition-colors">
               Planes
             </a>
+            <Link to="/iq" className="text-orange font-medium hover:text-orange-deep transition-colors">
+              Test de IQ
+            </Link>
           </nav>
 
           <div className="flex items-center gap-2">
