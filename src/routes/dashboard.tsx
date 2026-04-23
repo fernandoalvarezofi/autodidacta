@@ -383,7 +383,45 @@ function FilterChip({ active, children }: { active?: boolean; children: React.Re
 }
 
 /* ───────────────────────── Notebook Card (NotebookLM-style) ───────────────────────── */
-
+function resolveIcon(emoji: string | null): ClayIconKey {
+  const valid: ClayIconKey[] = [
+    "book",
+    "notebook",
+    "pencil",
+    "highlighter",
+    "bookmark",
+    "library",
+    "brain",
+    "lightbulb",
+    "sparkles",
+    "target",
+    "compass",
+    "atom",
+    "flask",
+    "dna",
+    "microscope",
+    "calculator",
+    "globe",
+    "languages",
+    "quote",
+    "scroll",
+    "calendar",
+    "clock",
+    "checklist",
+    "flag",
+    "trophy",
+    "headphones",
+    "image",
+    "video",
+    "mic",
+    "leaf",
+    "flame",
+    "mountain",
+    "drop",
+  ];
+  if (emoji && valid.includes(emoji as ClayIconKey)) return emoji as ClayIconKey;
+  return "notebook";
+}
 function NotebookCard({ notebook }: { notebook: NotebookRow }) {
   const total = notebook.documents.length;
   const readyDocs = notebook.documents.filter((d) => d.status === "ready");
