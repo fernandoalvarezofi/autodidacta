@@ -442,7 +442,7 @@ function NotebookCard({ notebook }: { notebook: NotebookRow }) {
       <div className={`relative h-[88px] bg-gradient-to-br ${cover} overflow-hidden`}>
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/[0.04]" />
         <div className="absolute top-3 left-3">
-          <ClayIcon icon={(notebook.emoji as ClayIconKey) ?? "notebook"} size={44} />
+          <ClayIcon icon={resolveIcon(notebook.emoji)} size={44} />
         </div>
         {/* Status pill top-right */}
         <div className="absolute top-3 right-3 flex items-center gap-1">
