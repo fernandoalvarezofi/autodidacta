@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Plus,
   Loader2,
@@ -13,11 +13,17 @@ import {
   Check,
   ChevronDown,
   Globe,
+  Camera,
+  Star,
+  BookOpen,
+  FileText,
+  Zap,
+  X,
+  Pencil,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
-import { EntityIcon } from "@/components/ui/EntityIcon";
 import { IconPicker } from "@/components/ui/IconPicker";
 import { ClayIcon, type ClayIconKey } from "@/lib/clay-icons";
 import { toast } from "sonner";
@@ -35,28 +41,331 @@ interface NotebookRow {
   documents: { id: string; title: string; status: string; type: string }[];
 }
 
+interface ProfileRow {
+  id: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  interests: string[] | null;
+  plan: string | null;
+}
+
 type ViewMode = "grid" | "list";
 type SortMode = "recent" | "alpha" | "sources";
 
-/**
- * Paleta de "covers" para los cuadernos — derivado del id para mantener color estable.
- * Estilo NotebookLM: gradientes suaves de color por cuaderno.
- */
 const COVERS = [
-  "from-[#fde9d6] to-[#f7c89a]", // peach
-  "from-[#e0e7ff] to-[#a5b4fc]", // indigo
-  "from-[#dcfce7] to-[#86efac]", // green
-  "from-[#fee2e2] to-[#fca5a5]", // red
-  "from-[#fef3c7] to-[#fcd34d]", // amber
-  "from-[#e9d5ff] to-[#c4b5fd]", // purple
-  "from-[#cffafe] to-[#67e8f9]", // cyan
-  "from-[#fce7f3] to-[#f9a8d4]", // pink
+  "from-[#fde9d6] to-[#f7c89a]",
+  "from-[#e0e7ff] to-[#a5b4fc]",
+  "from-[#dcfce7] to-[#86efac]",
+  "from-[#fee2e2] to-[#fca5a5]",
+  "from-[#fef3c7] to-[#fcd34d]",
+  "from-[#e9d5ff] to-[#c4b5fd]",
+  "from-[#cffafe] to-[#67e8f9]",
+  "from-[#fce7f3] to-[#f9a8d4]",
 ];
 
 function coverFor(id: string): string {
   let h = 0;
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
   return COVERS[h % COVERS.length];
+}
+
+/* ───────────────────────── Red neuronal SVG de fondo ───────────────────────── */
+function NeuralBackground() {
+  const nodes = useMemo(() => {
+    const pts = [];
+    for (let i = 0; i < 60; i++) {
+      pts.push({ x: Math.random() * 100, y: Math.random() * 100 });
+    }
+    return pts;
+  }, []);
+
+  const lines = useMemo(() => {
+    const result = [];
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const dx = nodes[i].x - nodes[j].x;
+        const dy = nodes[i].y - nodes[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 18) {
+          result.push({ x1: nodes[i].x, y1: nodes[i].y, x2: nodes[j].x, y2: nodes[j].y });
+        }
+      }
+    }
+    return result;
+  }, [nodes]);
+
+  return (
+    <svg
+      viewBox="0 0 100 100"
+      preserveAspectRatio="xMidYMid slice"
+      className="absolute inset-0 w-full h-full pointer-events-none"
+      aria-hidden
+    >
+      {lines.map((l, i) => (
+        <line
+          key={i}
+          x1={l.x1}
+          y1={l.y1}
+          x2={l.x2}
+          y2={l.y2}
+          stroke="currentColor"
+          strokeWidth="0.15"
+          className="text-orange/20"
+        />
+      ))}
+      {nodes.map((n, i) => (
+        <circle key={i} cx={n.x} cy={n.y} r="0.5" fill="currentColor" className="text-orange/30" />
+      ))}
+    </svg>
+  );
+}
+
+/* ───────────────────────── Hero de perfil ───────────────────────── */
+function ProfileHero({ user, notebooks }: { user: { id: string; email?: string }; notebooks: NotebookRow[] }) {
+  const [profile, setProfile] = useState<ProfileRow | null>(null);
+  const [editingName, setEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState("");
+  const [newInterest, setNewInterest] = useState("");
+  const [addingInterest, setAddingInterest] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    void (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, full_name, avatar_url, interests, plan")
+        .eq("id", user.id)
+        .single();
+      if (data) {
+        setProfile(data as ProfileRow);
+        setNameInput(data.full_name ?? "");
+      }
+    })();
+  }, [user.id]);
+
+  const totalSources = notebooks.reduce((acc, nb) => acc + nb.documents.length, 0);
+  const initials = (profile?.full_name ?? user.email ?? "?")
+    .split(" ")
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
+  const saveName = async () => {
+    if (!nameInput.trim()) return;
+    await supabase.from("profiles").update({ full_name: nameInput.trim() }).eq("id", user.id);
+    setProfile((p) => (p ? { ...p, full_name: nameInput.trim() } : p));
+    setEditingName(false);
+    toast.success("Nombre actualizado");
+  };
+
+  const addInterest = async () => {
+    if (!newInterest.trim() || !profile) return;
+    const current = profile.interests ?? [];
+    if (current.length >= 8) return toast.error("Máximo 8 intereses");
+    const updated = [...current, newInterest.trim()];
+    await supabase.from("profiles").update({ interests: updated }).eq("id", user.id);
+    setProfile((p) => (p ? { ...p, interests: updated } : p));
+    setNewInterest("");
+    setAddingInterest(false);
+  };
+
+  const removeInterest = async (idx: number) => {
+    if (!profile) return;
+    const updated = (profile.interests ?? []).filter((_, i) => i !== idx);
+    await supabase.from("profiles").update({ interests: updated }).eq("id", user.id);
+    setProfile((p) => (p ? { ...p, interests: updated } : p));
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingAvatar(true);
+    const ext = file.name.split(".").pop();
+    const path = `${user.id}.${ext}`;
+    const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
+    if (uploadError) {
+      toast.error("Error al subir la foto");
+      setUploadingAvatar(false);
+      return;
+    }
+    const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
+    const avatarUrl = urlData.publicUrl + "?t=" + Date.now();
+    await supabase.from("profiles").update({ avatar_url: avatarUrl }).eq("id", user.id);
+    setProfile((p) => (p ? { ...p, avatar_url: avatarUrl } : p));
+    setUploadingAvatar(false);
+    toast.success("Foto actualizada");
+  };
+
+  const isPro = profile?.plan === "pro" || profile?.plan === "teams";
+
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-border bg-paper shadow-soft mb-8 animate-fade-up">
+      {/* Fondo red neuronal */}
+      <NeuralBackground />
+
+      {/* Gradiente overlay sutil */}
+      <div className="absolute inset-0 bg-gradient-to-br from-paper/95 via-paper/80 to-cream/60 pointer-events-none" />
+
+      <div className="relative z-10 p-6 md:p-8">
+        <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start">
+          {/* COLUMNA IZQUIERDA — avatar + info */}
+          <div className="flex flex-col sm:flex-row md:flex-col gap-5 md:w-56 shrink-0">
+            {/* Avatar */}
+            <div className="relative group w-20 h-20 shrink-0">
+              <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-border shadow-soft">
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-orange/80 to-orange flex items-center justify-center">
+                    <span className="font-display text-2xl font-bold text-paper">{initials}</span>
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingAvatar}
+                className="absolute inset-0 rounded-2xl bg-ink/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                title="Cambiar foto"
+              >
+                {uploadingAvatar ? (
+                  <Loader2 className="w-5 h-5 text-paper animate-spin" />
+                ) : (
+                  <Camera className="w-5 h-5 text-paper" />
+                )}
+              </button>
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+            </div>
+
+            {/* Nombre + email + plan */}
+            <div className="flex-1 min-w-0">
+              {editingName ? (
+                <div className="flex items-center gap-1.5 mb-1">
+                  <input
+                    autoFocus
+                    value={nameInput}
+                    onChange={(e) => setNameInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") void saveName();
+                      if (e.key === "Escape") setEditingName(false);
+                    }}
+                    className="font-display text-lg font-semibold bg-transparent border-b border-orange focus:outline-none text-ink w-full"
+                  />
+                  <button onClick={saveName} className="text-orange hover:text-orange/70 text-xs font-mono shrink-0">
+                    Guardar
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setEditingName(true)}
+                  className="group/name flex items-center gap-1.5 mb-1 text-left"
+                >
+                  <h2 className="font-display text-xl font-semibold text-ink truncate">
+                    {profile?.full_name ?? "Tu nombre"}
+                  </h2>
+                  <Pencil className="w-3.5 h-3.5 text-ink/30 opacity-0 group-hover/name:opacity-100 transition-opacity shrink-0" />
+                </button>
+              )}
+              <p className="text-[12px] text-ink/45 font-mono truncate mb-2">{user.email}</p>
+              <span
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-mono font-medium ${
+                  isPro
+                    ? "bg-orange/10 text-orange border border-orange/20"
+                    : "bg-cream text-ink/50 border border-border"
+                }`}
+              >
+                {isPro && <Star className="w-3 h-3" />}
+                {isPro ? "Plan Pro" : "Plan Free"}
+              </span>
+            </div>
+          </div>
+
+          {/* SEPARADOR vertical */}
+          <div className="hidden md:block w-px bg-border self-stretch" />
+
+          {/* COLUMNA CENTRAL — intereses */}
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] uppercase tracking-[0.2em] font-mono text-ink/40 mb-3">Intereses</p>
+            <div className="flex flex-wrap gap-2">
+              {(profile?.interests ?? []).map((interest, i) => (
+                <span
+                  key={i}
+                  className="group/chip inline-flex items-center gap-1 px-3 py-1 bg-cream border border-border rounded-full text-[12.5px] text-ink/70 hover:border-ink/30 transition-colors"
+                >
+                  {interest}
+                  <button
+                    onClick={() => void removeInterest(i)}
+                    className="text-ink/30 hover:text-destructive transition-colors opacity-0 group-hover/chip:opacity-100"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+
+              {addingInterest ? (
+                <div className="inline-flex items-center gap-1">
+                  <input
+                    autoFocus
+                    value={newInterest}
+                    onChange={(e) => setNewInterest(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") void addInterest();
+                      if (e.key === "Escape") setAddingInterest(false);
+                    }}
+                    placeholder="ej: Bioquímica"
+                    className="px-3 py-1 bg-paper border border-orange/50 rounded-full text-[12.5px] focus:outline-none focus:ring-1 focus:ring-orange/30 w-32"
+                  />
+                  <button onClick={addInterest} className="text-orange text-xs font-mono">
+                    OK
+                  </button>
+                  <button onClick={() => setAddingInterest(false)} className="text-ink/30 text-xs">
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ) : (profile?.interests ?? []).length < 8 ? (
+                <button
+                  onClick={() => setAddingInterest(true)}
+                  className="inline-flex items-center gap-1 px-3 py-1 border border-dashed border-border rounded-full text-[12.5px] text-ink/35 hover:border-orange/40 hover:text-orange/60 transition-colors"
+                >
+                  <Plus className="w-3 h-3" /> Agregar
+                </button>
+              ) : null}
+
+              {(profile?.interests ?? []).length === 0 && !addingInterest && (
+                <p className="text-[12.5px] text-ink/35 italic">Agregá tus áreas de estudio...</p>
+              )}
+            </div>
+          </div>
+
+          {/* SEPARADOR vertical */}
+          <div className="hidden md:block w-px bg-border self-stretch" />
+
+          {/* COLUMNA DERECHA — estadísticas */}
+          <div className="flex flex-row md:flex-col gap-3 shrink-0">
+            {[
+              { icon: BookOpen, label: "Cuadernos", value: notebooks.length },
+              { icon: FileText, label: "Fuentes", value: totalSources },
+              {
+                icon: Zap,
+                label: "Activos",
+                value: notebooks.filter((n) => n.documents.some((d) => d.status === "ready")).length,
+              },
+            ].map(({ icon: Icon, label, value }) => (
+              <div
+                key={label}
+                className="flex flex-col items-center justify-center w-20 h-20 bg-cream/60 border border-border rounded-xl"
+              >
+                <Icon className="w-4 h-4 text-orange mb-1" strokeWidth={1.5} />
+                <span className="font-display text-2xl font-bold text-ink leading-none">{value}</span>
+                <span className="text-[10px] font-mono text-ink/40 mt-0.5">{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function DashboardPage() {
@@ -138,23 +447,15 @@ function DashboardPage() {
   return (
     <DashboardShell>
       <div className="container mx-auto px-5 lg:px-10 max-w-[1280px] py-10 lg:py-14">
-        {/* HEADER limpio: solo título + subtítulo */}
-        <header className="mb-8 animate-fade-up">
-          <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-[-0.025em] text-ink">
-            Bienvenido a tu biblioteca
-          </h1>
-          <p className="text-ink/55 mt-1.5 text-[14px]">
-            Cada cuaderno es un espacio de estudio. Subí material y dejá que la IA haga el resto.
-          </p>
-        </header>
+        {/* HERO DE PERFIL */}
+        <ProfileHero user={user} notebooks={notebooks} />
 
-        {/* TOOLBAR estilo NotebookLM: filtros chips a la izquierda, controles a la derecha */}
+        {/* TOOLBAR */}
         {!loading && notebooks.length > 0 && (
           <div
             className="flex flex-wrap items-center justify-between gap-3 mb-6 animate-fade-up"
             style={{ animationDelay: "60ms" }}
           >
-            {/* Filtros izquierda */}
             <div className="flex items-center gap-1.5">
               <FilterChip active>Todos</FilterChip>
               <span className="text-[10px] font-mono text-ink/35 ml-1">
@@ -162,9 +463,7 @@ function DashboardPage() {
               </span>
             </div>
 
-            {/* Controles derecha */}
             <div className="flex items-center gap-2">
-              {/* Search */}
               <div className="relative">
                 <Search
                   className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink/35"
@@ -179,7 +478,6 @@ function DashboardPage() {
                 />
               </div>
 
-              {/* View toggle */}
               <div className="hidden sm:flex items-center bg-cream border border-border rounded-full p-0.5">
                 <button
                   onClick={() => setView("grid")}
@@ -197,7 +495,6 @@ function DashboardPage() {
                 </button>
               </div>
 
-              {/* Sort */}
               <div className="relative">
                 <button
                   onClick={() => setSortOpen((v) => !v)}
@@ -237,7 +534,6 @@ function DashboardPage() {
                 )}
               </div>
 
-              {/* Crear nuevo (CTA principal, derecha) */}
               <button
                 onClick={() => setShowCreate(true)}
                 className="group inline-flex items-center gap-1.5 pl-3 pr-4 py-2 text-[12.5px] font-medium bg-ink text-paper hover:bg-orange transition-colors active:scale-[0.98] rounded-full whitespace-nowrap shadow-soft"
@@ -262,14 +558,13 @@ function DashboardPage() {
               </div>
             </div>
             <div className="flex items-start gap-4">
-              {/* Icono editable */}
               <button
                 type="button"
                 onClick={() => setIconPickerOpen(true)}
                 className="group relative shrink-0 p-1 rounded-xl border border-dashed border-border hover:border-orange/50 hover:bg-orange/[0.04] transition-all"
                 title="Cambiar icono"
               >
-                <EntityIcon value={pickedIcon} size={64} />
+                <ClayIcon icon={pickedIcon} size={64} />
                 <span className="absolute -bottom-1 -right-1 w-5 h-5 inline-flex items-center justify-center bg-ink text-paper rounded-full text-[10px] shadow-soft opacity-0 group-hover:opacity-100 transition-opacity">
                   ✎
                 </span>
@@ -339,7 +634,6 @@ function DashboardPage() {
           </div>
         ) : view === "grid" ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 stagger">
-            {/* Card "Crear cuaderno" cuando hay pocos */}
             {notebooks.length < 8 && !search && (
               <button
                 onClick={() => setShowCreate(true)}
@@ -368,7 +662,6 @@ function DashboardPage() {
 }
 
 /* ───────────────────────── Filter chip ───────────────────────── */
-
 function FilterChip({ active, children }: { active?: boolean; children: React.ReactNode }) {
   return (
     <button
@@ -382,7 +675,7 @@ function FilterChip({ active, children }: { active?: boolean; children: React.Re
   );
 }
 
-/* ───────────────────────── Notebook Card (NotebookLM-style) ───────────────────────── */
+/* ───────────────────────── resolveIcon ───────────────────────── */
 function resolveIcon(emoji: string | null): ClayIconKey {
   const valid: ClayIconKey[] = [
     "book",
@@ -422,6 +715,8 @@ function resolveIcon(emoji: string | null): ClayIconKey {
   if (emoji && valid.includes(emoji as ClayIconKey)) return emoji as ClayIconKey;
   return "notebook";
 }
+
+/* ───────────────────────── Notebook Card ───────────────────────── */
 function NotebookCard({ notebook }: { notebook: NotebookRow }) {
   const total = notebook.documents.length;
   const readyDocs = notebook.documents.filter((d) => d.status === "ready");
@@ -438,13 +733,11 @@ function NotebookCard({ notebook }: { notebook: NotebookRow }) {
       params={{ id: notebook.id }}
       className="group relative h-auto min-h-[210px] bg-paper border border-border hover:border-ink/30 transition-all flex flex-col overflow-hidden rounded-xl hover:shadow-elevated hover:-translate-y-0.5"
     >
-      {/* Cover gradient zone con emoji */}
       <div className={`relative h-[88px] bg-gradient-to-br ${cover} overflow-hidden`}>
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/[0.04]" />
         <div className="absolute top-3 left-3">
           <ClayIcon icon={resolveIcon(notebook.emoji)} size={44} />
         </div>
-        {/* Status pill top-right */}
         <div className="absolute top-3 right-3 flex items-center gap-1">
           {processing > 0 && (
             <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-paper/85 backdrop-blur-sm rounded-full text-[10px] font-mono text-ink/65">
@@ -464,7 +757,6 @@ function NotebookCard({ notebook }: { notebook: NotebookRow }) {
         </div>
       </div>
 
-      {/* Body */}
       <div className="flex-1 flex flex-col px-4 pt-3 pb-3.5 min-h-0">
         <h3 className="font-display text-[15.5px] font-semibold tracking-tight text-ink line-clamp-2 leading-snug">
           {notebook.title}
@@ -472,8 +764,6 @@ function NotebookCard({ notebook }: { notebook: NotebookRow }) {
         {notebook.description && (
           <p className="text-[12px] text-ink/55 mt-1 line-clamp-1 leading-relaxed">{notebook.description}</p>
         )}
-
-        {/* Acceso rápido a documentos */}
         {ready > 0 && (
           <div className="flex flex-wrap gap-1 mt-2.5" onClick={(e) => e.stopPropagation()}>
             {readyDocs.slice(0, 3).map((d) => (
@@ -513,7 +803,6 @@ function NotebookCard({ notebook }: { notebook: NotebookRow }) {
             Subí tu primer material →
           </Link>
         )}
-
         <div className="mt-auto pt-2 flex items-center gap-2 text-[11px] font-mono text-ink/45">
           <span>{relativeDate(notebook.created_at)}</span>
           <span className="text-ink/20">·</span>
@@ -527,15 +816,13 @@ function NotebookCard({ notebook }: { notebook: NotebookRow }) {
   );
 }
 
-/* ───────────────────────── Notebook Row (list view) ───────────────────────── */
-
+/* ───────────────────────── Notebook Row ───────────────────────── */
 function NotebookListRow({ notebook }: { notebook: NotebookRow }) {
   const total = notebook.documents.length;
   const ready = notebook.documents.filter((d) => d.status === "ready").length;
   const processing = notebook.documents.filter((d) =>
     ["pending", "processing", "chunked", "generating"].includes(d.status),
   ).length;
-  const cover = coverFor(notebook.id);
 
   return (
     <Link
@@ -573,7 +860,6 @@ function NotebookListRow({ notebook }: { notebook: NotebookRow }) {
 }
 
 /* ───────────────────────── Helpers ───────────────────────── */
-
 function relativeDate(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const days = Math.floor(diff / 86400000);
@@ -587,9 +873,7 @@ function relativeDate(iso: string): string {
 function EmptyState({ onCreate }: { onCreate: () => void }) {
   return (
     <div className="relative border border-dashed border-border py-20 px-6 text-center bg-cream/20 animate-fade-up overflow-hidden rounded-xl">
-      {/* halo orange decorativo */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[200px] bg-orange/10 blur-[80px] -z-10 rounded-full" />
-
       <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-orange shadow-orange rounded-xl mb-5 animate-pulse-glow">
         <Sparkles className="w-5 h-5 text-paper" strokeWidth={2} />
       </div>
