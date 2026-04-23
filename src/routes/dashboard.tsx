@@ -1,896 +1,336 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import {
-  Plus,
-  Loader2,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  Sparkles,
-  Search,
-  LayoutGrid,
-  Rows3,
-  Check,
-  ChevronDown,
-  Globe,
-  Camera,
-  Star,
-  BookOpen,
   FileText,
+  FileType2,
+  Youtube,
+  Type,
+  BookOpen,
+  RotateCcw,
+  Trash2,
+  Loader2,
+  Music2,
+  Image as ImageIcon,
+  CheckCircle2,
+  ArrowUpRight,
+  Layers,
+  HelpCircle,
+  Network,
+  AlertTriangle,
+  Clock,
   Zap,
-  X,
-  Pencil,
 } from "lucide-react";
-import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
-import { IconPicker } from "@/components/ui/IconPicker";
-import { ClayIcon, type ClayIconKey } from "@/lib/clay-icons";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/dashboard")({
-  component: DashboardPage,
-});
-
-interface NotebookRow {
+export interface DocumentRow {
   id: string;
   title: string;
-  description: string | null;
-  emoji: string | null;
+  type: string;
+  status: string;
+  progress: number;
+  error_message: string | null;
   created_at: string;
-  documents: { id: string; title: string; status: string; type: string }[];
+  size_bytes: number | null;
+  notebook_id: string;
 }
 
-interface ProfileRow {
-  id: string;
-  full_name: string | null;
-  avatar_url: string | null;
-  interests: string[] | null;
-  plan: string | null;
+interface Props {
+  doc: DocumentRow;
+  onChange: () => void;
 }
 
-type ViewMode = "grid" | "list";
-type SortMode = "recent" | "alpha" | "sources";
+const TYPE_META: Record<string, { icon: typeof FileText; label: string; color: string; bg: string }> = {
+  pdf: { icon: FileText, label: "PDF", color: "text-rose-500", bg: "bg-rose-50 border-rose-200" },
+  docx: { icon: FileType2, label: "Word", color: "text-blue-500", bg: "bg-blue-50 border-blue-200" },
+  youtube: { icon: Youtube, label: "YouTube", color: "text-red-500", bg: "bg-red-50 border-red-200" },
+  tiktok: { icon: Youtube, label: "TikTok", color: "text-pink-500", bg: "bg-pink-50 border-pink-200" },
+  audio: { icon: Music2, label: "Audio", color: "text-violet-500", bg: "bg-violet-50 border-violet-200" },
+  image: { icon: ImageIcon, label: "Imagen", color: "text-teal-500", bg: "bg-teal-50 border-teal-200" },
+  text: { icon: Type, label: "Texto", color: "text-amber-500", bg: "bg-amber-50 border-amber-200" },
+};
 
-const COVERS = [
-  "from-[#fde9d6] to-[#f7c89a]",
-  "from-[#e0e7ff] to-[#a5b4fc]",
-  "from-[#dcfce7] to-[#86efac]",
-  "from-[#fee2e2] to-[#fca5a5]",
-  "from-[#fef3c7] to-[#fcd34d]",
-  "from-[#e9d5ff] to-[#c4b5fd]",
-  "from-[#cffafe] to-[#67e8f9]",
-  "from-[#fce7f3] to-[#f9a8d4]",
-];
+const OUTPUT_BADGES = [
+  { type: "summary", icon: BookOpen, label: "Resumen", tab: "summary" },
+  { type: "mindmap", icon: Network, label: "Mapa", tab: "mindmap" },
+  { type: "flashcards", icon: Layers, label: "Flashcards", tab: "flashcards" },
+  { type: "quiz", icon: HelpCircle, label: "Quiz", tab: "quiz" },
+] as const;
 
-function coverFor(id: string): string {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
-  return COVERS[h % COVERS.length];
-}
+export function DocumentCard({ doc, onChange }: Props) {
+  const isProcessing = ["pending", "processing", "chunked", "generating"].includes(doc.status);
+  const isReady = doc.status === "ready";
+  const isError = doc.status === "error";
+  const [busy, setBusy] = useState(false);
+  const [outputs, setOutputs] = useState<Set<string>>(new Set());
 
-/* ───────────────────────── Red neuronal SVG de fondo ───────────────────────── */
-function NeuralBackground() {
-  const nodes = useMemo(() => {
-    const pts = [];
-    for (let i = 0; i < 60; i++) {
-      pts.push({ x: Math.random() * 100, y: Math.random() * 100 });
-    }
-    return pts;
-  }, []);
-
-  const lines = useMemo(() => {
-    const result = [];
-    for (let i = 0; i < nodes.length; i++) {
-      for (let j = i + 1; j < nodes.length; j++) {
-        const dx = nodes[i].x - nodes[j].x;
-        const dy = nodes[i].y - nodes[j].y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 18) {
-          result.push({ x1: nodes[i].x, y1: nodes[i].y, x2: nodes[j].x, y2: nodes[j].y });
-        }
-      }
-    }
-    return result;
-  }, [nodes]);
-
-  return (
-    <svg
-      viewBox="0 0 100 100"
-      preserveAspectRatio="xMidYMid slice"
-      className="absolute inset-0 w-full h-full pointer-events-none"
-      aria-hidden
-    >
-      {lines.map((l, i) => (
-        <line
-          key={i}
-          x1={l.x1}
-          y1={l.y1}
-          x2={l.x2}
-          y2={l.y2}
-          stroke="currentColor"
-          strokeWidth="0.15"
-          className="text-orange/20"
-        />
-      ))}
-      {nodes.map((n, i) => (
-        <circle key={i} cx={n.x} cy={n.y} r="0.5" fill="currentColor" className="text-orange/30" />
-      ))}
-    </svg>
-  );
-}
-
-/* ───────────────────────── Hero de perfil ───────────────────────── */
-function ProfileHero({ user, notebooks }: { user: { id: string; email?: string }; notebooks: NotebookRow[] }) {
-  const [profile, setProfile] = useState<ProfileRow | null>(null);
-  const [editingName, setEditingName] = useState(false);
-  const [nameInput, setNameInput] = useState("");
-  const [newInterest, setNewInterest] = useState("");
-  const [addingInterest, setAddingInterest] = useState(false);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const meta = TYPE_META[doc.type] ?? TYPE_META.text;
+  const Icon = meta.icon;
 
   useEffect(() => {
+    if (!isReady) return;
     void (async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("id, full_name, avatar_url, interests, plan")
-        .eq("id", user.id)
-        .single();
-      if (data) {
-        setProfile(data as ProfileRow);
-        setNameInput(data.full_name ?? "");
-      }
+      const { data } = await supabase.from("document_outputs").select("type").eq("document_id", doc.id);
+      setOutputs(new Set((data ?? []).map((o) => o.type)));
     })();
-  }, [user.id]);
+  }, [doc.id, isReady]);
 
-  const totalSources = notebooks.reduce((acc, nb) => acc + nb.documents.length, 0);
-  const initials = (profile?.full_name ?? user.email ?? "?")
-    .split(" ")
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-
-  const saveName = async () => {
-    if (!nameInput.trim()) return;
-    await supabase.from("profiles").update({ full_name: nameInput.trim() }).eq("id", user.id);
-    setProfile((p) => (p ? { ...p, full_name: nameInput.trim() } : p));
-    setEditingName(false);
-    toast.success("Nombre actualizado");
-  };
-
-  const addInterest = async () => {
-    if (!newInterest.trim() || !profile) return;
-    const current = profile.interests ?? [];
-    if (current.length >= 8) return toast.error("Máximo 8 intereses");
-    const updated = [...current, newInterest.trim()];
-    await supabase.from("profiles").update({ interests: updated }).eq("id", user.id);
-    setProfile((p) => (p ? { ...p, interests: updated } : p));
-    setNewInterest("");
-    setAddingInterest(false);
-  };
-
-  const removeInterest = async (idx: number) => {
-    if (!profile) return;
-    const updated = (profile.interests ?? []).filter((_, i) => i !== idx);
-    await supabase.from("profiles").update({ interests: updated }).eq("id", user.id);
-    setProfile((p) => (p ? { ...p, interests: updated } : p));
-  };
-
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploadingAvatar(true);
-    const ext = file.name.split(".").pop();
-    const path = `${user.id}.${ext}`;
-    const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
-    if (uploadError) {
-      toast.error("Error al subir la foto");
-      setUploadingAvatar(false);
-      return;
+  const handleRetry = async () => {
+    setBusy(true);
+    try {
+      await supabase.from("documents").update({ status: "pending", progress: 0, error_message: null }).eq("id", doc.id);
+      void supabase.functions.invoke("process-document", { body: { documentId: doc.id } });
+      toast.success("Reintentando…");
+      onChange();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Error al reintentar");
+    } finally {
+      setBusy(false);
     }
-    const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
-    const avatarUrl = urlData.publicUrl + "?t=" + Date.now();
-    await supabase.from("profiles").update({ avatar_url: avatarUrl }).eq("id", user.id);
-    setProfile((p) => (p ? { ...p, avatar_url: avatarUrl } : p));
-    setUploadingAvatar(false);
-    toast.success("Foto actualizada");
   };
 
-  const isPro = profile?.plan === "pro" || profile?.plan === "teams";
+  const handleDelete = async () => {
+    if (!confirm("¿Eliminar este documento? Esta acción no se puede deshacer.")) return;
+    setBusy(true);
+    try {
+      await supabase.from("documents").delete().eq("id", doc.id);
+      toast.success("Documento eliminado");
+      onChange();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Error al eliminar");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-border bg-paper shadow-soft mb-8 animate-fade-up">
-      {/* Fondo red neuronal */}
-      <NeuralBackground />
-
-      {/* Gradiente overlay sutil */}
-      <div className="absolute inset-0 bg-gradient-to-br from-paper/95 via-paper/80 to-cream/60 pointer-events-none" />
-
-      <div className="relative z-10 p-6 md:p-8">
-        <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start">
-          {/* COLUMNA IZQUIERDA — avatar + info */}
-          <div className="flex flex-col sm:flex-row md:flex-col gap-5 md:w-56 shrink-0">
-            {/* Avatar */}
-            <div className="relative group w-20 h-20 shrink-0">
-              <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-border shadow-soft">
-                {profile?.avatar_url ? (
-                  <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-orange/80 to-orange flex items-center justify-center">
-                    <span className="font-display text-2xl font-bold text-paper">{initials}</span>
-                  </div>
-                )}
-              </div>
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploadingAvatar}
-                className="absolute inset-0 rounded-2xl bg-ink/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                title="Cambiar foto"
-              >
-                {uploadingAvatar ? (
-                  <Loader2 className="w-5 h-5 text-paper animate-spin" />
-                ) : (
-                  <Camera className="w-5 h-5 text-paper" />
-                )}
-              </button>
-              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
-            </div>
-
-            {/* Nombre + email + plan */}
-            <div className="flex-1 min-w-0">
-              {editingName ? (
-                <div className="flex items-center gap-1.5 mb-1">
-                  <input
-                    autoFocus
-                    value={nameInput}
-                    onChange={(e) => setNameInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") void saveName();
-                      if (e.key === "Escape") setEditingName(false);
-                    }}
-                    className="font-display text-lg font-semibold bg-transparent border-b border-orange focus:outline-none text-ink w-full"
-                  />
-                  <button onClick={saveName} className="text-orange hover:text-orange/70 text-xs font-mono shrink-0">
-                    Guardar
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setEditingName(true)}
-                  className="group/name flex items-center gap-1.5 mb-1 text-left"
-                >
-                  <h2 className="font-display text-xl font-semibold text-ink truncate">
-                    {profile?.full_name ?? "Tu nombre"}
-                  </h2>
-                  <Pencil className="w-3.5 h-3.5 text-ink/30 opacity-0 group-hover/name:opacity-100 transition-opacity shrink-0" />
-                </button>
-              )}
-              <p className="text-[12px] text-ink/45 font-mono truncate mb-2">{user.email}</p>
-              <span
-                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-mono font-medium ${
-                  isPro
-                    ? "bg-orange/10 text-orange border border-orange/20"
-                    : "bg-cream text-ink/50 border border-border"
-                }`}
-              >
-                {isPro && <Star className="w-3 h-3" />}
-                {isPro ? "Plan Pro" : "Plan Free"}
-              </span>
-            </div>
-          </div>
-
-          {/* SEPARADOR vertical */}
-          <div className="hidden md:block w-px bg-border self-stretch" />
-
-          {/* COLUMNA CENTRAL — intereses */}
-          <div className="flex-1 min-w-0">
-            <p className="text-[10px] uppercase tracking-[0.2em] font-mono text-ink/40 mb-3">Intereses</p>
-            <div className="flex flex-wrap gap-2">
-              {(profile?.interests ?? []).map((interest, i) => (
-                <span
-                  key={i}
-                  className="group/chip inline-flex items-center gap-1 px-3 py-1 bg-cream border border-border rounded-full text-[12.5px] text-ink/70 hover:border-ink/30 transition-colors"
-                >
-                  {interest}
-                  <button
-                    onClick={() => void removeInterest(i)}
-                    className="text-ink/30 hover:text-destructive transition-colors opacity-0 group-hover/chip:opacity-100"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </span>
-              ))}
-
-              {addingInterest ? (
-                <div className="inline-flex items-center gap-1">
-                  <input
-                    autoFocus
-                    value={newInterest}
-                    onChange={(e) => setNewInterest(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") void addInterest();
-                      if (e.key === "Escape") setAddingInterest(false);
-                    }}
-                    placeholder="ej: Bioquímica"
-                    className="px-3 py-1 bg-paper border border-orange/50 rounded-full text-[12.5px] focus:outline-none focus:ring-1 focus:ring-orange/30 w-32"
-                  />
-                  <button onClick={addInterest} className="text-orange text-xs font-mono">
-                    OK
-                  </button>
-                  <button onClick={() => setAddingInterest(false)} className="text-ink/30 text-xs">
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              ) : (profile?.interests ?? []).length < 8 ? (
-                <button
-                  onClick={() => setAddingInterest(true)}
-                  className="inline-flex items-center gap-1 px-3 py-1 border border-dashed border-border rounded-full text-[12.5px] text-ink/35 hover:border-orange/40 hover:text-orange/60 transition-colors"
-                >
-                  <Plus className="w-3 h-3" /> Agregar
-                </button>
-              ) : null}
-
-              {(profile?.interests ?? []).length === 0 && !addingInterest && (
-                <p className="text-[12.5px] text-ink/35 italic">Agregá tus áreas de estudio...</p>
-              )}
-            </div>
-          </div>
-
-          {/* SEPARADOR vertical */}
-          <div className="hidden md:block w-px bg-border self-stretch" />
-
-          {/* COLUMNA DERECHA — estadísticas */}
-          <div className="flex flex-row md:flex-col gap-3 shrink-0">
-            {[
-              { icon: BookOpen, label: "Cuadernos", value: notebooks.length },
-              { icon: FileText, label: "Fuentes", value: totalSources },
-              {
-                icon: Zap,
-                label: "Activos",
-                value: notebooks.filter((n) => n.documents.some((d) => d.status === "ready")).length,
-              },
-            ].map(({ icon: Icon, label, value }) => (
-              <div
-                key={label}
-                className="flex flex-col items-center justify-center w-20 h-20 bg-cream/60 border border-border rounded-xl"
-              >
-                <Icon className="w-4 h-4 text-orange mb-1" strokeWidth={1.5} />
-                <span className="font-display text-2xl font-bold text-ink leading-none">{value}</span>
-                <span className="text-[10px] font-mono text-ink/40 mt-0.5">{label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function DashboardPage() {
-  const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
-  const [notebooks, setNotebooks] = useState<NotebookRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
-  const [showCreate, setShowCreate] = useState(false);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [pickedIcon, setPickedIcon] = useState<ClayIconKey>("notebook");
-  const [iconPickerOpen, setIconPickerOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const [view, setView] = useState<ViewMode>("grid");
-  const [sort, setSort] = useState<SortMode>("recent");
-  const [sortOpen, setSortOpen] = useState(false);
-
-  useEffect(() => {
-    if (!authLoading && !user) navigate({ to: "/auth" });
-  }, [user, authLoading, navigate]);
-
-  useEffect(() => {
-    if (!user) return;
-    void (async () => {
-      const { data, error } = await supabase
-        .from("notebooks")
-        .select("id, title, description, emoji, created_at, documents(id, title, status, type)")
-        .order("created_at", { ascending: false });
-      if (error) toast.error("Error al cargar cuadernos");
-      else setNotebooks((data ?? []) as NotebookRow[]);
-      setLoading(false);
-    })();
-  }, [user]);
-
-  const handleCreate = async () => {
-    if (!title.trim() || !user) return;
-    setCreating(true);
-    const { data, error } = await supabase
-      .from("notebooks")
-      .insert({
-        user_id: user.id,
-        title: title.trim(),
-        description: description.trim() || null,
-        emoji: pickedIcon,
-      })
-      .select()
-      .single();
-    setCreating(false);
-    if (error || !data) {
-      toast.error("No se pudo crear el cuaderno");
-      return;
-    }
-    toast.success("Cuaderno creado");
-    navigate({ to: "/notebook/$id", params: { id: data.id } });
-  };
-
-  const filtered = useMemo(() => {
-    let list = notebooks;
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      list = list.filter((n) => n.title.toLowerCase().includes(q) || (n.description ?? "").toLowerCase().includes(q));
-    }
-    const sorted = [...list];
-    if (sort === "alpha") sorted.sort((a, b) => a.title.localeCompare(b.title));
-    else if (sort === "sources") sorted.sort((a, b) => b.documents.length - a.documents.length);
-    else sorted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    return sorted;
-  }, [notebooks, search, sort]);
-
-  if (authLoading || !user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-paper">
-        <Loader2 className="w-5 h-5 animate-spin text-ink/40" />
-      </div>
-    );
-  }
-
-  return (
-    <DashboardShell>
-      <div className="container mx-auto px-5 lg:px-10 max-w-[1280px] py-10 lg:py-14">
-        {/* HERO DE PERFIL */}
-        <ProfileHero user={user} notebooks={notebooks} />
-
-        {/* TOOLBAR */}
-        {!loading && notebooks.length > 0 && (
-          <div
-            className="flex flex-wrap items-center justify-between gap-3 mb-6 animate-fade-up"
-            style={{ animationDelay: "60ms" }}
-          >
-            <div className="flex items-center gap-1.5">
-              <FilterChip active>Todos</FilterChip>
-              <span className="text-[10px] font-mono text-ink/35 ml-1">
-                {filtered.length} {filtered.length === 1 ? "cuaderno" : "cuadernos"}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search
-                  className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink/35"
-                  strokeWidth={2}
-                />
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Buscar..."
-                  className="w-40 sm:w-52 pl-8 pr-3 py-1.5 text-[12.5px] bg-paper border border-border rounded-full focus:border-ink/40 focus:ring-2 focus:ring-ink/5 focus:outline-none transition-all placeholder:text-ink/35"
-                />
-              </div>
-
-              <div className="hidden sm:flex items-center bg-cream border border-border rounded-full p-0.5">
-                <button
-                  onClick={() => setView("grid")}
-                  className={`p-1.5 rounded-full transition-colors ${view === "grid" ? "bg-paper shadow-soft text-ink" : "text-ink/45 hover:text-ink"}`}
-                  title="Cuadrícula"
-                >
-                  <LayoutGrid className="w-3.5 h-3.5" strokeWidth={2} />
-                </button>
-                <button
-                  onClick={() => setView("list")}
-                  className={`p-1.5 rounded-full transition-colors ${view === "list" ? "bg-paper shadow-soft text-ink" : "text-ink/45 hover:text-ink"}`}
-                  title="Lista"
-                >
-                  <Rows3 className="w-3.5 h-3.5" strokeWidth={2} />
-                </button>
-              </div>
-
-              <div className="relative">
-                <button
-                  onClick={() => setSortOpen((v) => !v)}
-                  onBlur={() => setTimeout(() => setSortOpen(false), 150)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12.5px] bg-paper border border-border rounded-full hover:border-ink/30 transition-colors text-ink/75"
-                >
-                  {sort === "recent" ? "Más recientes" : sort === "alpha" ? "Alfabético" : "Más fuentes"}
-                  <ChevronDown className="w-3 h-3" strokeWidth={2} />
-                </button>
-                {sortOpen && (
-                  <div className="absolute right-0 top-full mt-1 bg-paper border border-border rounded-lg shadow-elevated overflow-hidden z-10 min-w-[160px] animate-scale-in">
-                    {(
-                      [
-                        ["recent", "Más recientes"],
-                        ["alpha", "Alfabético"],
-                        ["sources", "Más fuentes"],
-                      ] as const
-                    ).map(([k, label]) => (
-                      <button
-                        key={k}
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          setSort(k);
-                          setSortOpen(false);
-                        }}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-[12.5px] hover:bg-cream/60 text-ink/75 text-left"
-                      >
-                        {sort === k ? (
-                          <Check className="w-3.5 h-3.5 text-orange" strokeWidth={2.5} />
-                        ) : (
-                          <span className="w-3.5" />
-                        )}
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <button
-                onClick={() => setShowCreate(true)}
-                className="group inline-flex items-center gap-1.5 pl-3 pr-4 py-2 text-[12.5px] font-medium bg-ink text-paper hover:bg-orange transition-colors active:scale-[0.98] rounded-full whitespace-nowrap shadow-soft"
-              >
-                <Plus
-                  className="w-3.5 h-3.5 group-hover:rotate-90 transition-transform duration-300"
-                  strokeWidth={2.5}
-                />
-                Crear nuevo
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Crear cuaderno inline */}
-        {showCreate && (
-          <div className="mb-8 border border-border bg-paper p-5 shadow-elevated animate-scale-in rounded-xl">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.22em] text-orange font-mono mb-1">Nuevo cuaderno</p>
-                <h2 className="font-display text-lg">Empezá a organizar</h2>
-              </div>
-            </div>
-            <div className="flex items-start gap-4">
-              <button
-                type="button"
-                onClick={() => setIconPickerOpen(true)}
-                className="group relative shrink-0 p-1 rounded-xl border border-dashed border-border hover:border-orange/50 hover:bg-orange/[0.04] transition-all"
-                title="Cambiar icono"
-              >
-                <ClayIcon icon={pickedIcon} size={64} />
-                <span className="absolute -bottom-1 -right-1 w-5 h-5 inline-flex items-center justify-center bg-ink text-paper rounded-full text-[10px] shadow-soft opacity-0 group-hover:opacity-100 transition-opacity">
-                  ✎
-                </span>
-              </button>
-              <div className="flex-1 space-y-2.5">
-                <input
-                  type="text"
-                  placeholder="Título (ej: Anatomía II)"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && void handleCreate()}
-                  autoFocus
-                  className="w-full px-3.5 py-2.5 bg-paper border border-border focus:border-orange/50 focus:ring-1 focus:ring-orange/30 focus:outline-none transition-all font-display text-[15px] rounded-md placeholder:text-ink/35"
-                />
-                <textarea
-                  placeholder="Descripción (opcional)"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={2}
-                  className="w-full px-3.5 py-2.5 bg-paper border border-border focus:border-orange/50 focus:ring-1 focus:ring-orange/30 focus:outline-none transition-all resize-none text-[13px] rounded-md placeholder:text-ink/35"
-                />
-                <div className="flex gap-2 justify-end pt-1">
-                  <button
-                    onClick={() => {
-                      setShowCreate(false);
-                      setTitle("");
-                      setDescription("");
-                      setPickedIcon("notebook");
-                    }}
-                    className="px-3.5 py-2 text-[13px] text-ink/70 hover:text-ink hover:bg-cream transition-all rounded-md"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={handleCreate}
-                    disabled={creating || !title.trim()}
-                    className="inline-flex items-center gap-2 px-4 py-2 text-[13px] font-medium bg-ink text-paper hover:bg-orange disabled:opacity-40 disabled:hover:bg-ink transition-colors rounded-md"
-                  >
-                    {creating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Crear cuaderno"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <IconPicker
-          open={iconPickerOpen}
-          value={pickedIcon}
-          onPick={setPickedIcon}
-          onClose={() => setIconPickerOpen(false)}
-          title="Elegí el icono del cuaderno"
-        />
-
-        {/* GRID/LIST */}
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
-              <div key={i} className="h-[210px] border border-border bg-cream/20 animate-pulse rounded-xl" />
-            ))}
-          </div>
-        ) : notebooks.length === 0 ? (
-          <EmptyState onCreate={() => setShowCreate(true)} />
-        ) : filtered.length === 0 ? (
-          <div className="border border-dashed border-border py-16 text-center bg-cream/20 rounded-xl">
-            <p className="text-[13px] text-ink/50">No hay cuadernos que coincidan con "{search}"</p>
-          </div>
-        ) : view === "grid" ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 stagger">
-            {notebooks.length < 8 && !search && (
-              <button
-                onClick={() => setShowCreate(true)}
-                className="group h-[210px] border-2 border-dashed border-border hover:border-ink/40 hover:bg-cream/40 transition-all rounded-xl flex flex-col items-center justify-center gap-2.5 text-ink/45 hover:text-ink"
-              >
-                <div className="w-10 h-10 inline-flex items-center justify-center bg-cream group-hover:bg-paper border border-border group-hover:border-ink/30 rounded-full transition-all">
-                  <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" strokeWidth={2} />
-                </div>
-                <span className="text-[13px] font-medium">Crear cuaderno</span>
-              </button>
-            )}
-            {filtered.map((nb) => (
-              <NotebookCard key={nb.id} notebook={nb} />
-            ))}
-          </div>
-        ) : (
-          <div className="border border-border rounded-xl bg-paper overflow-hidden divide-y divide-border stagger">
-            {filtered.map((nb) => (
-              <NotebookListRow key={nb.id} notebook={nb} />
-            ))}
-          </div>
-        )}
-      </div>
-    </DashboardShell>
-  );
-}
-
-/* ───────────────────────── Filter chip ───────────────────────── */
-function FilterChip({ active, children }: { active?: boolean; children: React.ReactNode }) {
-  return (
-    <button
-      className={`inline-flex items-center gap-1 px-3 py-1.5 text-[12.5px] rounded-full transition-all ${
-        active ? "bg-cream text-ink font-medium" : "text-ink/55 hover:text-ink hover:bg-cream/50"
-      }`}
+    <article
+      className={`group relative flex flex-col bg-paper rounded-2xl border transition-all duration-300 overflow-hidden
+        ${
+          isError
+            ? "border-destructive/30 shadow-[0_0_0_1px_rgba(239,68,68,0.1)]"
+            : isReady
+              ? "border-border hover:border-orange/40 hover:shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:-translate-y-0.5"
+              : "border-border/60"
+        }`}
     >
-      {active && <Check className="w-3 h-3" strokeWidth={2.5} />}
-      {children}
-    </button>
-  );
-}
+      {/* Barra de color superior según tipo */}
+      <div
+        className={`h-1 w-full ${
+          isError
+            ? "bg-destructive"
+            : isProcessing
+              ? "bg-gradient-to-r from-orange/40 via-orange to-orange/40 animate-pulse"
+              : isReady
+                ? "bg-gradient-to-r from-orange/60 via-orange to-orange/60"
+                : "bg-border"
+        }`}
+      />
 
-/* ───────────────────────── resolveIcon ───────────────────────── */
-function resolveIcon(emoji: string | null): ClayIconKey {
-  const valid: ClayIconKey[] = [
-    "book",
-    "notebook",
-    "pencil",
-    "highlighter",
-    "bookmark",
-    "library",
-    "brain",
-    "lightbulb",
-    "sparkles",
-    "target",
-    "compass",
-    "atom",
-    "flask",
-    "dna",
-    "microscope",
-    "calculator",
-    "globe",
-    "languages",
-    "quote",
-    "scroll",
-    "calendar",
-    "clock",
-    "checklist",
-    "flag",
-    "trophy",
-    "headphones",
-    "image",
-    "video",
-    "mic",
-    "leaf",
-    "flame",
-    "mountain",
-    "drop",
-  ];
-  if (emoji && valid.includes(emoji as ClayIconKey)) return emoji as ClayIconKey;
-  return "notebook";
-}
+      <div className="flex flex-col flex-1 p-4 sm:p-5 gap-3">
+        {/* Header: icono tipo + badge estado */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            {/* Ícono del tipo con color */}
+            <div
+              className={`shrink-0 w-10 h-10 sm:w-11 sm:h-11 inline-flex items-center justify-center rounded-xl border ${meta.bg} transition-transform group-hover:scale-105`}
+            >
+              <Icon className={`w-5 h-5 ${meta.color}`} strokeWidth={1.75} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-ink/45 leading-none mb-1">
+                {meta.label}
+              </p>
+              <p className="text-[11px] text-ink/40 leading-none">
+                {doc.size_bytes ? formatSize(doc.size_bytes) : "—"} ·{" "}
+                {new Date(doc.created_at).toLocaleDateString("es", { day: "2-digit", month: "short" })}
+              </p>
+            </div>
+          </div>
 
-/* ───────────────────────── Notebook Card ───────────────────────── */
-function NotebookCard({ notebook }: { notebook: NotebookRow }) {
-  const total = notebook.documents.length;
-  const readyDocs = notebook.documents.filter((d) => d.status === "ready");
-  const ready = readyDocs.length;
-  const processing = notebook.documents.filter((d) =>
-    ["pending", "processing", "chunked", "generating"].includes(d.status),
-  ).length;
-  const errors = notebook.documents.filter((d) => d.status === "error").length;
-  const cover = coverFor(notebook.id);
-
-  return (
-    <Link
-      to="/notebook/$id"
-      params={{ id: notebook.id }}
-      className="group relative h-auto min-h-[210px] bg-paper border border-border hover:border-ink/30 transition-all flex flex-col overflow-hidden rounded-xl hover:shadow-elevated hover:-translate-y-0.5"
-    >
-      <div className={`relative h-[88px] bg-gradient-to-br ${cover} overflow-hidden`}>
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/[0.04]" />
-        <div className="absolute top-3 left-3">
-          <ClayIcon icon={resolveIcon(notebook.emoji)} size={44} />
+          {/* Badge estado */}
+          <StatusPill isReady={isReady} isProcessing={isProcessing} isError={isError} status={doc.status} />
         </div>
-        <div className="absolute top-3 right-3 flex items-center gap-1">
-          {processing > 0 && (
-            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-paper/85 backdrop-blur-sm rounded-full text-[10px] font-mono text-ink/65">
-              <Clock className="w-2.5 h-2.5 animate-pulse" strokeWidth={2.5} /> {processing}
-            </span>
-          )}
-          {errors > 0 && (
-            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-paper/85 backdrop-blur-sm rounded-full text-[10px] font-mono text-destructive">
-              <AlertCircle className="w-2.5 h-2.5" strokeWidth={2.5} /> {errors}
-            </span>
-          )}
-          {ready > 0 && processing === 0 && errors === 0 && (
-            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-paper/85 backdrop-blur-sm rounded-full text-[10px] font-mono text-orange-deep">
-              <CheckCircle2 className="w-2.5 h-2.5" strokeWidth={2.5} />
-            </span>
-          )}
-        </div>
-      </div>
 
-      <div className="flex-1 flex flex-col px-4 pt-3 pb-3.5 min-h-0">
-        <h3 className="font-display text-[15.5px] font-semibold tracking-tight text-ink line-clamp-2 leading-snug">
-          {notebook.title}
+        {/* Título */}
+        <h3
+          className={`font-display text-[16px] sm:text-[17px] leading-snug line-clamp-2 transition-colors ${
+            isReady ? "text-ink group-hover:text-orange-deep" : "text-ink/80"
+          }`}
+        >
+          {doc.title}
         </h3>
-        {notebook.description && (
-          <p className="text-[12px] text-ink/55 mt-1 line-clamp-1 leading-relaxed">{notebook.description}</p>
-        )}
-        {ready > 0 && (
-          <div className="flex flex-wrap gap-1 mt-2.5" onClick={(e) => e.stopPropagation()}>
-            {readyDocs.slice(0, 3).map((d) => (
-              <Link
-                key={d.id}
-                to="/document/$id"
-                params={{ id: d.id }}
-                className="inline-flex items-center gap-1 px-2 py-1 bg-cream border border-border rounded text-xs hover:border-ink/40 transition-colors truncate max-w-[130px]"
-                title={d.title}
-              >
-                {d.title}
-              </Link>
-            ))}
-            {ready > 3 && (
-              <Link
-                to="/notebook/$id"
-                params={{ id: notebook.id }}
-                className="inline-flex items-center gap-1 px-2 py-1 bg-cream border border-border rounded text-xs hover:border-ink/40 transition-colors text-orange-deep"
-              >
-                + {ready - 3} más →
-              </Link>
-            )}
+
+        {/* Barra de progreso */}
+        {isProcessing && (
+          <div className="space-y-1.5">
+            <div className="h-1.5 bg-cream rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-orange/70 to-orange rounded-full transition-all duration-700"
+                style={{ width: `${Math.max(doc.progress, 6)}%` }}
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-mono text-ink/45 uppercase tracking-[0.15em]">{statusLabel(doc.status)}</p>
+              <p className="text-[10px] font-mono text-orange font-medium">{doc.progress}%</p>
+            </div>
           </div>
         )}
-        {ready === 0 && processing > 0 && (
-          <p className="text-xs text-ink/50 mt-2.5 inline-flex items-center gap-1">
-            <Loader2 className="w-3 h-3 animate-spin" /> Procesando...
-          </p>
+
+        {/* Error */}
+        {isError && doc.error_message && (
+          <div className="flex items-start gap-2 px-3 py-2 bg-destructive/[0.05] border border-destructive/20 rounded-lg">
+            <AlertTriangle className="w-3.5 h-3.5 text-destructive shrink-0 mt-0.5" strokeWidth={2} />
+            <p className="text-[11px] text-destructive line-clamp-2 leading-relaxed">{doc.error_message}</p>
+          </div>
         )}
-        {total === 0 && (
+
+        {/* Outputs disponibles — chips */}
+        {isReady && outputs.size > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {OUTPUT_BADGES.filter((b) => outputs.has(b.type)).map((b) => {
+              const BIcon = b.icon;
+              return (
+                <Link
+                  key={b.type}
+                  to="/document/$id"
+                  params={{ id: doc.id }}
+                  search={{ tab: b.tab }}
+                  className="inline-flex items-center gap-1 px-2 py-1 bg-cream border border-border rounded-lg text-[11px] font-mono text-ink/60 hover:bg-orange/[0.06] hover:border-orange/30 hover:text-orange transition-colors"
+                >
+                  <BIcon className="w-3 h-3" strokeWidth={2} />
+                  {b.label}
+                </Link>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Spacer para empujar footer abajo */}
+        <div className="flex-1" />
+
+        {/* Footer: acciones */}
+        <div className="flex items-center gap-2 pt-3 border-t border-border/60">
+          {isReady && (
+            <Link
+              to="/document/$id"
+              params={{ id: doc.id }}
+              className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-2 text-[13px] font-medium bg-ink text-paper hover:bg-orange transition-colors rounded-xl min-h-[44px] sm:min-h-0 shadow-sm"
+            >
+              <Zap className="w-3.5 h-3.5" strokeWidth={2} />
+              Estudiar
+              <ArrowUpRight className="w-3 h-3 ml-auto opacity-60" strokeWidth={2.25} />
+            </Link>
+          )}
+
+          {isError && (
+            <button
+              onClick={handleRetry}
+              disabled={busy}
+              className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-2 text-[13px] font-medium border border-border text-ink hover:bg-ink hover:text-paper transition-colors disabled:opacity-50 rounded-xl min-h-[44px] sm:min-h-0"
+            >
+              {busy ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <RotateCcw className="w-3.5 h-3.5" strokeWidth={2} />
+              )}
+              Reintentar
+            </button>
+          )}
+
+          {isProcessing && (
+            <div className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2.5 sm:py-2 text-[11px] font-mono text-ink/50 bg-cream border border-border rounded-xl">
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-orange" />
+              <span className="uppercase tracking-[0.15em]">Procesando</span>
+              <Clock className="w-3 h-3 ml-auto opacity-40" />
+            </div>
+          )}
+
+          {!isProcessing && (
+            <button
+              onClick={handleDelete}
+              disabled={busy}
+              className="shrink-0 inline-flex items-center justify-center w-10 h-10 sm:w-9 sm:h-9 text-ink/30 hover:text-destructive hover:bg-destructive/[0.06] transition-all disabled:opacity-50 rounded-xl"
+              title="Eliminar"
+            >
+              {busy ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Trash2 className="w-3.5 h-3.5" strokeWidth={1.75} />
+              )}
+            </button>
+          )}
+        </div>
+
+        {/* Link repasar flashcards */}
+        {isReady && outputs.has("flashcards") && (
           <Link
-            to="/notebook/$id"
-            params={{ id: notebook.id }}
-            onClick={(e) => e.stopPropagation()}
-            className="text-xs text-orange hover:text-orange-deep mt-2.5 inline-block font-medium"
+            to="/review/$notebookId"
+            params={{ notebookId: doc.notebook_id }}
+            className="inline-flex items-center gap-1 text-[11px] font-mono text-orange hover:text-orange-deep font-medium transition-colors"
           >
-            Subí tu primer material →
+            <Layers className="w-3 h-3" strokeWidth={2} />
+            Repasar flashcards →
           </Link>
         )}
-        <div className="mt-auto pt-2 flex items-center gap-2 text-[11px] font-mono text-ink/45">
-          <span>{relativeDate(notebook.created_at)}</span>
-          <span className="text-ink/20">·</span>
-          <span>
-            {total} {total === 1 ? "fuente" : "fuentes"}
-          </span>
-          <Globe className="w-3 h-3 ml-auto text-ink/30" strokeWidth={2} />
-        </div>
       </div>
-    </Link>
+    </article>
   );
 }
 
-/* ───────────────────────── Notebook Row ───────────────────────── */
-function NotebookListRow({ notebook }: { notebook: NotebookRow }) {
-  const total = notebook.documents.length;
-  const ready = notebook.documents.filter((d) => d.status === "ready").length;
-  const processing = notebook.documents.filter((d) =>
-    ["pending", "processing", "chunked", "generating"].includes(d.status),
-  ).length;
-
-  return (
-    <Link
-      to="/notebook/$id"
-      params={{ id: notebook.id }}
-      className="group flex items-center gap-4 px-5 py-3.5 hover:bg-cream/40 transition-colors"
-    >
-      <div className="shrink-0">
-        <ClayIcon icon={resolveIcon(notebook.emoji)} size={40} />
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-baseline gap-2">
-          <h3 className="font-display text-[15px] font-semibold tracking-tight text-ink truncate">{notebook.title}</h3>
-          <span className="text-[10px] font-mono text-ink/40 flex-shrink-0">{relativeDate(notebook.created_at)}</span>
-        </div>
-        {notebook.description && <p className="text-[12.5px] text-ink/55 truncate">{notebook.description}</p>}
-      </div>
-      <div className="hidden sm:flex items-center gap-3 text-[11px] font-mono text-ink/55 flex-shrink-0">
-        <span>
-          {total} {total === 1 ? "fuente" : "fuentes"}
-        </span>
-        {processing > 0 && (
-          <span className="inline-flex items-center gap-1 text-ink/50">
-            <Clock className="w-3 h-3 animate-pulse" /> {processing}
-          </span>
-        )}
-        {ready > 0 && (
-          <span className="inline-flex items-center gap-1 text-orange-deep">
-            <CheckCircle2 className="w-3 h-3" /> {ready}
-          </span>
-        )}
-      </div>
-    </Link>
-  );
+/* ── Status pill ── */
+function StatusPill({
+  isReady,
+  isProcessing,
+  isError,
+  status,
+}: {
+  isReady: boolean;
+  isProcessing: boolean;
+  isError: boolean;
+  status: string;
+}) {
+  if (isReady)
+    return (
+      <span className="shrink-0 inline-flex items-center gap-1 px-2 py-1 bg-orange/[0.08] border border-orange/25 rounded-lg text-[10px] font-mono uppercase tracking-[0.14em] text-orange-deep">
+        <CheckCircle2 className="w-2.5 h-2.5" strokeWidth={2.5} />
+        Listo
+      </span>
+    );
+  if (isProcessing)
+    return (
+      <span className="shrink-0 inline-flex items-center gap-1 px-2 py-1 bg-cream border border-border rounded-lg text-[10px] font-mono uppercase tracking-[0.14em] text-ink/55">
+        <Loader2 className="w-2.5 h-2.5 animate-spin" strokeWidth={2.5} />
+        {statusLabel(status)}
+      </span>
+    );
+  if (isError)
+    return (
+      <span className="shrink-0 inline-flex items-center gap-1 px-2 py-1 bg-destructive/[0.08] border border-destructive/30 rounded-lg text-[10px] font-mono uppercase tracking-[0.14em] text-destructive">
+        <AlertTriangle className="w-2.5 h-2.5" strokeWidth={2.5} />
+        Error
+      </span>
+    );
+  return null;
 }
 
-/* ───────────────────────── Helpers ───────────────────────── */
-function relativeDate(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const days = Math.floor(diff / 86400000);
-  if (days === 0) return "Hoy";
-  if (days === 1) return "Ayer";
-  if (days < 7) return `Hace ${days}d`;
-  if (days < 30) return `Hace ${Math.floor(days / 7)}sem`;
-  return new Date(iso).toLocaleDateString("es", { day: "2-digit", month: "short" });
+/* ── Helpers ── */
+function formatSize(bytes: number): string {
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function EmptyState({ onCreate }: { onCreate: () => void }) {
-  return (
-    <div className="relative border border-dashed border-border py-20 px-6 text-center bg-cream/20 animate-fade-up overflow-hidden rounded-xl">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[200px] bg-orange/10 blur-[80px] -z-10 rounded-full" />
-      <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-orange shadow-orange rounded-xl mb-5 animate-pulse-glow">
-        <Sparkles className="w-5 h-5 text-paper" strokeWidth={2} />
-      </div>
-      <p className="text-[10px] uppercase tracking-[0.28em] font-mono text-orange mb-2.5">Empezá acá</p>
-      <h3 className="font-display text-3xl font-semibold mb-2.5 leading-tight tracking-tight">
-        Tu biblioteca está vacía
-      </h3>
-      <p className="text-[14px] text-ink/55 mb-7 max-w-md mx-auto leading-relaxed">
-        Creá tu primer cuaderno, subí un PDF y en segundos vas a tener resumen, mapa mental, flashcards y quiz.
-      </p>
-      <button
-        onClick={onCreate}
-        className="inline-flex items-center gap-2 px-5 py-2.5 text-[13px] font-medium bg-ink text-paper hover:bg-orange transition-colors active:scale-[0.98] rounded-md shadow-soft"
-      >
-        <Plus className="w-3.5 h-3.5" strokeWidth={2.25} />
-        Crear mi primer cuaderno
-      </button>
-    </div>
-  );
+function statusLabel(status: string): string {
+  switch (status) {
+    case "pending":
+      return "En cola";
+    case "processing":
+      return "Extrayendo";
+    case "chunked":
+      return "Analizando";
+    case "generating":
+      return "Generando";
+    default:
+      return status;
+  }
 }
