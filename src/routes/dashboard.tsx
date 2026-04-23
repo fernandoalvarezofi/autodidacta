@@ -19,7 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { EntityIcon } from "@/components/ui/EntityIcon";
 import { IconPicker } from "@/components/ui/IconPicker";
-import { ClayIcon } from "@/lib/clay-icons";
+import { ClayIcon, type ClayIconKey } from "@/lib/clay-icons";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard")({
