@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from "@tanstack/react-router";
-import { BookMarked, LogOut, LayoutGrid, Search, Gamepad2, Home } from "lucide-react";
+import { BookMarked, LogOut, LayoutGrid, Search, Gamepad2, Home, Brain } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { CommandPalette } from "@/components/dashboard/CommandPalette";
 import { useEffect, useState, type ReactNode } from "react";
@@ -72,6 +72,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             >
               Jugar
             </NavLink>
+            <NavLink to="/iq" icon={<Brain className="w-3.5 h-3.5" strokeWidth={2} />}>
+              Test de IQ
+            </NavLink>
           </nav>
 
           {/* Spacer */}
@@ -132,7 +135,7 @@ function NavLink({
   children,
   active,
 }: {
-  to: "/" | "/dashboard" | "/play";
+  to: "/" | "/dashboard" | "/play" | "/iq";
   icon: ReactNode;
   children: ReactNode;
   active?: boolean;
