@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PlayRouteImport } from './routes/play'
 import { Route as IqRouteImport } from './routes/iq'
-import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ReviewNotebookIdRouteImport } from './routes/review.$notebookId'
@@ -31,11 +30,6 @@ const PlayRoute = PlayRouteImport.update({
 const IqRoute = IqRouteImport.update({
   id: '/iq',
   path: '/iq',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -92,7 +86,6 @@ const IqResultadoIntentoIdRoute = IqResultadoIntentoIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/dashboard': typeof DashboardRoute
   '/iq': typeof IqRouteWithChildren
   '/play': typeof PlayRouteWithChildren
   '/document/$id': typeof DocumentIdRoute
@@ -107,7 +100,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/dashboard': typeof DashboardRoute
   '/iq': typeof IqRouteWithChildren
   '/play': typeof PlayRouteWithChildren
   '/document/$id': typeof DocumentIdRoute
@@ -123,7 +115,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/dashboard': typeof DashboardRoute
   '/iq': typeof IqRouteWithChildren
   '/play': typeof PlayRouteWithChildren
   '/document/$id': typeof DocumentIdRoute
@@ -140,7 +131,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
-    | '/dashboard'
     | '/iq'
     | '/play'
     | '/document/$id'
@@ -155,7 +145,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
-    | '/dashboard'
     | '/iq'
     | '/play'
     | '/document/$id'
@@ -170,7 +159,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/auth'
-    | '/dashboard'
     | '/iq'
     | '/play'
     | '/document/$id'
@@ -186,7 +174,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
-  DashboardRoute: typeof DashboardRoute
   IqRoute: typeof IqRouteWithChildren
   PlayRoute: typeof PlayRouteWithChildren
   DocumentIdRoute: typeof DocumentIdRoute
@@ -209,13 +196,6 @@ declare module '@tanstack/react-router' {
       path: '/iq'
       fullPath: '/iq'
       preLoaderRoute: typeof IqRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -318,7 +298,6 @@ const PlayRouteWithChildren = PlayRoute._addFileChildren(PlayRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
-  DashboardRoute: DashboardRoute,
   IqRoute: IqRouteWithChildren,
   PlayRoute: PlayRouteWithChildren,
   DocumentIdRoute: DocumentIdRoute,
