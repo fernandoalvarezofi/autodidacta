@@ -610,6 +610,7 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          interests: Json | null
           last_activity_date: string | null
           level: string
           plan: Database["public"]["Enums"]["user_plan"]
@@ -623,6 +624,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
+          interests?: Json | null
           last_activity_date?: string | null
           level?: string
           plan?: Database["public"]["Enums"]["user_plan"]
@@ -636,6 +638,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          interests?: Json | null
           last_activity_date?: string | null
           level?: string
           plan?: Database["public"]["Enums"]["user_plan"]
