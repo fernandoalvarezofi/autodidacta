@@ -5,6 +5,7 @@ import { NeuralBackground } from "@/components/NeuralBackground";
 import { supabase } from "@/integrations/supabase/client";
 import {
   AREA_META,
+  buildIQQuestionOrder,
   calcularAreaScores,
   calcularIQ,
   calcularPercentil,
@@ -49,31 +50,40 @@ function IQTestRunner() {
   const [submitting, setSubmitting] = useState(false);
   const questionStartedAt = useRef<number>(Date.now());
 
-  // Cargar preguntas según orden guardado
+  // Cargar preguntas; si falta sessionStorage armamos el orden automáticamente.
   useEffect(() => {
     (async () => {
       try {
-        const raw = sessionStorage.getItem("iq_session_questions");
-        if (!raw) {
-          setLoadingState("error");
-          return;
-        }
-        const parsed = JSON.parse(raw) as { attemptId: string; questionIds: string[] };
-        if (parsed.attemptId !== intentoId || !Array.isArray(parsed.questionIds)) {
-          setLoadingState("error");
-          return;
-        }
         const { data, error } = await supabase
           .from("iq_questions")
           .select("id, area, dificultad, pregunta, opciones, indice_correcto, es_espacial")
-          .in("id", parsed.questionIds);
+          .eq("is_active", true);
         if (error || !data) {
           setLoadingState("error");
           return;
         }
+
+        const raw = sessionStorage.getItem("iq_session_questions");
+        const parsed = raw
+          ? (JSON.parse(raw) as { attemptId?: string; questionIds?: string[] })
+          : null;
+
+        const fallbackOrder = buildIQQuestionOrder(
+          data.map((q) => ({
+            id: q.id,
+            area: q.area as Area,
+            dificultad: q.dificultad as Dificultad,
+          })),
+        );
+
+        const questionIds =
+          parsed?.attemptId === intentoId && Array.isArray(parsed.questionIds) && parsed.questionIds.length > 0
+            ? parsed.questionIds
+            : fallbackOrder;
+
         const byId = new Map(data.map((q) => [q.id, q]));
         const ordered: Question[] = [];
-        for (const id of parsed.questionIds) {
+        for (const id of questionIds) {
           const q = byId.get(id);
           if (q) {
             ordered.push({
@@ -87,6 +97,17 @@ function IQTestRunner() {
             });
           }
         }
+
+        if (ordered.length < 20) {
+          setLoadingState("error");
+          return;
+        }
+
+        sessionStorage.setItem(
+          "iq_session_questions",
+          JSON.stringify({ attemptId: intentoId, questionIds: ordered.map((question) => question.id) }),
+        );
+
         setQuestions(ordered);
         setLoadingState("ready");
         questionStartedAt.current = Date.now();

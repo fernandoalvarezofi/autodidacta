@@ -31,6 +31,39 @@ export interface AnswerLite {
 const PESO: Record<Dificultad, number> = { facil: 1, medio: 2, dificil: 3 };
 const MAX_RAW = 120;
 
+export function buildIQQuestionOrder(questions: QuestionLite[]): string[] {
+  const buckets: Record<Area, Record<Dificultad, string[]>> = {
+    logica: { facil: [], medio: [], dificil: [] },
+    numerico: { facil: [], medio: [], dificil: [] },
+    espacial: { facil: [], medio: [], dificil: [] },
+    verbal: { facil: [], medio: [], dificil: [] },
+  };
+
+  for (const question of questions) {
+    buckets[question.area][question.dificultad].push(question.id);
+  }
+
+  const areas: Area[] = ["logica", "numerico", "espacial", "verbal"];
+  const difficulties: Dificultad[] = ["facil", "medio", "dificil"];
+  const ordered: string[] = [];
+
+  for (const difficulty of difficulties) {
+    for (let round = 0; round < 5; round += 1) {
+      for (const area of areas) {
+        const questionId = buckets[area][difficulty][round];
+        if (questionId) ordered.push(questionId);
+      }
+    }
+  }
+
+  const seen = new Set(ordered);
+  const remaining = questions
+    .map((question) => question.id)
+    .filter((id) => !seen.has(id));
+
+  return [...ordered, ...remaining];
+}
+
 /**
  * Convierte el puntaje crudo (0–120) a un IQ entre 55 y 160.
  * 50% del puntaje máximo se mapea a IQ 100 (media poblacional).
