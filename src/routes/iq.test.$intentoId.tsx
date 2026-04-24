@@ -247,7 +247,19 @@ function IQTestRunner() {
       </header>
 
       <main className="container mx-auto px-5 lg:px-8 max-w-[820px] py-10">
-        {visual ? (
+        {current.pregunta.includes("<svg") ? (
+          <div className="rounded-xl border border-border bg-gradient-to-br from-cream to-paper p-6 shadow-soft space-y-4">
+            <div
+              className="flex justify-center overflow-x-auto [&_svg]:max-w-full [&_svg]:h-auto [&_text]:fill-ink"
+              dangerouslySetInnerHTML={{
+                __html: current.pregunta.split("\n")[0],
+              }}
+            />
+            <p className="font-display text-lg lg:text-xl leading-relaxed text-ink text-center">
+              {current.pregunta.split("\n").slice(1).join(" ").trim()}
+            </p>
+          </div>
+        ) : visual ? (
           <div className="rounded-xl border border-border bg-gradient-to-br from-cream to-paper py-12 px-6 text-center shadow-soft">
             <p className="font-mono text-4xl tracking-wide leading-snug text-ink whitespace-pre-wrap">
               {current.pregunta}
