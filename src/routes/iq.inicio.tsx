@@ -40,6 +40,18 @@ function IQInicio() {
 
     setLoading(true);
     try {
+      // 0) verificar que hay preguntas disponibles
+      const { count, error: countError } = await supabase
+        .from("iq_questions")
+        .select("id", { count: "exact", head: true })
+        .eq("is_active", true);
+
+      if (countError || !count || count < 20) {
+        setError("El banco de preguntas no está disponible. Intentá más tarde.");
+        setLoading(false);
+        return;
+      }
+
       // 1) crear intento
       const { data: attempt, error: errAtt } = await supabase
         .from("iq_attempts")
