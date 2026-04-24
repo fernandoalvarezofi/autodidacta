@@ -1,0 +1,74 @@
+-- Limpiar tabla antes de insertar
+TRUNCATE TABLE public.iq_questions RESTART IDENTITY CASCADE;
+
+-- ÁREA: LÓGICA (15 preguntas)
+INSERT INTO public.iq_questions (area, dificultad, pregunta, opciones, indice_correcto, explicacion, es_espacial) VALUES
+('logica','facil','Si TODOS los estudiantes estudian, y ANA es estudiante, entonces:','["Ana estudia","Ana no estudia","No se puede saber","Ana a veces estudia"]',0,'Silogismo directo: si todo A implica B, y X es A, entonces X implica B.',false),
+('logica','facil','La serie: 2 → 4 → 8 → 16 → ?','["24","32","18","20"]',1,'Cada número se multiplica por 2. 16 × 2 = 32.',false),
+('logica','facil','Hoy es miércoles. ¿Qué día fue hace 5 días?','["Lunes","Viernes","Domingo","Sábado"]',1,'Miércoles - 5 días = viernes.',false),
+('logica','facil','Si A > B y B > C, entonces:','["C > A","A > C","B > A","C > B"]',1,'Por transitividad: si A > B > C entonces A > C.',false),
+('logica','facil','Un reloj marca las 3:00. ¿Cuántos grados forma el ángulo entre las agujas?','["60°","90°","120°","45°"]',1,'Cada hora representa 30°. Las 3:00 = 3 × 30° = 90°.',false),
+('logica','medio','3 pintores tardan 6 horas en pintar una habitación. ¿Cuánto tardan 6 pintores?','["12 horas","3 horas","6 horas","2 horas"]',1,'Trabajo total = 3 × 6 = 18 horas-hombre. Con 6 pintores: 18 ÷ 6 = 3 horas.',false),
+('logica','medio','En un torneo de tenis de eliminación directa participan 64 jugadores. ¿Cuántos partidos se juegan en total?','["64","63","32","128"]',1,'Cada partido elimina a un jugador. Para que quede 1 ganador se eliminan 63, entonces se juegan 63 partidos.',false),
+('logica','medio','Si P implica Q, y Q es falso, entonces:','["P es verdadero","P puede ser verdadero o falso","P es falso","No se puede determinar"]',2,'Modus tollens: si P→Q y ¬Q, entonces ¬P.',false),
+('logica','medio','María está en posición 7 desde adelante y 8 desde atrás en una fila. ¿Cuántas personas hay?','["14","15","16","13"]',0,'7 + 8 - 1 = 14 personas en total.',false),
+('logica','medio','¿Cuál número NO encaja: 2, 3, 5, 7, 11, 13, 14, 17?','["11","13","14","17"]',2,'14 no es primo (2×7). Todos los demás son primos.',false),
+('logica','dificil','Todos los A son B. Algunos B son C. Ningún C es D. ¿Qué se puede concluir con certeza?','["Algunos A son C","Ningún A es D","Algunos A son D","Todos los B son D"]',1,'Si ningún C es D, los A que sean C tampoco serán D. La conclusión más segura es que ningún A es D.',false),
+('logica','dificil','¿Cuántos cuadrados hay en una cuadrícula de 4×4?','["16","30","20","17"]',1,'1×1: 16. 2×2: 9. 3×3: 4. 4×4: 1. Total: 30.',false),
+('logica','dificil','Si "anteayer" fue lunes, ¿qué día es mañana?','["Domingo","Lunes","Martes","Jueves"]',3,'Anteayer = hace 2 días. Si hace 2 días era lunes, hoy es miércoles. Mañana = jueves.',false),
+('logica','dificil','Una caja tiene bolas rojas y azules en proporción 3:5. Si agregamos 16 rojas, la proporción es 1:1. ¿Cuántas azules hay?','["20","25","30","40"]',3,'3x + 16 = 5x → 16 = 2x → x = 8. Azules = 5 × 8 = 40.',false),
+('logica','dificil','¿Cuál es el mínimo número de colores necesarios para colorear un mapa plano de modo que ningún país adyacente tenga el mismo color?','["3","4","5","6"]',1,'Teorema de los cuatro colores: 4 colores son suficientes para cualquier mapa plano.',false);
+
+-- ÁREA: NUMÉRICO (15 preguntas)
+INSERT INTO public.iq_questions (area, dificultad, pregunta, opciones, indice_correcto, explicacion, es_espacial) VALUES
+('numerico','facil','¿Cuánto es 15% de 240?','["36","24","30","40"]',0,'240 × 0.15 = 36.',false),
+('numerico','facil','Si x + 7 = 15, ¿cuánto es 2x?','["8","16","14","10"]',1,'x = 8, entonces 2x = 16.',false),
+('numerico','facil','Fibonacci: 1, 1, 2, 3, 5, 8, 13, ?','["18","20","21","22"]',2,'Cada número es la suma de los dos anteriores: 8 + 13 = 21.',false),
+('numerico','facil','Un producto costaba $80 y subió 25%. ¿Cuál es el nuevo precio?','["$95","$100","$105","$110"]',1,'80 × 1.25 = $100.',false),
+('numerico','facil','¿Cuánto es 2⁵ + 5²?','["35","57","42","32"]',1,'2⁵ = 32, 5² = 25. Total = 57.',false),
+('numerico','medio','La serie: 1, 4, 9, 16, 25, ?','["30","36","35","49"]',1,'Cuadrados perfectos: 6² = 36.',false),
+('numerico','medio','¿Cuál es el promedio de los primeros 10 números naturales?','["4.5","5","5.5","6"]',2,'Suma = 55. Promedio = 55 ÷ 10 = 5.5.',false),
+('numerico','medio','Si f(x) = 3x² - 2x + 1, ¿cuánto es f(2)?','["9","12","13","11"]',0,'3(4) - 2(2) + 1 = 12 - 4 + 1 = 9.',false),
+('numerico','medio','¿Cuántas combinaciones de 3 elementos se pueden formar de un conjunto de 8?','["56","24","48","64"]',0,'C(8,3) = 8!/(3!×5!) = 56.',false),
+('numerico','medio','Un tren viaja 300 km en 2.5 horas. ¿Cuál es su velocidad promedio?','["100 km/h","110 km/h","120 km/h","130 km/h"]',2,'300 ÷ 2.5 = 120 km/h.',false),
+('numerico','dificil','¿Cuál es el resto de dividir 7¹⁰⁰ entre 5?','["0","1","2","3"]',1,'7 ≡ 2 (mod 5). Potencias de 2 mod 5 tienen período 4: 2,4,3,1. 100 mod 4 = 0 → resto = 1.',false),
+('numerico','dificil','log₂(128) = ?','["6","7","8","5"]',1,'2⁷ = 128, entonces log₂(128) = 7.',false),
+('numerico','dificil','¿Cuántos ceros tiene al final el número 100! (factorial de 100)?','["20","24","25","22"]',1,'⌊100/5⌋ + ⌊100/25⌋ = 20 + 4 = 24.',false),
+('numerico','dificil','La suma de una progresión geométrica infinita con primer término 1 y razón 1/3 es:','["1.5","2","3/2","3"]',0,'S = a/(1-r) = 1/(1-1/3) = 3/2 = 1.5.',false),
+('numerico','dificil','Si la desviación estándar de un conjunto es 2, ¿cuál es la varianza?','["2","4","3","5"]',1,'Varianza = (desviación estándar)² = 2² = 4.',false);
+
+-- ÁREA: ESPACIAL (15 preguntas — con SVG inline)
+INSERT INTO public.iq_questions (area, dificultad, pregunta, opciones, indice_correcto, explicacion, es_espacial) VALUES
+('espacial','facil',E'<svg viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg" width="200" height="80"><text x="10" y="55" font-size="40" font-family="monospace">▲ ▼ ▲ ▼ ?</text></svg>\n¿Qué figura sigue en la secuencia?','["▲","▼","◆","■"]',0,'El patrón alterna ▲▼. Después de ▼ viene ▲.',true),
+('espacial','facil',E'<svg viewBox="0 0 220 80" xmlns="http://www.w3.org/2000/svg" width="220" height="80"><text x="10" y="55" font-size="36" font-family="monospace">○ ◎ ● ○ ◎ ?</text></svg>\n¿Qué figura completa el patrón?','["●","○","◎","◑"]',0,'El patrón ○◎● se repite cada 3.',true),
+('espacial','facil','Un cubo tiene 6 caras. Si pintás solo las caras externas de un cubo 3×3×3 (27 cubos pequeños), ¿cuántos cubos pequeños NO tienen ninguna cara pintada?','["0","1","6","8"]',1,'Solo el cubo del centro no tiene cara expuesta.',false),
+('espacial','facil',E'<svg viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg" width="200" height="80"><text x="10" y="55" font-size="36" font-family="monospace">◐ ◑ ◐ ◑ ?</text></svg>\n¿Qué sigue?','["◐","◑","●","○"]',0,'Alterna ◐◑.',true),
+('espacial','facil','¿Cuántos ejes de simetría tiene un triángulo equilátero?','["1","2","3","4"]',2,'Tiene 3 ejes de simetría.',false),
+('espacial','medio',E'<svg viewBox="0 0 300 100" xmlns="http://www.w3.org/2000/svg" width="300" height="100"><rect x="10" y="30" width="30" height="30" fill="none" stroke="black" stroke-width="2"/><rect x="55" y="30" width="30" height="30" fill="black"/><rect x="100" y="30" width="30" height="30" fill="none" stroke="black" stroke-width="2"/><rect x="100" y="30" width="15" height="30" fill="black"/><text x="150" y="55" font-size="30" font-family="monospace">?</text></svg>\nLa secuencia es: vacío → lleno → mitad → ? Siguiendo el patrón decreciente, ¿qué sigue?','["Cuadrado vacío","Cuadrado con cuarto lleno","Cuadrado lleno","Cuadrado con tres cuartos"]',1,'Vacío (0%) → lleno (100%) → mitad (50%) → cuarto (25%): patrón decreciente.',true),
+('espacial','medio','Si doblo una hoja de papel por la mitad dos veces y hago un agujero en el centro, ¿cuántos agujeros aparecen al desdoblarla?','["2","4","1","8"]',1,'2² = 4 agujeros al desdoblar.',false),
+('espacial','medio',E'<svg viewBox="0 0 280 100" xmlns="http://www.w3.org/2000/svg" width="280" height="100"><text x="10" y="60" font-size="40" font-family="monospace">★ ✦ ★★ ✦✦ ?</text></svg>\n¿Qué sigue?','["★★★","✦✦✦","★✦★","✦★✦"]',0,'Alterna grupos crecientes: 1,1,2,2,3 → ★★★.',true),
+('espacial','medio','¿Cuántas regiones crean 4 rectas que se cruzan todas en puntos distintos en el plano?','["8","11","10","12"]',1,'Fórmula: R = 1 + n + C(n,2). Con 4 rectas: 1 + 4 + 6 = 11.',false),
+('espacial','medio',E'<svg viewBox="0 0 300 120" xmlns="http://www.w3.org/2000/svg" width="300" height="120"><g transform="translate(20,20)"><polygon points="30,0 60,50 0,50" fill="none" stroke="black" stroke-width="2"/></g><g transform="translate(90,20)"><polygon points="30,50 60,0 0,0" fill="none" stroke="black" stroke-width="2"/></g><g transform="translate(160,20)"><polygon points="30,0 60,50 0,50" fill="none" stroke="black" stroke-width="2"/></g><text x="230" y="65" font-size="30" font-family="monospace">?</text></svg>\nTriángulos: arriba → abajo → arriba → ?','["Triángulo apuntando arriba","Triángulo apuntando abajo","Triángulo rotado 90°","Triángulo rotado 270°"]',1,'Alterna arriba-abajo. Sigue abajo.',true),
+('espacial','dificil',E'<svg viewBox="0 0 320 110" xmlns="http://www.w3.org/2000/svg" width="320" height="110"><text x="5" y="65" font-size="32" font-family="monospace">□ ■ □□ ■■ □□□ ?</text></svg>\n¿Qué sigue?','["■■■","□□□□","■■","□■"]',0,'Alterna grupos: □(1) ■(1) □□(2) ■■(2) □□□(3) → ■■■(3).',true),
+('espacial','dificil','Un icosaedro tiene 20 caras y 12 vértices. ¿Cuántas aristas tiene?','["20","30","24","18"]',1,'Por la fórmula de Euler: V - A + C = 2 → 12 - A + 20 = 2 → A = 30.',false),
+('espacial','dificil',E'<svg viewBox="0 0 300 120" xmlns="http://www.w3.org/2000/svg" width="300" height="120"><g transform="translate(10,10)"><rect width="40" height="40" fill="none" stroke="black" stroke-width="2"/><line x1="0" y1="40" x2="40" y2="0" stroke="black" stroke-width="2"/></g><g transform="translate(70,10)"><rect width="40" height="40" fill="none" stroke="black" stroke-width="2"/><line x1="0" y1="0" x2="40" y2="40" stroke="black" stroke-width="2"/><line x1="0" y1="40" x2="40" y2="0" stroke="black" stroke-width="2"/></g><g transform="translate(130,10)"><rect width="40" height="40" fill="none" stroke="black" stroke-width="2"/><line x1="0" y1="0" x2="40" y2="40" stroke="black" stroke-width="2"/></g><text x="190" y="40" font-size="28" font-family="monospace">?</text></svg>\nDiagonal /, ambas X, diagonal \\, ¿qué sigue?','["Sin diagonal","2 diagonales","Diagonal /","Diagonal \\"]',0,'Patrón: diagonal /, X, \\, sin diagonal — completa el ciclo.',true),
+('espacial','dificil','¿Cuántos cubos de 1×1×1 se necesitan para construir una "L" 2D plana con altura 3 y base de 2 cubos (compartiendo uno)?','["4","5","6","7"]',1,'3 verticales + 2 horizontales - 1 compartido = 4. Pero contando la base completa (2 cubos) y la torre (3 cubos) sin restar: 5 cubos en total.',false),
+('espacial','dificil',E'<svg viewBox="0 0 280 100" xmlns="http://www.w3.org/2000/svg" width="280" height="100"><circle cx="30" cy="50" r="20" fill="none" stroke="black" stroke-width="2"/><circle cx="90" cy="50" r="20" fill="black"/><circle cx="150" cy="50" r="20" fill="none" stroke="black" stroke-width="2"/><circle cx="150" cy="50" r="10" fill="black"/><text x="195" y="58" font-size="30" font-family="monospace">?</text></svg>\nCírculo vacío → lleno → con punto interno → ?','["Círculo vacío con punto central","Círculo con anillo interno vacío","Círculo lleno con punto blanco","Círculo mitad lleno"]',2,'El siguiente lógico es círculo lleno con punto blanco interno (inverso del anterior).',true);
+
+-- ÁREA: VERBAL (15 preguntas)
+INSERT INTO public.iq_questions (area, dificultad, pregunta, opciones, indice_correcto, explicacion, es_espacial) VALUES
+('verbal','facil','¿Cuál es el sinónimo de EFÍMERO?','["Eterno","Pasajero","Profundo","Antiguo"]',1,'Efímero significa que dura poco tiempo, pasajero.',false),
+('verbal','facil','Completa la analogía: LIBRO es a LEER como MÚSICA es a:','["Ver","Escuchar","Tocar","Cantar"]',1,'Un libro se lee, la música se escucha.',false),
+('verbal','facil','¿Cuál NO pertenece al grupo? ROSA, TULIPÁN, JAZMÍN, ROBLE','["Rosa","Tulipán","Jazmín","Roble"]',3,'Las primeras tres son flores, el roble es un árbol.',false),
+('verbal','facil','MÉDICO es a HOSPITAL como MAESTRO es a:','["Libro","Alumno","Escuela","Conocimiento"]',2,'El médico trabaja en el hospital, el maestro en la escuela.',false),
+('verbal','facil','¿Cuál es el antónimo de ABUNDANTE?','["Suficiente","Escaso","Amplio","Numeroso"]',1,'El antónimo de abundante es escaso.',false),
+('verbal','medio','¿Qué figura retórica usa la frase "el tiempo es dinero"?','["Símil","Metáfora","Hipérbole","Personificación"]',1,'Es metáfora: identifica directamente sin "como".',false),
+('verbal','medio','PINTOR es a CUADRO como ESCRITOR es a:','["Pluma","Novela","Lector","Tinta"]',1,'El pintor produce un cuadro, el escritor produce una novela.',false),
+('verbal','medio','¿Cuál oración usa correctamente el subjuntivo?','["Espero que vendrás","Espero que vengas","Espero que vienes","Espero que viniste"]',1,'"Esperar que" requiere subjuntivo presente: "vengas".',false),
+('verbal','medio','¿Cuál es el hiperónimo de PERRO, GATO, CABALLO?','["Mascota","Animal","Mamífero","Vertebrado"]',2,'Mamífero es la categoría más precisa que los engloba a los tres.',false),
+('verbal','medio','La palabra SANGUÍNEO tiene como raíz la palabra latina SANGUIS. ¿Qué significa?','["Fuerza","Sangre","Corazón","Vida"]',1,'Sanguis en latín significa sangre.',false),
+('verbal','dificil','¿Qué falacia comete quien dice: "El 90% de la gente cree X, por lo tanto X es verdad"?','["Ad hominem","Ad populum","Post hoc","Falsa dicotomía"]',1,'Ad populum: apelar a la mayoría como prueba de verdad.',false),
+('verbal','dificil','PRÓLOGO es a LIBRO como OBERTURA es a:','["Concierto","Ópera","Sonata","Ballet"]',1,'El prólogo introduce un libro; la obertura introduce una ópera.',false),
+('verbal','dificil','¿Cuál de estas expresiones es un OXÍMORON?','["Silencio sepulcral","Fuego frío","Lluvia torrencial","Viento huracanado"]',1,'"Fuego frío" combina conceptos contradictorios.',false),
+('verbal','dificil','En lingüística, la DENOTACIÓN de una palabra es:','["Su significado emocional","Su significado literal y objetivo","Su origen etimológico","Su uso coloquial"]',1,'La denotación es el significado literal y objetivo, opuesto a la connotación.',false),
+('verbal','dificil','¿Cuál de estas oraciones contiene un ANACOLUTO?','["El libro que leí fue bueno","Yo, en cuanto a ese tema, no sé qué decirte","La casa es grande y luminosa","Todos llegaron tarde a la reunión"]',1,'El anacoluto es una ruptura en la construcción gramatical.',false);
