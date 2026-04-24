@@ -14,6 +14,7 @@ import { Route as IqRouteImport } from './routes/iq'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as IqIndexRouteImport } from './routes/iq.index'
 import { Route as ReviewNotebookIdRouteImport } from './routes/review.$notebookId'
 import { Route as PlayRoomIdRouteImport } from './routes/play.$roomId'
 import { Route as NotebookIdRouteImport } from './routes/notebook.$id'
@@ -47,6 +48,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const IqIndexRoute = IqIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => IqRoute,
 } as any)
 const ReviewNotebookIdRoute = ReviewNotebookIdRouteImport.update({
   id: '/review/$notebookId',
@@ -101,6 +107,7 @@ export interface FileRoutesByFullPath {
   '/notebook/$id': typeof NotebookIdRoute
   '/play/$roomId': typeof PlayRoomIdRoute
   '/review/$notebookId': typeof ReviewNotebookIdRoute
+  '/iq/': typeof IqIndexRoute
   '/iq/resultado/$intentoId': typeof IqResultadoIntentoIdRoute
   '/iq/test/$intentoId': typeof IqTestIntentoIdRoute
 }
@@ -108,7 +115,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
-  '/iq': typeof IqRouteWithChildren
   '/play': typeof PlayRouteWithChildren
   '/document/$id': typeof DocumentIdRoute
   '/editor/$id': typeof EditorIdRoute
@@ -116,6 +122,7 @@ export interface FileRoutesByTo {
   '/notebook/$id': typeof NotebookIdRoute
   '/play/$roomId': typeof PlayRoomIdRoute
   '/review/$notebookId': typeof ReviewNotebookIdRoute
+  '/iq': typeof IqIndexRoute
   '/iq/resultado/$intentoId': typeof IqResultadoIntentoIdRoute
   '/iq/test/$intentoId': typeof IqTestIntentoIdRoute
 }
@@ -132,6 +139,7 @@ export interface FileRoutesById {
   '/notebook/$id': typeof NotebookIdRoute
   '/play/$roomId': typeof PlayRoomIdRoute
   '/review/$notebookId': typeof ReviewNotebookIdRoute
+  '/iq/': typeof IqIndexRoute
   '/iq/resultado/$intentoId': typeof IqResultadoIntentoIdRoute
   '/iq/test/$intentoId': typeof IqTestIntentoIdRoute
 }
@@ -149,6 +157,7 @@ export interface FileRouteTypes {
     | '/notebook/$id'
     | '/play/$roomId'
     | '/review/$notebookId'
+    | '/iq/'
     | '/iq/resultado/$intentoId'
     | '/iq/test/$intentoId'
   fileRoutesByTo: FileRoutesByTo
@@ -156,7 +165,6 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/dashboard'
-    | '/iq'
     | '/play'
     | '/document/$id'
     | '/editor/$id'
@@ -164,6 +172,7 @@ export interface FileRouteTypes {
     | '/notebook/$id'
     | '/play/$roomId'
     | '/review/$notebookId'
+    | '/iq'
     | '/iq/resultado/$intentoId'
     | '/iq/test/$intentoId'
   id:
@@ -179,6 +188,7 @@ export interface FileRouteTypes {
     | '/notebook/$id'
     | '/play/$roomId'
     | '/review/$notebookId'
+    | '/iq/'
     | '/iq/resultado/$intentoId'
     | '/iq/test/$intentoId'
   fileRoutesById: FileRoutesById
@@ -231,6 +241,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/iq/': {
+      id: '/iq/'
+      path: '/'
+      fullPath: '/iq/'
+      preLoaderRoute: typeof IqIndexRouteImport
+      parentRoute: typeof IqRoute
     }
     '/review/$notebookId': {
       id: '/review/$notebookId'
@@ -293,12 +310,14 @@ declare module '@tanstack/react-router' {
 
 interface IqRouteChildren {
   IqInicioRoute: typeof IqInicioRoute
+  IqIndexRoute: typeof IqIndexRoute
   IqResultadoIntentoIdRoute: typeof IqResultadoIntentoIdRoute
   IqTestIntentoIdRoute: typeof IqTestIntentoIdRoute
 }
 
 const IqRouteChildren: IqRouteChildren = {
   IqInicioRoute: IqInicioRoute,
+  IqIndexRoute: IqIndexRoute,
   IqResultadoIntentoIdRoute: IqResultadoIntentoIdRoute,
   IqTestIntentoIdRoute: IqTestIntentoIdRoute,
 }
