@@ -5,6 +5,7 @@ import { Navbar } from "@/components/landing/Navbar";
 import { NeuralBackground } from "@/components/NeuralBackground";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { buildIQQuestionOrder } from "@/lib/iq-scoring";
 
 export const Route = createFileRoute("/iq/inicio")({
   head: () => ({
@@ -66,39 +67,30 @@ function IQInicio() {
         .single();
       if (errAtt || !attempt) throw errAtt ?? new Error("No se pudo crear el intento");
 
-      // 2) cargar 60 preguntas y armar orden round-robin
-      const { data: qs, error: errQ } = await supabase
-        .from("iq_questions")
-        .select("id, area, dificultad")
-        .eq("is_active", true);
-      if (errQ || !qs) throw errQ ?? new Error("No se pudieron cargar las preguntas");
+      // 2) intentamos dejar precargado el orden, pero no bloqueamos la navegación si esto falla
+      try {
+        const { data: qs } = await supabase
+          .from("iq_questions")
+          .select("id, area, dificultad")
+          .eq("is_active", true);
 
-      const buckets: Record<Area, Record<Dif, string[]>> = {
-        logica: { facil: [], medio: [], dificil: [] },
-        numerico: { facil: [], medio: [], dificil: [] },
-        espacial: { facil: [], medio: [], dificil: [] },
-        verbal: { facil: [], medio: [], dificil: [] },
-      };
-      for (const q of qs) {
-        buckets[q.area as Area][q.dificultad as Dif].push(q.id);
-      }
-      const areas: Area[] = ["logica", "numerico", "espacial", "verbal"];
-      const difs: Dif[] = ["facil", "medio", "dificil"];
-      const ordered: string[] = [];
-      for (const d of difs) {
-        // 5 rondas por dificultad, una por área
-        for (let i = 0; i < 5; i++) {
-          for (const a of areas) {
-            const id = buckets[a][d][i];
-            if (id) ordered.push(id);
-          }
+        if (qs?.length) {
+          const ordered = buildIQQuestionOrder(
+            qs.map((q) => ({
+              id: q.id,
+              area: q.area as Area,
+              dificultad: q.dificultad as Dif,
+            })),
+          );
+
+          sessionStorage.setItem(
+            "iq_session_questions",
+            JSON.stringify({ attemptId: attempt.id, questionIds: ordered }),
+          );
         }
+      } catch (sessionError) {
+        console.warn("[iq/inicio] No se pudo guardar la sesión local del test", sessionError);
       }
-
-      sessionStorage.setItem(
-        "iq_session_questions",
-        JSON.stringify({ attemptId: attempt.id, questionIds: ordered }),
-      );
 
       navigate({ to: "/iq/test/$intentoId", params: { intentoId: attempt.id } });
     } catch (err) {
