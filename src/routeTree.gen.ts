@@ -9,6 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as RefundPolicyRouteImport } from './routes/refund-policy'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PlayRouteImport } from './routes/play'
 import { Route as IqRouteImport } from './routes/iq'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -24,6 +27,21 @@ import { Route as DocumentIdRouteImport } from './routes/document.$id'
 import { Route as IqTestIntentoIdRouteImport } from './routes/iq.test.$intentoId'
 import { Route as IqResultadoIntentoIdRouteImport } from './routes/iq.resultado.$intentoId'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RefundPolicyRoute = RefundPolicyRouteImport.update({
+  id: '/refund-policy',
+  path: '/refund-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PlayRoute = PlayRouteImport.update({
   id: '/play',
   path: '/play',
@@ -101,6 +119,9 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/iq': typeof IqRouteWithChildren
   '/play': typeof PlayRouteWithChildren
+  '/privacy': typeof PrivacyRoute
+  '/refund-policy': typeof RefundPolicyRoute
+  '/terms': typeof TermsRoute
   '/document/$id': typeof DocumentIdRoute
   '/editor/$id': typeof EditorIdRoute
   '/iq/inicio': typeof IqInicioRoute
@@ -116,6 +137,9 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
   '/play': typeof PlayRouteWithChildren
+  '/privacy': typeof PrivacyRoute
+  '/refund-policy': typeof RefundPolicyRoute
+  '/terms': typeof TermsRoute
   '/document/$id': typeof DocumentIdRoute
   '/editor/$id': typeof EditorIdRoute
   '/iq/inicio': typeof IqInicioRoute
@@ -133,6 +157,9 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/iq': typeof IqRouteWithChildren
   '/play': typeof PlayRouteWithChildren
+  '/privacy': typeof PrivacyRoute
+  '/refund-policy': typeof RefundPolicyRoute
+  '/terms': typeof TermsRoute
   '/document/$id': typeof DocumentIdRoute
   '/editor/$id': typeof EditorIdRoute
   '/iq/inicio': typeof IqInicioRoute
@@ -151,6 +178,9 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/iq'
     | '/play'
+    | '/privacy'
+    | '/refund-policy'
+    | '/terms'
     | '/document/$id'
     | '/editor/$id'
     | '/iq/inicio'
@@ -166,6 +196,9 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dashboard'
     | '/play'
+    | '/privacy'
+    | '/refund-policy'
+    | '/terms'
     | '/document/$id'
     | '/editor/$id'
     | '/iq/inicio'
@@ -182,6 +215,9 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/iq'
     | '/play'
+    | '/privacy'
+    | '/refund-policy'
+    | '/terms'
     | '/document/$id'
     | '/editor/$id'
     | '/iq/inicio'
@@ -199,6 +235,9 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   IqRoute: typeof IqRouteWithChildren
   PlayRoute: typeof PlayRouteWithChildren
+  PrivacyRoute: typeof PrivacyRoute
+  RefundPolicyRoute: typeof RefundPolicyRoute
+  TermsRoute: typeof TermsRoute
   DocumentIdRoute: typeof DocumentIdRoute
   EditorIdRoute: typeof EditorIdRoute
   NotebookIdRoute: typeof NotebookIdRoute
@@ -207,6 +246,27 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/refund-policy': {
+      id: '/refund-policy'
+      path: '/refund-policy'
+      fullPath: '/refund-policy'
+      preLoaderRoute: typeof RefundPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/play': {
       id: '/play'
       path: '/play'
@@ -340,6 +400,9 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   IqRoute: IqRouteWithChildren,
   PlayRoute: PlayRouteWithChildren,
+  PrivacyRoute: PrivacyRoute,
+  RefundPolicyRoute: RefundPolicyRoute,
+  TermsRoute: TermsRoute,
   DocumentIdRoute: DocumentIdRoute,
   EditorIdRoute: EditorIdRoute,
   NotebookIdRoute: NotebookIdRoute,
