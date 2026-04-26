@@ -1,10 +1,12 @@
-import { createFileRoute, useNavigate, useParams, Link } from "@tanstack/react-router";
+import { createFileRoute, useParams, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Lock, Crown, Check, X, Loader2, Sparkles, FileText, BarChart3, History } from "lucide-react";
 import { Navbar } from "@/components/landing/Navbar";
 import { NeuralBackground } from "@/components/NeuralBackground";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { useSubscription } from "@/hooks/useSubscription";
+import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { AREA_META, clasificarIQ, type Area } from "@/lib/iq-scoring";
 
 export const Route = createFileRoute("/iq/resultado/$intentoId")({
@@ -30,9 +32,9 @@ interface Attempt {
 function IQResultado() {
   const { intentoId } = useParams({ from: "/iq/resultado/$intentoId" });
   const { user } = useAuth();
+  const { isActive: hasPro } = useSubscription();
   const [attempt, setAttempt] = useState<Attempt | null>(null);
   const [loading, setLoading] = useState(true);
-  const [hasPro, setHasPro] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
 
   useEffect(() => {
@@ -46,23 +48,6 @@ function IQResultado() {
       setLoading(false);
     })();
   }, [intentoId]);
-
-  // Detectar plan pro
-  useEffect(() => {
-    if (!user) {
-      setHasPro(false);
-      return;
-    }
-    (async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("plan")
-        .eq("id", user.id)
-        .maybeSingle();
-      const plan = (data as { plan?: string } | null)?.plan;
-      setHasPro(plan === "pro" || plan === "teams");
-    })();
-  }, [user]);
 
   if (loading) {
     return (
