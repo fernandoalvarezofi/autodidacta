@@ -24,6 +24,7 @@ import {
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { UpgradeBanner } from "@/components/dashboard/UpgradeBanner";
 import { IconPicker } from "@/components/ui/IconPicker";
 import { ClayIcon, type ClayIconKey } from "@/lib/clay-icons";
 import { toast } from "sonner";
@@ -449,6 +450,11 @@ function DashboardPage() {
       <div className="container mx-auto px-5 lg:px-10 max-w-[1280px] py-10 lg:py-14">
         {/* HERO DE PERFIL */}
         <ProfileHero user={user} notebooks={notebooks} />
+
+        {/* BANNER DE UPGRADE */}
+        <div className="mt-6 mb-2 animate-fade-up" style={{ animationDelay: "30ms" }}>
+          <UpgradeBanner />
+        </div>
 
         {/* TOOLBAR */}
         {!loading && notebooks.length > 0 && (
