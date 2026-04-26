@@ -20,6 +20,28 @@ export const Route = createFileRoute("/iq/inicio")({
 type Area = "logica" | "numerico" | "espacial" | "verbal";
 type Dif = "facil" | "medio" | "dificil";
 
+async function ensureIQProfile(user: ReturnType<typeof useAuth>["user"]) {
+  if (!user) return;
+
+  const metadata = user.user_metadata ?? {};
+  const fullName =
+    typeof metadata.full_name === "string"
+      ? metadata.full_name
+      : typeof metadata.name === "string"
+        ? metadata.name
+        : user.email?.split("@")[0] ?? "Usuario";
+
+  await supabase.from("profiles").upsert(
+    {
+      id: user.id,
+      email: user.email ?? null,
+      full_name: fullName,
+      avatar_url: typeof metadata.avatar_url === "string" ? metadata.avatar_url : null,
+    },
+    { onConflict: "id", ignoreDuplicates: true },
+  );
+}
+
 function IQInicio() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -52,6 +74,8 @@ function IQInicio() {
         setLoading(false);
         return;
       }
+
+      await ensureIQProfile(user ?? null);
 
       // 1) crear intento
       const { data: attempt, error: errAtt } = await supabase
