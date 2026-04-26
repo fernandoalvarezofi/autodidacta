@@ -1,11 +1,13 @@
 import { Link, useNavigate, useLocation } from "@tanstack/react-router";
-import { BookMarked, LogOut, LayoutGrid, Search, Gamepad2, Home, Brain } from "lucide-react";
+import { BookMarked, LogOut, LayoutGrid, Search, Gamepad2, Home, Brain, Crown } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { useSubscription } from "@/hooks/useSubscription";
 import { CommandPalette } from "@/components/dashboard/CommandPalette";
 import { useEffect, useState, type ReactNode } from "react";
 
 export function DashboardShell({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
+  const { isActive: isPro } = useSubscription();
   const navigate = useNavigate();
   const location = useLocation();
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -104,9 +106,16 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             </button>
 
             <div className="hidden sm:flex items-center gap-2 pl-1.5 pr-1 py-1 hover:bg-cream/60 transition-all rounded-md">
-              <span className="text-[10px] font-mono uppercase tracking-[0.16em] text-orange/90 px-1.5 py-0.5 bg-orange/10 rounded">
-                Free
-              </span>
+              {isPro ? (
+                <span className="inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-[0.16em] text-orange px-1.5 py-0.5 bg-orange/10 rounded">
+                  <Crown className="w-2.5 h-2.5" strokeWidth={2.5} />
+                  Pro
+                </span>
+              ) : (
+                <span className="text-[10px] font-mono uppercase tracking-[0.16em] text-ink/50 px-1.5 py-0.5 bg-cream rounded">
+                  Free
+                </span>
+              )}
               <div className="w-7 h-7 inline-flex items-center justify-center bg-gradient-orange text-paper rounded-full text-[11px] font-semibold">
                 {initials}
               </div>
