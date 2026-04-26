@@ -232,7 +232,7 @@ function IQResultado() {
 }
 
 function PaywallModal({ onClose }: { onClose: () => void }) {
-  const navigate = useNavigate();
+  const { openCheckout, loading } = usePaddleCheckout();
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40 backdrop-blur-sm">
@@ -245,32 +245,50 @@ function PaywallModal({ onClose }: { onClose: () => void }) {
           <p className="text-ink/60 mt-1.5 text-[13.5px]">Acceso completo + análisis IQ avanzado</p>
         </div>
 
-        <div className="p-6">
-          <div className="rounded-xl border-2 border-orange bg-cream/30 p-5 text-center">
-            <p className="text-[11px] font-mono uppercase tracking-wider text-orange">Suscripción mensual</p>
-            <p className="font-display text-4xl mt-2">
-              $12 <span className="text-base text-ink/50">USD/mes</span>
-            </p>
-            <p className="text-[12px] text-ink/55 mt-1">Renovación automática · cancelá cuando quieras</p>
-          </div>
-
-          <ul className="mt-5 space-y-1.5 text-[13.5px] text-ink/80">
-            <Bullet>Puntuación IQ con percentil exacto</Bullet>
-            <Bullet>Análisis detallado por área cognitiva</Bullet>
-            <Bullet>Certificado PDF descargable</Bullet>
-            <Bullet>Tests de IQ ilimitados con historial</Bullet>
-            <Bullet>Estudio activo con IA</Bullet>
-            <Bullet>Flashcards con repetición espaciada</Bullet>
-            <Bullet>Resúmenes y mapas conceptuales</Bullet>
-          </ul>
+        <div className="p-6 space-y-3">
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => openCheckout({ priceId: "pro_monthly" })}
+            className="w-full rounded-xl border-2 border-orange bg-cream/30 hover:bg-cream/60 p-4 text-left transition-colors disabled:opacity-60"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[11px] font-mono uppercase tracking-wider text-orange">Mensual</p>
+                <p className="font-display text-2xl mt-0.5">$12 <span className="text-sm text-ink/50">USD/mes</span></p>
+              </div>
+              <span className="text-[12px] font-medium text-ink">Elegir →</span>
+            </div>
+          </button>
 
           <button
             type="button"
-            onClick={() => navigate({ to: "/" })}
-            className="mt-6 w-full h-11 bg-ink text-paper text-[14px] font-medium rounded-md hover:bg-orange transition-colors"
+            disabled={loading}
+            onClick={() => openCheckout({ priceId: "pro_yearly" })}
+            className="w-full rounded-xl border border-ink/15 hover:border-ink/40 bg-paper p-4 text-left transition-colors disabled:opacity-60"
           >
-            Suscribirme por $12/mes →
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="text-[11px] font-mono uppercase tracking-wider text-ink/60">Anual</p>
+                  <span className="text-[10px] font-mono text-orange uppercase px-1.5 py-0.5 bg-orange/10 rounded">-25%</span>
+                </div>
+                <p className="font-display text-2xl mt-0.5">$108 <span className="text-sm text-ink/50">USD/año</span></p>
+                <p className="text-[11.5px] text-ink/55 mt-0.5">Equivale a $9/mes</p>
+              </div>
+              <span className="text-[12px] font-medium text-ink">Elegir →</span>
+            </div>
           </button>
+
+          <ul className="mt-4 space-y-1.5 text-[13px] text-ink/80">
+            <Bullet>Puntuación IQ con percentil exacto y análisis por área</Bullet>
+            <Bullet>Certificado PDF descargable</Bullet>
+            <Bullet>Tests ilimitados + estudio activo con IA</Bullet>
+          </ul>
+
+          <p className="text-[11px] text-ink/50 text-center pt-1">
+            Renovación automática · cancelá cuando quieras
+          </p>
         </div>
 
         <div className="px-6 pb-6 text-center">
