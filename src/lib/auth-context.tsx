@@ -30,13 +30,15 @@ async function ensureUserProfile(user: User | null) {
         ? metadata.name
         : user.email?.split("@")[0] ?? "Usuario";
 
-  await supabase.from("profiles").insert({
-    id: user.id,
-    email: user.email ?? null,
-    full_name: fullName,
-    avatar_url:
-      typeof metadata.avatar_url === "string" ? metadata.avatar_url : null,
-  });
+  await supabase.from("profiles").upsert(
+    {
+      id: user.id,
+      email: user.email ?? null,
+      full_name: fullName,
+      avatar_url: typeof metadata.avatar_url === "string" ? metadata.avatar_url : null,
+    },
+    { onConflict: "id", ignoreDuplicates: true },
+  );
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
