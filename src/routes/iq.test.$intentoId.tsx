@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, Clock, Loader2 } from "lucide-react";
-import { NeuralBackground } from "@/components/NeuralBackground";
+import { ArrowRight, Clock, Loader2, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   AREA_META,
@@ -41,6 +40,7 @@ function IQTestRunner() {
   const navigate = useNavigate();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loadingState, setLoadingState] = useState<"loading" | "ready" | "error">("loading");
+  const [errorMsg, setErrorMsg] = useState<string>("");
   const [idx, setIdx] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [answers, setAnswers] = useState<
@@ -50,7 +50,6 @@ function IQTestRunner() {
   const [submitting, setSubmitting] = useState(false);
   const questionStartedAt = useRef<number>(Date.now());
 
-  // Cargar preguntas; si falta sessionStorage armamos el orden automáticamente.
   useEffect(() => {
     (async () => {
       try {
@@ -58,28 +57,34 @@ function IQTestRunner() {
           .from("iq_questions")
           .select("id, area, dificultad, pregunta, opciones, indice_correcto, es_espacial")
           .eq("is_active", true);
-        if (error || !data) {
+        if (error) {
+          setErrorMsg(`Banco de preguntas: ${error.message}`);
+          setLoadingState("error");
+          return;
+        }
+        if (!data || data.length === 0) {
+          setErrorMsg("No hay preguntas disponibles en el banco.");
           setLoadingState("error");
           return;
         }
 
         const raw = sessionStorage.getItem("iq_session_questions");
-        const parsed = raw
-          ? (JSON.parse(raw) as { attemptId?: string; questionIds?: string[] })
-          : null;
+        let storedIds: string[] = [];
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw) as { attemptId?: string; questionIds?: string[] };
+            if (parsed && parsed.attemptId === intentoId && Array.isArray(parsed.questionIds)) {
+              storedIds = parsed.questionIds;
+            }
+          } catch {
+            // ignore
+          }
+        }
 
         const fallbackOrder = buildIQQuestionOrder(
-          data.map((q) => ({
-            id: q.id,
-            area: q.area as Area,
-            dificultad: q.dificultad as Dificultad,
-          })),
+          data.map((q) => ({ id: q.id, area: q.area as Area, dificultad: q.dificultad as Dificultad })),
         );
-
-        const questionIds =
-          parsed?.attemptId === intentoId && Array.isArray(parsed.questionIds) && parsed.questionIds.length > 0
-            ? parsed.questionIds
-            : fallbackOrder;
+        const questionIds = storedIds.length > 0 ? storedIds : fallbackOrder;
 
         const byId = new Map(data.map((q) => [q.id, q]));
         const ordered: Question[] = [];
@@ -99,25 +104,27 @@ function IQTestRunner() {
         }
 
         if (ordered.length < 20) {
+          setErrorMsg(`Solo se cargaron ${ordered.length} preguntas (mínimo 20).`);
           setLoadingState("error");
           return;
         }
 
         sessionStorage.setItem(
           "iq_session_questions",
-          JSON.stringify({ attemptId: intentoId, questionIds: ordered.map((question) => question.id) }),
+          JSON.stringify({ attemptId: intentoId, questionIds: ordered.map((q) => q.id) }),
         );
 
         setQuestions(ordered);
         setLoadingState("ready");
         questionStartedAt.current = Date.now();
-      } catch {
+      } catch (e) {
+        console.error("[iq/test] load error", e);
+        setErrorMsg(e instanceof Error ? e.message : "Error inesperado.");
         setLoadingState("error");
       }
     })();
   }, [intentoId]);
 
-  // Timer global
   useEffect(() => {
     if (loadingState !== "ready") return;
     const t = setInterval(() => {
@@ -142,21 +149,13 @@ function IQTestRunner() {
     if (selected === null || !current) return;
     const tiempo_ms = Date.now() - questionStartedAt.current;
     const es_correcto = selected === current.indice_correcto;
-    const newAnswer = {
-      question_id: current.id,
-      indice_seleccionado: selected,
-      es_correcto,
-      tiempo_ms,
-    };
+    const newAnswer = { question_id: current.id, indice_seleccionado: selected, es_correcto, tiempo_ms };
     const newAnswers = [...answers, newAnswer];
     setAnswers(newAnswers);
-    // Persistir respuesta (no bloqueante para UX, pero lo esperamos para asegurar consistencia)
     supabase
       .from("iq_answers")
       .insert({ attempt_id: intentoId, ...newAnswer })
-      .then(({ error }) => {
-        if (error) console.error("[iq_answers]", error.message);
-      });
+      .then(({ error }) => { if (error) console.error("[iq_answers]", error.message); });
 
     if (isLast) {
       await finalize(false, newAnswers);
@@ -167,10 +166,7 @@ function IQTestRunner() {
     questionStartedAt.current = Date.now();
   };
 
-  const finalize = async (
-    timedOut: boolean,
-    finalAnswers = answers,
-  ) => {
+  const finalize = async (timedOut: boolean, finalAnswers = answers) => {
     if (submitting) return;
     setSubmitting(true);
     try {
@@ -194,40 +190,42 @@ function IQTestRunner() {
     } catch (e) {
       console.error(e);
       setSubmitting(false);
-      if (timedOut) {
-        // intento de cierre forzado
-        navigate({ to: "/iq/resultado/$intentoId", params: { intentoId }, replace: true });
-      }
+      if (timedOut) navigate({ to: "/iq/resultado/$intentoId", params: { intentoId }, replace: true });
     }
   };
 
   const timerText = useMemo(() => {
     const m = Math.floor(secondsLeft / 60);
     const s = secondsLeft % 60;
-    return `${m}:${s.toString().padStart(2, "0")}`;
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   }, [secondsLeft]);
   const timerCritical = secondsLeft < 5 * 60;
 
   if (loadingState === "loading") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-paper">
-        <Loader2 className="w-6 h-6 animate-spin text-ink/50" />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-paper">
+        <Loader2 className="w-8 h-8 animate-spin text-ink/40 mb-4" />
+        <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-ink/50">Cargando banco de preguntas</p>
       </div>
     );
   }
   if (loadingState === "error" || !current) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-paper text-ink p-8 text-center">
-        <h2 className="font-display text-2xl">No pudimos cargar el test</h2>
-        <p className="text-ink/60 mt-2 text-sm">
-          Volvé al formulario inicial para reintentar.
-        </p>
-        <button
-          onClick={() => navigate({ to: "/iq/inicio" })}
-          className="mt-6 px-4 py-2 bg-ink text-paper rounded-md text-sm"
-        >
-          Volver
-        </button>
+      <div className="min-h-screen flex items-center justify-center bg-paper text-ink p-8">
+        <div className="max-w-md w-full border-2 border-ink p-8 shadow-[6px_6px_0_0_var(--ink)]">
+          <div className="inline-flex items-center gap-2 text-destructive mb-3">
+            <AlertTriangle className="w-5 h-5" strokeWidth={2.25} />
+            <span className="font-mono text-[11px] uppercase tracking-[0.2em]">Error al cargar</span>
+          </div>
+          <h2 className="font-display text-3xl mb-2">No pudimos iniciar el test</h2>
+          {errorMsg && <p className="text-[13px] text-ink/70 font-mono bg-cream/40 border border-border p-3 mt-3">{errorMsg}</p>}
+          <button
+            onClick={() => navigate({ to: "/iq/inicio" })}
+            className="mt-6 w-full px-4 py-3 bg-ink text-paper font-mono text-[12px] uppercase tracking-[0.2em] hover:bg-orange transition-colors"
+          >
+            Volver al inicio
+          </button>
+        </div>
       </div>
     );
   }
@@ -237,64 +235,53 @@ function IQTestRunner() {
   const progress = ((idx + (selected !== null ? 0.5 : 0)) / total) * 100;
 
   return (
-    <div className="relative min-h-screen bg-paper text-ink">
-      <NeuralBackground />
-
-      <header className="sticky top-0 z-30 bg-paper/80 backdrop-blur-xl border-b border-border">
+    <div className="min-h-screen bg-paper text-ink">
+      {/* Header brutalista — sticky */}
+      <header className="sticky top-0 z-30 bg-paper border-b-2 border-ink">
         <div className="container mx-auto px-5 lg:px-8 max-w-[820px] h-14 flex items-center justify-between gap-4">
-          <span className="text-[13px] text-ink/70 font-mono">
-            Pregunta {idx + 1} <span className="text-ink/40">/ {total}</span>
+          <span className="font-mono text-[12px] tabular-nums text-ink">
+            <span className="text-ink/40">N°</span> {(idx + 1).toString().padStart(2, "0")}
+            <span className="text-ink/40"> / {total}</span>
           </span>
-          <span
-            className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-mono uppercase tracking-wider border rounded ${meta.chipClass}`}
-          >
+          <span className={`hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-mono uppercase tracking-[0.2em] border-2 ${meta.chipClass}`}>
             {meta.label}
           </span>
-          <span
-            className={`inline-flex items-center gap-1.5 text-[13px] font-mono ${
-              timerCritical ? "text-destructive font-semibold" : "text-ink/60"
-            }`}
-          >
-            <Clock className="w-3.5 h-3.5" strokeWidth={2} />
+          <span className={`inline-flex items-center gap-2 font-mono text-[13px] tabular-nums ${timerCritical ? "text-destructive font-bold" : "text-ink"}`}>
+            <Clock className="w-3.5 h-3.5" strokeWidth={2.25} />
             {timerText}
           </span>
         </div>
-        <div className="h-1 bg-cream/60">
-          <div
-            className="h-full bg-gradient-to-r from-orange to-orange-deep transition-all duration-500"
-            style={{ width: `${progress}%` }}
-          />
+        <div className="h-[3px] bg-cream">
+          <div className="h-full bg-ink transition-all duration-500" style={{ width: `${progress}%` }} />
         </div>
       </header>
 
-      <main className="container mx-auto px-5 lg:px-8 max-w-[820px] py-10">
+      <main className="container mx-auto px-5 lg:px-8 max-w-[820px] py-10 lg:py-14">
         {current.pregunta.includes("<svg") ? (
-          <div className="rounded-xl border border-border bg-gradient-to-br from-cream to-paper p-6 shadow-soft space-y-4">
+          <div className="border-2 border-ink bg-cream p-8 space-y-5">
             <div
               className="flex justify-center overflow-x-auto [&_svg]:max-w-full [&_svg]:h-auto [&_text]:fill-ink"
-              dangerouslySetInnerHTML={{
-                __html: current.pregunta.split("\n")[0],
-              }}
+              dangerouslySetInnerHTML={{ __html: current.pregunta.split("\n")[0] }}
             />
-            <p className="font-display text-lg lg:text-xl leading-relaxed text-ink text-center">
+            <p className="font-display text-xl lg:text-2xl leading-snug text-ink text-center">
               {current.pregunta.split("\n").slice(1).join(" ").trim()}
             </p>
           </div>
         ) : visual ? (
-          <div className="rounded-xl border border-border bg-gradient-to-br from-cream to-paper py-12 px-6 text-center shadow-soft">
+          <div className="border-2 border-ink bg-cream py-14 px-6 text-center">
             <p className="font-mono text-4xl tracking-wide leading-snug text-ink whitespace-pre-wrap">
               {current.pregunta}
             </p>
           </div>
         ) : (
-          <div className="rounded-xl border border-border bg-paper/90 backdrop-blur-sm p-6 shadow-soft">
-            <p className="font-display text-lg lg:text-xl leading-relaxed text-ink">
+          <div className="border-l-4 border-ink pl-6 py-2">
+            <p className="font-display text-2xl lg:text-3xl leading-[1.25] text-ink tracking-tight">
               {current.pregunta}
             </p>
           </div>
         )}
 
-        <div className="mt-6 grid gap-3">
+        <div className="mt-8 grid gap-3">
           {current.opciones.map((opt, i) => {
             const isSel = selected === i;
             return (
@@ -302,43 +289,41 @@ function IQTestRunner() {
                 key={i}
                 type="button"
                 onClick={() => setSelected(i)}
-                className={`group flex items-start gap-4 text-left p-4 rounded-lg border transition-all ${
+                className={`group flex items-start gap-4 text-left p-4 border-2 transition-all ${
                   isSel
-                    ? "border-orange bg-orange/5 shadow-orange"
-                    : "border-border bg-paper hover:border-ink/40 hover:bg-cream/40"
+                    ? "border-ink bg-ink text-paper shadow-[4px_4px_0_0_var(--orange)]"
+                    : "border-ink/15 bg-paper hover:border-ink"
                 }`}
               >
                 <span
-                  className={`mt-0.5 inline-flex items-center justify-center w-7 h-7 rounded-md font-mono text-[13px] flex-shrink-0 ${
-                    isSel
-                      ? "bg-orange text-paper"
-                      : "bg-cream text-ink/70 group-hover:bg-cream/80"
+                  className={`mt-0.5 inline-flex items-center justify-center w-8 h-8 font-mono text-[13px] flex-shrink-0 border-2 ${
+                    isSel ? "bg-orange text-paper border-orange" : "bg-paper text-ink border-ink/30 group-hover:border-ink"
                   }`}
                 >
                   {String.fromCharCode(65 + i)}
                 </span>
-                <span className="text-[15px] leading-snug text-ink">{opt}</span>
+                <span className={`text-[15px] leading-snug pt-1 ${isSel ? "text-paper" : "text-ink"}`}>{opt}</span>
               </button>
             );
           })}
         </div>
 
-        <div className="mt-8 flex items-center justify-between">
-          <span className="text-[12px] font-mono text-ink/40 uppercase tracking-wider">
-            {current.dificultad}
+        <div className="mt-10 flex items-center justify-between border-t-2 border-ink pt-6">
+          <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-ink/50">
+            Dificultad · {current.dificultad}
           </span>
           <button
             type="button"
             onClick={goNext}
             disabled={selected === null || submitting}
-            className="inline-flex items-center gap-2 h-11 px-5 bg-ink text-paper text-[14px] font-medium rounded-md hover:bg-orange transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="group inline-flex items-center gap-3 h-12 px-6 bg-ink text-paper font-mono text-[12px] uppercase tracking-[0.2em] hover:bg-orange transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           >
             {submitting ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <>
                 {isLast ? "Ver resultado" : "Siguiente"}
-                <ArrowRight className="w-4 h-4" strokeWidth={2} />
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" strokeWidth={2.25} />
               </>
             )}
           </button>
