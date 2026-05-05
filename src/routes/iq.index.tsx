@@ -174,10 +174,42 @@ function SpecRow({ k, v }: { k: string; v: string }) {
   );
 }
 
-function AreaCell({ n, title, desc, last }: { n: string; title: string; desc: string; last?: boolean }) {
+type Tone = "crimson" | "cobalt" | "mustard" | "sage";
+const TONE_BG: Record<Tone, string> = {
+  crimson: "hover:bg-orange/10",
+  cobalt: "hover:bg-cobalt-soft",
+  mustard: "hover:bg-mustard-soft",
+  sage: "hover:bg-sage-soft",
+};
+const TONE_NUM: Record<Tone, string> = {
+  crimson: "text-orange",
+  cobalt: "text-cobalt",
+  mustard: "text-mustard",
+  sage: "text-sage",
+};
+
+function AreaCell({
+  n,
+  title,
+  desc,
+  tone,
+  last,
+}: {
+  n: string;
+  title: string;
+  desc: string;
+  tone: Tone;
+  last?: boolean;
+}) {
   return (
-    <div className={`p-7 ${!last ? "border-b-2 sm:border-b-2 lg:border-b-0 lg:border-r-2 border-ink last:border-r-0 sm:[&:nth-child(2)]:border-r-0 lg:[&:nth-child(2)]:border-r-2" : ""} hover:bg-cream transition-colors`}>
-      <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-orange">§ {n}</span>
+    <div
+      className={`p-7 group transition-colors ${TONE_BG[tone]} ${
+        !last
+          ? "border-b-2 sm:border-b-2 lg:border-b-0 lg:border-r-2 border-ink last:border-r-0 sm:[&:nth-child(2)]:border-r-0 lg:[&:nth-child(2)]:border-r-2"
+          : ""
+      }`}
+    >
+      <span className={`font-mono text-[10px] uppercase tracking-[0.3em] ${TONE_NUM[tone]}`}>§ {n}</span>
       <h3 className="font-display text-3xl mt-3 tracking-tight">{title}</h3>
       <p className="text-[13px] text-ink/70 mt-2 leading-relaxed">{desc}</p>
     </div>
