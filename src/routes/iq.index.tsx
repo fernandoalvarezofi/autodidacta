@@ -80,20 +80,21 @@ function IQLanding() {
         </div>
       </section>
 
-      {/* Áreas — grid editorial con números enormes */}
-      <section className="border-b-2 border-ink">
-        <div className="container mx-auto px-6 lg:px-10 max-w-[1200px] py-16 lg:py-24">
+      {/* Áreas — grid editorial con colores propios */}
+      <section className="border-b-2 border-ink bg-cream/40 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-dots-orange opacity-50" aria-hidden />
+        <div className="container mx-auto px-6 lg:px-10 max-w-[1200px] py-16 lg:py-24 relative">
           <div className="flex items-end justify-between mb-12 flex-wrap gap-4">
             <h2 className="font-display tracking-[-0.02em]" style={{ fontSize: "clamp(2rem, 4vw, 3.5rem)" }}>
-              Cuatro áreas,<br/><span className="italic">un panorama completo.</span>
+              Cuatro áreas,<br/><span className="italic text-cobalt">un panorama completo.</span>
             </h2>
             <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-ink/50">§ 01–04</span>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 border-2 border-ink">
-            <AreaCell n="01" title="Lógica" desc="Deducción, secuencias y analogías." />
-            <AreaCell n="02" title="Numérico" desc="Series, aritmética y álgebra." />
-            <AreaCell n="03" title="Espacial" desc="Rotaciones, simetrías y patrones." />
-            <AreaCell n="04" title="Verbal" desc="Sinónimos, analogías, comprensión." last />
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 border-2 border-ink bg-paper">
+            <AreaCell n="01" title="Lógica" desc="Deducción, secuencias y analogías." tone="crimson" />
+            <AreaCell n="02" title="Numérico" desc="Series, aritmética y álgebra." tone="cobalt" />
+            <AreaCell n="03" title="Espacial" desc="Rotaciones, simetrías y patrones." tone="mustard" />
+            <AreaCell n="04" title="Verbal" desc="Sinónimos, analogías, comprensión." tone="sage" last />
           </div>
         </div>
       </section>
