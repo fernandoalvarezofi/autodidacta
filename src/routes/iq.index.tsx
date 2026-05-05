@@ -1,215 +1,192 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  ArrowRight,
-  Brain,
-  Calculator,
-  Shapes,
-  BookText,
-  Check,
-  Sparkles,
-  Crown,
-} from "lucide-react";
+import { ArrowRight, Check, History } from "lucide-react";
 import { Navbar } from "@/components/landing/Navbar";
-import { NeuralBackground } from "@/components/NeuralBackground";
+import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/iq/")({
   head: () => ({
     meta: [
       { title: "Test de IQ — Autodidactas" },
-      {
-        name: "description",
-        content:
-          "Evaluación cognitiva científica gratuita: 60 preguntas que miden razonamiento lógico, numérico, espacial y verbal. Sin registro previo.",
-      },
+      { name: "description", content: "Evaluación cognitiva: 60 preguntas que miden razonamiento lógico, numérico, espacial y verbal." },
       { property: "og:title", content: "Test de IQ — Autodidactas" },
-      {
-        property: "og:description",
-        content:
-          "60 preguntas estandarizadas. Descubrí cómo funciona tu mente en 20 minutos.",
-      },
+      { property: "og:description", content: "60 preguntas estandarizadas. Descubrí cómo funciona tu mente en 20 minutos." },
     ],
   }),
   component: IQLanding,
 });
 
 function IQLanding() {
+  const { user } = useAuth();
+
   return (
-    <div className="relative min-h-screen bg-paper text-ink">
-      <NeuralBackground />
+    <div className="min-h-screen bg-paper text-ink">
       <Navbar />
 
-      <main className="container mx-auto px-6 lg:px-10 max-w-[1100px]">
-        <section className="pt-16 pb-20 lg:pt-24 lg:pb-28 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 text-[12px] bg-cream/60 border border-border rounded-full backdrop-blur-sm mb-8">
-            <Sparkles className="w-3 h-3 text-orange" strokeWidth={2.5} />
-            <span className="text-ink/80">Evaluación cognitiva científica</span>
-          </div>
+      {/* HERO editorial brutalista */}
+      <section className="border-b-2 border-ink">
+        <div className="container mx-auto px-6 lg:px-10 max-w-[1200px] py-16 lg:py-24 grid lg:grid-cols-12 gap-10 items-end">
+          <div className="lg:col-span-8">
+            <div className="flex items-center gap-3 mb-8">
+              <span className="font-mono text-[11px] uppercase tracking-[0.3em] text-orange">Vol. I</span>
+              <span className="w-12 h-px bg-ink/30" />
+              <span className="font-mono text-[11px] uppercase tracking-[0.3em] text-ink/60">Evaluación cognitiva</span>
+            </div>
 
-          <h1
-            className="font-display font-semibold leading-[0.98] tracking-[-0.035em] max-w-3xl mx-auto"
-            style={{ fontSize: "clamp(2.5rem, 6.5vw, 5rem)" }}
-          >
-            Descubrí cómo
-            <br />
-            <span className="bg-gradient-to-br from-ink via-ink to-orange/80 bg-clip-text text-transparent">
-              funciona tu mente.
-            </span>
-          </h1>
-
-          <p className="mt-7 text-[17px] lg:text-lg text-ink/65 max-w-[60ch] mx-auto leading-relaxed">
-            60 preguntas estandarizadas que miden tu razonamiento lógico, numérico,
-            espacial y verbal. Gratuito. Sin registro previo.
-          </p>
-
-          <dl className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-[13px] text-ink/70">
-            <Stat value="60" label="preguntas" />
-            <Sep />
-            <Stat value="4" label="áreas" />
-            <Sep />
-            <Stat value="~20 min" label="duración" />
-            <Sep />
-            <Stat value="55–160" label="rango IQ" />
-          </dl>
-
-          <div className="mt-10">
-            <Link
-              to="/iq/inicio"
-              className="group inline-flex items-center gap-2 px-6 py-3.5 bg-ink text-paper text-[14px] font-medium hover:bg-orange transition-colors rounded-md shadow-soft"
+            <h1
+              className="font-display leading-[0.92] tracking-[-0.025em]"
+              style={{ fontSize: "clamp(3rem, 9vw, 7rem)" }}
             >
-              Comenzar test gratuito
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" strokeWidth={2} />
-            </Link>
-          </div>
-        </section>
+              Test de<br/>
+              <span className="italic text-orange">Cociente</span><br/>
+              Intelectual.
+            </h1>
 
-        <section className="pb-20">
-          <div className="text-center mb-10">
-            <h2 className="font-display text-3xl lg:text-4xl tracking-tight">
-              Cuatro áreas, un panorama completo
-            </h2>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <AreaCard
-              icon={<Brain className="w-5 h-5" strokeWidth={2} />}
-              title="Lógica"
-              desc="Deducción, secuencias, analogías"
-            />
-            <AreaCard
-              icon={<Calculator className="w-5 h-5" strokeWidth={2} />}
-              title="Numérico"
-              desc="Series, aritmética, álgebra"
-            />
-            <AreaCard
-              icon={<Shapes className="w-5 h-5" strokeWidth={2} />}
-              title="Espacial"
-              desc="Rotaciones, simetrías, patrones"
-            />
-            <AreaCard
-              icon={<BookText className="w-5 h-5" strokeWidth={2} />}
-              title="Verbal"
-              desc="Sinónimos, analogías, comprensión"
-            />
-          </div>
-        </section>
-
-        <section className="pb-24">
-          <div className="text-center mb-10">
-            <h2 className="font-display text-3xl lg:text-4xl tracking-tight">
-              ¿Qué incluye el resultado?
-            </h2>
-            <p className="text-ink/60 mt-3 text-[15px]">
-              Mirá la diferencia entre la versión gratuita y el plan Pro.
+            <p className="mt-8 max-w-[55ch] text-[16px] lg:text-[17px] text-ink/75 leading-relaxed">
+              Sesenta preguntas estandarizadas. Cuatro áreas. Veinte minutos. Sin registro previo, sin trampas, sin promesas vacías. Una medición rigurosa de cómo razona tu mente —ahora.
             </p>
+
+            <div className="mt-10 flex flex-wrap items-center gap-4">
+              <Link
+                to="/iq/inicio"
+                className="group inline-flex items-center gap-3 h-13 px-7 py-4 bg-ink text-paper font-mono text-[12px] uppercase tracking-[0.25em] hover:bg-orange transition-colors shadow-[6px_6px_0_0_var(--orange)] hover:shadow-[6px_6px_0_0_var(--ink)]"
+              >
+                Comenzar test
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" strokeWidth={2.25} />
+              </Link>
+              {user && (
+                <Link
+                  to="/iq/historial"
+                  className="inline-flex items-center gap-2 h-13 px-5 py-4 border-2 border-ink text-ink font-mono text-[12px] uppercase tracking-[0.2em] hover:bg-ink hover:text-paper transition-colors"
+                >
+                  <History className="w-4 h-4" strokeWidth={2.25} /> Mi historial
+                </Link>
+              )}
+            </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-5 max-w-3xl mx-auto">
-            <div className="rounded-xl border border-border bg-paper/80 backdrop-blur-sm p-6">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-[11px] font-mono uppercase tracking-[0.18em] text-ink/45">
-                  Gratis
-                </span>
-                <span className="text-[11px] text-ink/45">$0</span>
+          {/* Tabla editorial de specs */}
+          <aside className="lg:col-span-4 border-2 border-ink bg-paper">
+            <div className="border-b-2 border-ink px-5 py-3 bg-ink text-paper">
+              <p className="font-mono text-[10px] uppercase tracking-[0.3em]">Ficha técnica</p>
+            </div>
+            <dl className="divide-y-2 divide-ink/15">
+              <SpecRow k="Preguntas" v="60" />
+              <SpecRow k="Áreas cognitivas" v="04" />
+              <SpecRow k="Duración máxima" v="20:00" />
+              <SpecRow k="Rango IQ" v="55–160" />
+              <SpecRow k="Costo" v="$0" />
+            </dl>
+          </aside>
+        </div>
+      </section>
+
+      {/* Áreas — grid editorial con números enormes */}
+      <section className="border-b-2 border-ink">
+        <div className="container mx-auto px-6 lg:px-10 max-w-[1200px] py-16 lg:py-24">
+          <div className="flex items-end justify-between mb-12 flex-wrap gap-4">
+            <h2 className="font-display tracking-[-0.02em]" style={{ fontSize: "clamp(2rem, 4vw, 3.5rem)" }}>
+              Cuatro áreas,<br/><span className="italic">un panorama completo.</span>
+            </h2>
+            <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-ink/50">§ 01–04</span>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 border-2 border-ink">
+            <AreaCell n="01" title="Lógica" desc="Deducción, secuencias y analogías." />
+            <AreaCell n="02" title="Numérico" desc="Series, aritmética y álgebra." />
+            <AreaCell n="03" title="Espacial" desc="Rotaciones, simetrías y patrones." />
+            <AreaCell n="04" title="Verbal" desc="Sinónimos, analogías, comprensión." last />
+          </div>
+        </div>
+      </section>
+
+      {/* Plans */}
+      <section className="border-b-2 border-ink">
+        <div className="container mx-auto px-6 lg:px-10 max-w-[1100px] py-16 lg:py-24">
+          <div className="text-center mb-12">
+            <span className="font-mono text-[11px] uppercase tracking-[0.3em] text-orange">Resultado</span>
+            <h2 className="font-display mt-3 tracking-[-0.02em]" style={{ fontSize: "clamp(2rem, 4vw, 3.5rem)" }}>
+              Lo que vas a recibir.
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-0 max-w-3xl mx-auto border-2 border-ink">
+            <div className="p-7 border-b-2 md:border-b-0 md:border-r-2 border-ink">
+              <div className="flex items-baseline justify-between mb-5">
+                <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-ink/60">Gratis</span>
+                <span className="font-display text-3xl">$0</span>
               </div>
-              <p className="font-display text-2xl mb-4">Resultado básico</p>
-              <ul className="space-y-2 text-[13.5px] text-ink/80">
+              <p className="font-display text-2xl mb-5">Resultado básico</p>
+              <ul className="space-y-2.5">
                 <ProItem>Puntuación IQ exacta</ProItem>
                 <ProItem>Clasificación cognitiva</ProItem>
-                <ProItem>Rango aproximado de percentil</ProItem>
+                <ProItem>Rango de percentil</ProItem>
                 <ProItem>Total de respuestas correctas</ProItem>
               </ul>
             </div>
 
-            <div className="rounded-xl border-2 border-orange bg-paper p-6 shadow-orange relative">
-              <span className="absolute -top-3 left-6 inline-flex items-center gap-1 px-2 py-0.5 bg-orange text-paper text-[10px] font-mono uppercase tracking-wider rounded">
-                <Crown className="w-3 h-3" strokeWidth={2.5} /> Plan Pro
+            <div className="p-7 bg-ink text-paper relative">
+              <span className="absolute -top-px right-0 px-3 py-1 bg-orange text-paper text-[10px] font-mono uppercase tracking-[0.2em]">
+                Plan Pro
               </span>
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-[11px] font-mono uppercase tracking-[0.18em] text-orange">
-                  Suscripción
-                </span>
-                <span className="text-[11px] text-ink/60">
-                  <span className="font-semibold text-ink">$12</span> USD/mes
-                </span>
+              <div className="flex items-baseline justify-between mb-5">
+                <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-paper/60">Suscripción</span>
+                <span className="font-display text-3xl">$12<span className="text-base text-paper/60">/mes</span></span>
               </div>
-              <p className="font-display text-2xl mb-4">Análisis completo</p>
-              <ul className="space-y-2 text-[13.5px] text-ink/80">
-                <ProItem>Todo lo del plan gratuito</ProItem>
-                <ProItem>Percentil exacto y comparativa global</ProItem>
-                <ProItem>Análisis detallado por área cognitiva</ProItem>
-                <ProItem>Certificado PDF descargable</ProItem>
-                <ProItem>Tests ilimitados con historial</ProItem>
-                <ProItem>Acceso completo a Autodidactas</ProItem>
+              <p className="font-display text-2xl mb-5">Análisis completo</p>
+              <ul className="space-y-2.5 text-paper/90">
+                <ProItem dark>Todo lo del plan gratuito</ProItem>
+                <ProItem dark>Percentil exacto y comparativa</ProItem>
+                <ProItem dark>Análisis por área cognitiva</ProItem>
+                <ProItem dark>Certificado PDF descargable</ProItem>
+                <ProItem dark>Tests ilimitados con historial</ProItem>
+                <ProItem dark>Acceso completo a Autodidactas</ProItem>
               </ul>
-              <p className="mt-4 text-[11.5px] text-ink/50">
-                Renovación automática mensual · cancelá cuando quieras.
-              </p>
             </div>
           </div>
 
-          <div className="text-center mt-10">
+          <div className="text-center mt-12">
             <Link
               to="/iq/inicio"
-              className="inline-flex items-center gap-2 px-5 py-3 bg-ink text-paper text-[14px] font-medium hover:bg-orange transition-colors rounded-md"
+              className="group inline-flex items-center gap-3 px-7 py-4 bg-ink text-paper font-mono text-[12px] uppercase tracking-[0.25em] hover:bg-orange transition-colors shadow-[6px_6px_0_0_var(--orange)]"
             >
               Comenzar ahora
-              <ArrowRight className="w-4 h-4" strokeWidth={2} />
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" strokeWidth={2.25} />
             </Link>
           </div>
-        </section>
-      </main>
+        </div>
+      </section>
+
+      <footer className="py-10 text-center">
+        <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-ink/40">
+          Autodidactas · Vol. I · Test de IQ
+        </p>
+      </footer>
     </div>
   );
 }
 
-function Stat({ value, label }: { value: string; label: string }) {
+function SpecRow({ k, v }: { k: string; v: string }) {
   return (
-    <div className="text-center">
-      <span className="font-display text-xl font-semibold text-ink">{value}</span>
-      <span className="ml-1.5 text-ink/50">{label}</span>
+    <div className="flex items-baseline justify-between px-5 py-3.5">
+      <dt className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink/60">{k}</dt>
+      <dd className="font-display text-xl tabular-nums">{v}</dd>
     </div>
   );
 }
 
-function Sep() {
-  return <span className="hidden sm:inline-block w-px h-5 bg-border" />;
-}
-
-function AreaCard({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
+function AreaCell({ n, title, desc, last }: { n: string; title: string; desc: string; last?: boolean }) {
   return (
-    <div className="rounded-xl border border-border bg-paper/80 backdrop-blur-sm p-5 hover:border-ink/40 transition-colors">
-      <div className="w-9 h-9 rounded-md bg-cream inline-flex items-center justify-center text-orange mb-3">
-        {icon}
-      </div>
-      <h3 className="font-display text-xl">{title}</h3>
-      <p className="text-[13px] text-ink/60 mt-1.5">{desc}</p>
+    <div className={`p-7 ${!last ? "border-b-2 sm:border-b-2 lg:border-b-0 lg:border-r-2 border-ink last:border-r-0 sm:[&:nth-child(2)]:border-r-0 lg:[&:nth-child(2)]:border-r-2" : ""} hover:bg-cream transition-colors`}>
+      <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-orange">§ {n}</span>
+      <h3 className="font-display text-3xl mt-3 tracking-tight">{title}</h3>
+      <p className="text-[13px] text-ink/70 mt-2 leading-relaxed">{desc}</p>
     </div>
   );
 }
 
-function ProItem({ children }: { children: React.ReactNode }) {
+function ProItem({ children, dark }: { children: React.ReactNode; dark?: boolean }) {
   return (
-    <li className="flex items-start gap-2">
-      <Check className="w-4 h-4 text-orange flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+    <li className="flex items-start gap-2.5 text-[13.5px]">
+      <Check className={`w-4 h-4 flex-shrink-0 mt-0.5 ${dark ? "text-orange" : "text-orange"}`} strokeWidth={2.5} />
       <span>{children}</span>
     </li>
   );
