@@ -22,9 +22,14 @@ function IQLanding() {
     <div className="min-h-screen bg-paper text-ink">
       <Navbar />
 
-      {/* HERO editorial brutalista */}
-      <section className="border-b-2 border-ink">
-        <div className="container mx-auto px-6 lg:px-10 max-w-[1200px] py-16 lg:py-24 grid lg:grid-cols-12 gap-10 items-end">
+      {/* HERO editorial brutalista con vida */}
+      <section className="border-b-2 border-ink relative overflow-hidden">
+        {/* bloques decorativos */}
+        <div className="absolute -top-12 right-10 w-48 h-48 bg-cobalt rotate-12 -z-0 opacity-90" aria-hidden />
+        <div className="absolute top-1/3 -left-10 w-32 h-32 bg-mustard -rotate-6 -z-0" aria-hidden />
+        <div className="absolute bottom-10 right-1/4 w-24 h-24 bg-sage rotate-3 -z-0" aria-hidden />
+
+        <div className="container mx-auto px-6 lg:px-10 max-w-[1200px] py-16 lg:py-24 grid lg:grid-cols-12 gap-10 items-end relative">
           <div className="lg:col-span-8">
             <div className="flex items-center gap-3 mb-8">
               <span className="font-mono text-[11px] uppercase tracking-[0.3em] text-orange">Vol. I</span>
@@ -38,7 +43,7 @@ function IQLanding() {
             >
               Test de<br/>
               <span className="italic text-orange">Cociente</span><br/>
-              Intelectual.
+              <span className="text-cobalt">Intelectual.</span>
             </h1>
 
             <p className="mt-8 max-w-[55ch] text-[16px] lg:text-[17px] text-ink/75 leading-relaxed">
