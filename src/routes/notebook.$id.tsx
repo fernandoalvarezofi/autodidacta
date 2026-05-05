@@ -45,6 +45,7 @@ function NotebookPage() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>("documents");
   const [showUploader, setShowUploader] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const readyDocsCount = documents.filter((d) => d.status === "ready").length;
 
