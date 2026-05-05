@@ -58,6 +58,10 @@
   --color-orange: var(--orange);
   --color-orange-deep: var(--orange-deep);
   --color-cream: var(--cream);
+  --color-cobalt: var(--cobalt);
+  --color-mustard: var(--mustard);
+  --color-sage: var(--sage);
+  --color-plum: var(--plum);
 }
 
 :root {
@@ -69,9 +73,19 @@
   --ink: oklch(20% 0.012 60);                /* tinta densa, casi negro cálido */
   --rule: oklch(82% 0.015 70);               /* líneas finas */
 
-  /* Acento: CRIMSON HARVARD #A51C30 — convertido a oklch */
-  --orange: oklch(43% 0.165 18);             /* crimson Harvard principal */
-  --orange-deep: oklch(36% 0.16 18);         /* crimson más oscuro / hover */
+  /* Acento principal: CRIMSON HARVARD #A51C30 */
+  --orange: oklch(43% 0.165 18);
+  --orange-deep: oklch(36% 0.16 18);
+
+  /* Paleta editorial extendida — risograph / collage moderno */
+  --cobalt: oklch(45% 0.20 260);             /* azul cobalto eléctrico */
+  --cobalt-soft: oklch(88% 0.06 260);
+  --mustard: oklch(75% 0.15 80);             /* mostaza cálida */
+  --mustard-soft: oklch(92% 0.06 85);
+  --sage: oklch(72% 0.07 150);               /* verde salvia */
+  --sage-soft: oklch(92% 0.04 150);
+  --plum: oklch(40% 0.12 330);               /* ciruela profundo */
+  --plum-soft: oklch(90% 0.04 330);
 
   --background: oklch(97.5% 0.012 80);
   --foreground: oklch(20% 0.012 60);
