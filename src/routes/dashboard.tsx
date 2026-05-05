@@ -736,38 +736,57 @@ function NotebookCard({ notebook }: { notebook: NotebookRow }) {
     <Link
       to="/notebook/$id"
       params={{ id: notebook.id }}
-      className="group relative h-auto min-h-[210px] bg-paper border border-border hover:border-ink/30 transition-all flex flex-col overflow-hidden rounded-xl hover:shadow-elevated hover:-translate-y-0.5"
+      className="group relative h-auto min-h-[230px] bg-paper border-2 border-ink flex flex-col overflow-hidden transition-all duration-150 shadow-[4px_4px_0_0_var(--color-ink)] hover:shadow-[7px_7px_0_0_var(--color-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:shadow-[2px_2px_0_0_var(--color-ink)] active:translate-x-0 active:translate-y-0"
     >
-      <div className={`relative h-[88px] bg-gradient-to-br ${cover} overflow-hidden`}>
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/[0.04]" />
-        <div className="absolute top-3 left-3">
-          <ClayIcon icon={resolveIcon(notebook.emoji)} size={44} />
+      {/* Cover bloque sólido con tag tipo etiqueta de archivo */}
+      <div className={`relative h-[96px] ${cover.bg} border-b-2 border-ink overflow-hidden`}>
+        {/* trama de puntos */}
+        <div
+          className="absolute inset-0 opacity-25"
+          style={{
+            backgroundImage: `radial-gradient(${cover.accent} 1px, transparent 1px)`,
+            backgroundSize: "10px 10px",
+          }}
+        />
+        {/* etiqueta lateral tipo lomo */}
+        <div
+          className={`absolute top-0 left-4 ${cover.tag} text-paper px-2 pt-1 pb-1.5 text-[9px] font-mono tracking-[0.22em] border-x-2 border-b-2 border-ink`}
+        >
+          {cover.label}
         </div>
-        <div className="absolute top-3 right-3 flex items-center gap-1">
+        {/* icono */}
+        <div className="absolute top-3 right-3 bg-paper border-2 border-ink p-1.5 shadow-[2px_2px_0_0_var(--color-ink)] group-hover:rotate-[-4deg] transition-transform">
+          <ClayIcon icon={resolveIcon(notebook.emoji)} size={36} flat />
+        </div>
+        {/* badges de estado abajo a la izquierda */}
+        <div className="absolute bottom-2 left-3 flex items-center gap-1">
           {processing > 0 && (
-            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-paper/85 backdrop-blur-sm rounded-full text-[10px] font-mono text-ink/65">
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-paper border-2 border-ink text-[9px] font-mono uppercase tracking-wider text-ink">
               <Clock className="w-2.5 h-2.5 animate-pulse" strokeWidth={2.5} /> {processing}
             </span>
           )}
           {errors > 0 && (
-            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-paper/85 backdrop-blur-sm rounded-full text-[10px] font-mono text-destructive">
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-destructive text-paper border-2 border-ink text-[9px] font-mono uppercase tracking-wider">
               <AlertCircle className="w-2.5 h-2.5" strokeWidth={2.5} /> {errors}
             </span>
           )}
           {ready > 0 && processing === 0 && errors === 0 && (
-            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-paper/85 backdrop-blur-sm rounded-full text-[10px] font-mono text-orange-deep">
-              <CheckCircle2 className="w-2.5 h-2.5" strokeWidth={2.5} />
+            <span
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 text-paper border-2 border-ink text-[9px] font-mono uppercase tracking-wider"
+              style={{ backgroundColor: cover.accent }}
+            >
+              <CheckCircle2 className="w-2.5 h-2.5" strokeWidth={2.5} /> {ready}
             </span>
           )}
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col px-4 pt-3 pb-3.5 min-h-0">
-        <h3 className="font-display text-[15.5px] font-semibold tracking-tight text-ink line-clamp-2 leading-snug">
+      <div className="flex-1 flex flex-col px-4 pt-3 pb-3.5 min-h-0 bg-paper">
+        <h3 className="font-display text-[19px] tracking-tight text-ink line-clamp-2 leading-[1.1]">
           {notebook.title}
         </h3>
         {notebook.description && (
-          <p className="text-[12px] text-ink/55 mt-1 line-clamp-1 leading-relaxed">{notebook.description}</p>
+          <p className="text-[12px] text-ink/60 mt-1 line-clamp-1 leading-relaxed">{notebook.description}</p>
         )}
         {ready > 0 && (
           <div className="flex flex-wrap gap-1 mt-2.5" onClick={(e) => e.stopPropagation()}>
@@ -776,45 +795,35 @@ function NotebookCard({ notebook }: { notebook: NotebookRow }) {
                 key={d.id}
                 to="/document/$id"
                 params={{ id: d.id }}
-                className="inline-flex items-center gap-1 px-2 py-1 bg-cream border border-border rounded text-xs hover:border-ink/40 transition-colors truncate max-w-[130px]"
+                className="inline-flex items-center gap-1 px-2 py-0.5 bg-cream border border-ink/60 text-[11px] font-mono hover:bg-ink hover:text-paper transition-colors truncate max-w-[130px]"
                 title={d.title}
               >
                 {d.title}
               </Link>
             ))}
             {ready > 3 && (
-              <Link
-                to="/notebook/$id"
-                params={{ id: notebook.id }}
-                className="inline-flex items-center gap-1 px-2 py-1 bg-cream border border-border rounded text-xs hover:border-ink/40 transition-colors text-orange-deep"
-              >
-                + {ready - 3} más →
-              </Link>
+              <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-mono text-ink/55">
+                +{ready - 3}
+              </span>
             )}
           </div>
         )}
         {ready === 0 && processing > 0 && (
-          <p className="text-xs text-ink/50 mt-2.5 inline-flex items-center gap-1">
-            <Loader2 className="w-3 h-3 animate-spin" /> Procesando...
+          <p className="text-xs text-ink/55 mt-2.5 inline-flex items-center gap-1 font-mono">
+            <Loader2 className="w-3 h-3 animate-spin" /> PROCESANDO...
           </p>
         )}
         {total === 0 && (
-          <Link
-            to="/notebook/$id"
-            params={{ id: notebook.id }}
-            onClick={(e) => e.stopPropagation()}
-            className="text-xs text-orange hover:text-orange-deep mt-2.5 inline-block font-medium"
-          >
+          <span className="text-[11px] text-ink/55 mt-2.5 font-mono uppercase tracking-wider">
             Subí tu primer material →
-          </Link>
+          </span>
         )}
-        <div className="mt-auto pt-2 flex items-center gap-2 text-[11px] font-mono text-ink/45">
-          <span>{relativeDate(notebook.created_at)}</span>
-          <span className="text-ink/20">·</span>
-          <span>
+        <div className="mt-auto pt-2 flex items-center gap-2 text-[10px] font-mono text-ink/50 uppercase tracking-[0.15em] border-t border-dashed border-ink/20">
+          <span className="pt-1.5">{relativeDate(notebook.created_at)}</span>
+          <span className="text-ink/20 pt-1.5">·</span>
+          <span className="pt-1.5">
             {total} {total === 1 ? "fuente" : "fuentes"}
           </span>
-          <Globe className="w-3 h-3 ml-auto text-ink/30" strokeWidth={2} />
         </div>
       </div>
     </Link>
