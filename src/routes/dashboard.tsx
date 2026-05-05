@@ -885,25 +885,34 @@ function relativeDate(iso: string): string {
 
 function EmptyState({ onCreate }: { onCreate: () => void }) {
   return (
-    <div className="relative border border-dashed border-border py-20 px-6 text-center bg-cream/20 animate-fade-up overflow-hidden rounded-xl">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[200px] bg-orange/10 blur-[80px] -z-10 rounded-full" />
-      <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-orange shadow-orange rounded-xl mb-5 animate-pulse-glow">
-        <Sparkles className="w-5 h-5 text-paper" strokeWidth={2} />
+    <div className="relative border-2 border-ink py-20 px-6 text-center bg-paper animate-fade-up overflow-hidden shadow-[6px_6px_0_0_var(--color-ink)]">
+      <div
+        className="absolute inset-0 opacity-30 pointer-events-none"
+        style={{
+          backgroundImage:
+            "radial-gradient(var(--color-orange) 1px, transparent 1px)",
+          backgroundSize: "16px 16px",
+        }}
+      />
+      <div className="relative">
+        <div className="inline-flex items-center justify-center w-14 h-14 bg-orange border-2 border-ink shadow-[3px_3px_0_0_var(--color-ink)] mb-5">
+          <Sparkles className="w-6 h-6 text-paper" strokeWidth={2} />
+        </div>
+        <p className="text-[10px] uppercase tracking-[0.32em] font-mono text-orange mb-3">Empezá acá</p>
+        <h3 className="font-display text-4xl mb-3 leading-tight tracking-tight">
+          Tu biblioteca está vacía
+        </h3>
+        <p className="text-[14px] text-ink/65 mb-7 max-w-md mx-auto leading-relaxed">
+          Creá tu primer cuaderno, subí un PDF y en segundos vas a tener resumen, mapa mental, flashcards y quiz.
+        </p>
+        <button
+          onClick={onCreate}
+          className="inline-flex items-center gap-2 px-5 py-2.5 text-[12px] font-mono uppercase tracking-[0.2em] bg-ink text-paper border-2 border-ink shadow-[4px_4px_0_0_var(--color-orange)] hover:shadow-[6px_6px_0_0_var(--color-orange)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all active:shadow-[2px_2px_0_0_var(--color-orange)] active:translate-x-0 active:translate-y-0"
+        >
+          <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+          Crear primer cuaderno
+        </button>
       </div>
-      <p className="text-[10px] uppercase tracking-[0.28em] font-mono text-orange mb-2.5">Empezá acá</p>
-      <h3 className="font-display text-3xl font-semibold mb-2.5 leading-tight tracking-tight">
-        Tu biblioteca está vacía
-      </h3>
-      <p className="text-[14px] text-ink/55 mb-7 max-w-md mx-auto leading-relaxed">
-        Creá tu primer cuaderno, subí un PDF y en segundos vas a tener resumen, mapa mental, flashcards y quiz.
-      </p>
-      <button
-        onClick={onCreate}
-        className="inline-flex items-center gap-2 px-5 py-2.5 text-[13px] font-medium bg-ink text-paper hover:bg-orange transition-colors active:scale-[0.98] rounded-md shadow-soft"
-      >
-        <Plus className="w-3.5 h-3.5" strokeWidth={2.25} />
-        Crear mi primer cuaderno
-      </button>
     </div>
   );
 }
