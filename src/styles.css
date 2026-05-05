@@ -58,6 +58,10 @@
   --color-orange: var(--orange);
   --color-orange-deep: var(--orange-deep);
   --color-cream: var(--cream);
+  --color-cobalt: var(--cobalt);
+  --color-mustard: var(--mustard);
+  --color-sage: var(--sage);
+  --color-plum: var(--plum);
 }
 
 :root {
@@ -69,9 +73,19 @@
   --ink: oklch(20% 0.012 60);                /* tinta densa, casi negro cálido */
   --rule: oklch(82% 0.015 70);               /* líneas finas */
 
-  /* Acento: CRIMSON HARVARD #A51C30 — convertido a oklch */
-  --orange: oklch(43% 0.165 18);             /* crimson Harvard principal */
-  --orange-deep: oklch(36% 0.16 18);         /* crimson más oscuro / hover */
+  /* Acento principal: CRIMSON HARVARD #A51C30 */
+  --orange: oklch(43% 0.165 18);
+  --orange-deep: oklch(36% 0.16 18);
+
+  /* Paleta editorial extendida — risograph / collage moderno */
+  --cobalt: oklch(45% 0.20 260);             /* azul cobalto eléctrico */
+  --cobalt-soft: oklch(88% 0.06 260);
+  --mustard: oklch(75% 0.15 80);             /* mostaza cálida */
+  --mustard-soft: oklch(92% 0.06 85);
+  --sage: oklch(72% 0.07 150);               /* verde salvia */
+  --sage-soft: oklch(92% 0.04 150);
+  --plum: oklch(40% 0.12 330);               /* ciruela profundo */
+  --plum-soft: oklch(90% 0.04 330);
 
   --background: oklch(97.5% 0.012 80);
   --foreground: oklch(20% 0.012 60);
@@ -150,8 +164,9 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     background-image:
-      radial-gradient(ellipse 80% 40% at 50% -10%, oklch(43% 0.165 18 / 0.04), transparent),
-      radial-gradient(ellipse 60% 30% at 90% 100%, oklch(43% 0.165 18 / 0.03), transparent);
+      radial-gradient(ellipse 60% 35% at 12% 0%, oklch(45% 0.20 260 / 0.06), transparent 60%),
+      radial-gradient(ellipse 50% 30% at 92% 8%, oklch(75% 0.15 80 / 0.10), transparent 60%),
+      radial-gradient(ellipse 70% 40% at 50% 100%, oklch(43% 0.165 18 / 0.05), transparent 60%);
     background-attachment: fixed;
   }
 
@@ -255,6 +270,43 @@
 }
 @utility bg-radial-orange {
   background-image: var(--gradient-radial-orange);
+}
+
+/* Acentos de color extendidos */
+@utility text-cobalt { color: var(--cobalt); }
+@utility text-mustard { color: oklch(55% 0.15 80); }
+@utility text-sage { color: oklch(40% 0.09 150); }
+@utility text-plum { color: var(--plum); }
+@utility bg-cobalt { background-color: var(--cobalt); }
+@utility bg-cobalt-soft { background-color: var(--cobalt-soft); }
+@utility bg-mustard { background-color: var(--mustard); }
+@utility bg-mustard-soft { background-color: var(--mustard-soft); }
+@utility bg-sage { background-color: var(--sage); }
+@utility bg-sage-soft { background-color: var(--sage-soft); }
+@utility bg-plum { background-color: var(--plum); }
+@utility bg-plum-soft { background-color: var(--plum-soft); }
+@utility border-cobalt { border-color: var(--cobalt); }
+@utility border-mustard { border-color: var(--mustard); }
+@utility border-sage { border-color: var(--sage); }
+
+/* Patrón de puntos halftone — para hero y secciones */
+@utility bg-dots {
+  background-image: radial-gradient(var(--ink) 1.2px, transparent 1.4px);
+  background-size: 16px 16px;
+  background-position: 0 0;
+}
+@utility bg-dots-orange {
+  background-image: radial-gradient(oklch(43% 0.165 18 / 0.55) 1.4px, transparent 1.6px);
+  background-size: 14px 14px;
+}
+@utility bg-stripes {
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--ink) 0,
+    var(--ink) 2px,
+    transparent 2px,
+    transparent 10px
+  );
 }
 
 /* Grid pattern sutil */

@@ -22,9 +22,14 @@ function IQLanding() {
     <div className="min-h-screen bg-paper text-ink">
       <Navbar />
 
-      {/* HERO editorial brutalista */}
-      <section className="border-b-2 border-ink">
-        <div className="container mx-auto px-6 lg:px-10 max-w-[1200px] py-16 lg:py-24 grid lg:grid-cols-12 gap-10 items-end">
+      {/* HERO editorial brutalista con vida */}
+      <section className="border-b-2 border-ink relative overflow-hidden">
+        {/* bloques decorativos */}
+        <div className="absolute -top-12 right-10 w-48 h-48 bg-cobalt rotate-12 -z-0 opacity-90" aria-hidden />
+        <div className="absolute top-1/3 -left-10 w-32 h-32 bg-mustard -rotate-6 -z-0" aria-hidden />
+        <div className="absolute bottom-10 right-1/4 w-24 h-24 bg-sage rotate-3 -z-0" aria-hidden />
+
+        <div className="container mx-auto px-6 lg:px-10 max-w-[1200px] py-16 lg:py-24 grid lg:grid-cols-12 gap-10 items-end relative">
           <div className="lg:col-span-8">
             <div className="flex items-center gap-3 mb-8">
               <span className="font-mono text-[11px] uppercase tracking-[0.3em] text-orange">Vol. I</span>
@@ -38,7 +43,7 @@ function IQLanding() {
             >
               Test de<br/>
               <span className="italic text-orange">Cociente</span><br/>
-              Intelectual.
+              <span className="text-cobalt">Intelectual.</span>
             </h1>
 
             <p className="mt-8 max-w-[55ch] text-[16px] lg:text-[17px] text-ink/75 leading-relaxed">
@@ -80,20 +85,21 @@ function IQLanding() {
         </div>
       </section>
 
-      {/* Áreas — grid editorial con números enormes */}
-      <section className="border-b-2 border-ink">
-        <div className="container mx-auto px-6 lg:px-10 max-w-[1200px] py-16 lg:py-24">
+      {/* Áreas — grid editorial con colores propios */}
+      <section className="border-b-2 border-ink bg-cream/40 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-dots-orange opacity-50" aria-hidden />
+        <div className="container mx-auto px-6 lg:px-10 max-w-[1200px] py-16 lg:py-24 relative">
           <div className="flex items-end justify-between mb-12 flex-wrap gap-4">
             <h2 className="font-display tracking-[-0.02em]" style={{ fontSize: "clamp(2rem, 4vw, 3.5rem)" }}>
-              Cuatro áreas,<br/><span className="italic">un panorama completo.</span>
+              Cuatro áreas,<br/><span className="italic text-cobalt">un panorama completo.</span>
             </h2>
             <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-ink/50">§ 01–04</span>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 border-2 border-ink">
-            <AreaCell n="01" title="Lógica" desc="Deducción, secuencias y analogías." />
-            <AreaCell n="02" title="Numérico" desc="Series, aritmética y álgebra." />
-            <AreaCell n="03" title="Espacial" desc="Rotaciones, simetrías y patrones." />
-            <AreaCell n="04" title="Verbal" desc="Sinónimos, analogías, comprensión." last />
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 border-2 border-ink bg-paper">
+            <AreaCell n="01" title="Lógica" desc="Deducción, secuencias y analogías." tone="crimson" />
+            <AreaCell n="02" title="Numérico" desc="Series, aritmética y álgebra." tone="cobalt" />
+            <AreaCell n="03" title="Espacial" desc="Rotaciones, simetrías y patrones." tone="mustard" />
+            <AreaCell n="04" title="Verbal" desc="Sinónimos, analogías, comprensión." tone="sage" last />
           </div>
         </div>
       </section>
@@ -173,10 +179,42 @@ function SpecRow({ k, v }: { k: string; v: string }) {
   );
 }
 
-function AreaCell({ n, title, desc, last }: { n: string; title: string; desc: string; last?: boolean }) {
+type Tone = "crimson" | "cobalt" | "mustard" | "sage";
+const TONE_BG: Record<Tone, string> = {
+  crimson: "hover:bg-orange/10",
+  cobalt: "hover:bg-cobalt-soft",
+  mustard: "hover:bg-mustard-soft",
+  sage: "hover:bg-sage-soft",
+};
+const TONE_NUM: Record<Tone, string> = {
+  crimson: "text-orange",
+  cobalt: "text-cobalt",
+  mustard: "text-mustard",
+  sage: "text-sage",
+};
+
+function AreaCell({
+  n,
+  title,
+  desc,
+  tone,
+  last,
+}: {
+  n: string;
+  title: string;
+  desc: string;
+  tone: Tone;
+  last?: boolean;
+}) {
   return (
-    <div className={`p-7 ${!last ? "border-b-2 sm:border-b-2 lg:border-b-0 lg:border-r-2 border-ink last:border-r-0 sm:[&:nth-child(2)]:border-r-0 lg:[&:nth-child(2)]:border-r-2" : ""} hover:bg-cream transition-colors`}>
-      <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-orange">§ {n}</span>
+    <div
+      className={`p-7 group transition-colors ${TONE_BG[tone]} ${
+        !last
+          ? "border-b-2 sm:border-b-2 lg:border-b-0 lg:border-r-2 border-ink last:border-r-0 sm:[&:nth-child(2)]:border-r-0 lg:[&:nth-child(2)]:border-r-2"
+          : ""
+      }`}
+    >
+      <span className={`font-mono text-[10px] uppercase tracking-[0.3em] ${TONE_NUM[tone]}`}>§ {n}</span>
       <h3 className="font-display text-3xl mt-3 tracking-tight">{title}</h3>
       <p className="text-[13px] text-ink/70 mt-2 leading-relaxed">{desc}</p>
     </div>
