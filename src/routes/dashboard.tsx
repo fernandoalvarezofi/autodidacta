@@ -53,18 +53,17 @@ interface ProfileRow {
 type ViewMode = "grid" | "list";
 type SortMode = "recent" | "alpha" | "sources";
 
-const COVERS = [
-  "from-[#fde9d6] to-[#f7c89a]",
-  "from-[#e0e7ff] to-[#a5b4fc]",
-  "from-[#dcfce7] to-[#86efac]",
-  "from-[#fee2e2] to-[#fca5a5]",
-  "from-[#fef3c7] to-[#fcd34d]",
-  "from-[#e9d5ff] to-[#c4b5fd]",
-  "from-[#cffafe] to-[#67e8f9]",
-  "from-[#fce7f3] to-[#f9a8d4]",
+// Paleta editorial vibrante por cuaderno: bg suave + acento + label
+const COVERS: { bg: string; accent: string; tag: string; label: string }[] = [
+  { bg: "bg-[oklch(95%_0.06_80)]",  accent: "var(--mustard)", tag: "bg-[oklch(75%_0.15_80)]",  label: "AMBAR" },
+  { bg: "bg-[oklch(94%_0.05_260)]", accent: "var(--cobalt)",  tag: "bg-[oklch(45%_0.20_260)]", label: "COBALTO" },
+  { bg: "bg-[oklch(94%_0.05_150)]", accent: "var(--sage)",    tag: "bg-[oklch(72%_0.07_150)]", label: "SALVIA" },
+  { bg: "bg-[oklch(94%_0.06_18)]",  accent: "var(--orange)",  tag: "bg-[oklch(43%_0.165_18)]", label: "CRIMSON" },
+  { bg: "bg-[oklch(94%_0.05_330)]", accent: "var(--plum)",    tag: "bg-[oklch(40%_0.12_330)]", label: "CIRUELA" },
+  { bg: "bg-cream",                  accent: "var(--ink)",    tag: "bg-ink",                   label: "TINTA" },
 ];
 
-function coverFor(id: string): string {
+function coverFor(id: string): (typeof COVERS)[number] {
   let h = 0;
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
   return COVERS[h % COVERS.length];
