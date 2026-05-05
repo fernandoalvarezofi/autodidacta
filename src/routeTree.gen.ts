@@ -22,6 +22,7 @@ import { Route as ReviewNotebookIdRouteImport } from './routes/review.$notebookI
 import { Route as PlayRoomIdRouteImport } from './routes/play.$roomId'
 import { Route as NotebookIdRouteImport } from './routes/notebook.$id'
 import { Route as IqInicioRouteImport } from './routes/iq.inicio'
+import { Route as IqHistorialRouteImport } from './routes/iq.historial'
 import { Route as EditorIdRouteImport } from './routes/editor.$id'
 import { Route as DocumentIdRouteImport } from './routes/document.$id'
 import { Route as IqTestIntentoIdRouteImport } from './routes/iq.test.$intentoId'
@@ -92,6 +93,11 @@ const IqInicioRoute = IqInicioRouteImport.update({
   path: '/inicio',
   getParentRoute: () => IqRoute,
 } as any)
+const IqHistorialRoute = IqHistorialRouteImport.update({
+  id: '/historial',
+  path: '/historial',
+  getParentRoute: () => IqRoute,
+} as any)
 const EditorIdRoute = EditorIdRouteImport.update({
   id: '/editor/$id',
   path: '/editor/$id',
@@ -124,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/document/$id': typeof DocumentIdRoute
   '/editor/$id': typeof EditorIdRoute
+  '/iq/historial': typeof IqHistorialRoute
   '/iq/inicio': typeof IqInicioRoute
   '/notebook/$id': typeof NotebookIdRoute
   '/play/$roomId': typeof PlayRoomIdRoute
@@ -142,6 +149,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/document/$id': typeof DocumentIdRoute
   '/editor/$id': typeof EditorIdRoute
+  '/iq/historial': typeof IqHistorialRoute
   '/iq/inicio': typeof IqInicioRoute
   '/notebook/$id': typeof NotebookIdRoute
   '/play/$roomId': typeof PlayRoomIdRoute
@@ -162,6 +170,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/document/$id': typeof DocumentIdRoute
   '/editor/$id': typeof EditorIdRoute
+  '/iq/historial': typeof IqHistorialRoute
   '/iq/inicio': typeof IqInicioRoute
   '/notebook/$id': typeof NotebookIdRoute
   '/play/$roomId': typeof PlayRoomIdRoute
@@ -183,6 +192,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/document/$id'
     | '/editor/$id'
+    | '/iq/historial'
     | '/iq/inicio'
     | '/notebook/$id'
     | '/play/$roomId'
@@ -201,6 +211,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/document/$id'
     | '/editor/$id'
+    | '/iq/historial'
     | '/iq/inicio'
     | '/notebook/$id'
     | '/play/$roomId'
@@ -220,6 +231,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/document/$id'
     | '/editor/$id'
+    | '/iq/historial'
     | '/iq/inicio'
     | '/notebook/$id'
     | '/play/$roomId'
@@ -337,6 +349,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IqInicioRouteImport
       parentRoute: typeof IqRoute
     }
+    '/iq/historial': {
+      id: '/iq/historial'
+      path: '/historial'
+      fullPath: '/iq/historial'
+      preLoaderRoute: typeof IqHistorialRouteImport
+      parentRoute: typeof IqRoute
+    }
     '/editor/$id': {
       id: '/editor/$id'
       path: '/editor/$id'
@@ -369,6 +388,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface IqRouteChildren {
+  IqHistorialRoute: typeof IqHistorialRoute
   IqInicioRoute: typeof IqInicioRoute
   IqIndexRoute: typeof IqIndexRoute
   IqResultadoIntentoIdRoute: typeof IqResultadoIntentoIdRoute
@@ -376,6 +396,7 @@ interface IqRouteChildren {
 }
 
 const IqRouteChildren: IqRouteChildren = {
+  IqHistorialRoute: IqHistorialRoute,
   IqInicioRoute: IqInicioRoute,
   IqIndexRoute: IqIndexRoute,
   IqResultadoIntentoIdRoute: IqResultadoIntentoIdRoute,
