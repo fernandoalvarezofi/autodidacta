@@ -641,12 +641,12 @@ function DashboardPage() {
             {notebooks.length < 8 && !search && (
               <button
                 onClick={() => setShowCreate(true)}
-                className="group h-[210px] border-2 border-dashed border-border hover:border-ink/40 hover:bg-cream/40 transition-all rounded-xl flex flex-col items-center justify-center gap-2.5 text-ink/45 hover:text-ink"
+                className="group h-[230px] border-2 border-dashed border-ink/40 hover:border-ink hover:bg-cream transition-all flex flex-col items-center justify-center gap-3 text-ink/55 hover:text-ink"
               >
-                <div className="w-10 h-10 inline-flex items-center justify-center bg-cream group-hover:bg-paper border border-border group-hover:border-ink/30 rounded-full transition-all">
-                  <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" strokeWidth={2} />
+                <div className="w-12 h-12 inline-flex items-center justify-center bg-paper border-2 border-ink shadow-[3px_3px_0_0_var(--color-ink)] group-hover:shadow-[5px_5px_0_0_var(--color-ink)] group-hover:-translate-x-0.5 group-hover:-translate-y-0.5 transition-all">
+                  <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" strokeWidth={2.25} />
                 </div>
-                <span className="text-[13px] font-medium">Crear cuaderno</span>
+                <span className="text-[11px] font-mono uppercase tracking-[0.2em]">Crear cuaderno</span>
               </button>
             )}
             {filtered.map((nb) => (
