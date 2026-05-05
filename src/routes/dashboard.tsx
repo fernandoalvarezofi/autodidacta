@@ -12,7 +12,6 @@ import {
   Rows3,
   Check,
   ChevronDown,
-  Globe,
   Camera,
   Star,
   BookOpen,
@@ -53,18 +52,17 @@ interface ProfileRow {
 type ViewMode = "grid" | "list";
 type SortMode = "recent" | "alpha" | "sources";
 
-const COVERS = [
-  "from-[#fde9d6] to-[#f7c89a]",
-  "from-[#e0e7ff] to-[#a5b4fc]",
-  "from-[#dcfce7] to-[#86efac]",
-  "from-[#fee2e2] to-[#fca5a5]",
-  "from-[#fef3c7] to-[#fcd34d]",
-  "from-[#e9d5ff] to-[#c4b5fd]",
-  "from-[#cffafe] to-[#67e8f9]",
-  "from-[#fce7f3] to-[#f9a8d4]",
+// Paleta editorial vibrante por cuaderno: bg suave + acento + label
+const COVERS: { bg: string; accent: string; tag: string; label: string }[] = [
+  { bg: "bg-[oklch(95%_0.06_80)]",  accent: "var(--mustard)", tag: "bg-[oklch(75%_0.15_80)]",  label: "AMBAR" },
+  { bg: "bg-[oklch(94%_0.05_260)]", accent: "var(--cobalt)",  tag: "bg-[oklch(45%_0.20_260)]", label: "COBALTO" },
+  { bg: "bg-[oklch(94%_0.05_150)]", accent: "var(--sage)",    tag: "bg-[oklch(72%_0.07_150)]", label: "SALVIA" },
+  { bg: "bg-[oklch(94%_0.06_18)]",  accent: "var(--orange)",  tag: "bg-[oklch(43%_0.165_18)]", label: "CRIMSON" },
+  { bg: "bg-[oklch(94%_0.05_330)]", accent: "var(--plum)",    tag: "bg-[oklch(40%_0.12_330)]", label: "CIRUELA" },
+  { bg: "bg-cream",                  accent: "var(--ink)",    tag: "bg-ink",                   label: "TINTA" },
 ];
 
-function coverFor(id: string): string {
+function coverFor(id: string): (typeof COVERS)[number] {
   let h = 0;
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
   return COVERS[h % COVERS.length];
@@ -643,12 +641,12 @@ function DashboardPage() {
             {notebooks.length < 8 && !search && (
               <button
                 onClick={() => setShowCreate(true)}
-                className="group h-[210px] border-2 border-dashed border-border hover:border-ink/40 hover:bg-cream/40 transition-all rounded-xl flex flex-col items-center justify-center gap-2.5 text-ink/45 hover:text-ink"
+                className="group h-[230px] border-2 border-dashed border-ink/40 hover:border-ink hover:bg-cream transition-all flex flex-col items-center justify-center gap-3 text-ink/55 hover:text-ink"
               >
-                <div className="w-10 h-10 inline-flex items-center justify-center bg-cream group-hover:bg-paper border border-border group-hover:border-ink/30 rounded-full transition-all">
-                  <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" strokeWidth={2} />
+                <div className="w-12 h-12 inline-flex items-center justify-center bg-paper border-2 border-ink shadow-[3px_3px_0_0_var(--color-ink)] group-hover:shadow-[5px_5px_0_0_var(--color-ink)] group-hover:-translate-x-0.5 group-hover:-translate-y-0.5 transition-all">
+                  <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" strokeWidth={2.25} />
                 </div>
-                <span className="text-[13px] font-medium">Crear cuaderno</span>
+                <span className="text-[11px] font-mono uppercase tracking-[0.2em]">Crear cuaderno</span>
               </button>
             )}
             {filtered.map((nb) => (
@@ -737,38 +735,57 @@ function NotebookCard({ notebook }: { notebook: NotebookRow }) {
     <Link
       to="/notebook/$id"
       params={{ id: notebook.id }}
-      className="group relative h-auto min-h-[210px] bg-paper border border-border hover:border-ink/30 transition-all flex flex-col overflow-hidden rounded-xl hover:shadow-elevated hover:-translate-y-0.5"
+      className="group relative h-auto min-h-[230px] bg-paper border-2 border-ink flex flex-col overflow-hidden transition-all duration-150 shadow-[4px_4px_0_0_var(--color-ink)] hover:shadow-[7px_7px_0_0_var(--color-ink)] hover:-translate-x-0.5 hover:-translate-y-0.5 active:shadow-[2px_2px_0_0_var(--color-ink)] active:translate-x-0 active:translate-y-0"
     >
-      <div className={`relative h-[88px] bg-gradient-to-br ${cover} overflow-hidden`}>
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/[0.04]" />
-        <div className="absolute top-3 left-3">
-          <ClayIcon icon={resolveIcon(notebook.emoji)} size={44} />
+      {/* Cover bloque sólido con tag tipo etiqueta de archivo */}
+      <div className={`relative h-[96px] ${cover.bg} border-b-2 border-ink overflow-hidden`}>
+        {/* trama de puntos */}
+        <div
+          className="absolute inset-0 opacity-25"
+          style={{
+            backgroundImage: `radial-gradient(${cover.accent} 1px, transparent 1px)`,
+            backgroundSize: "10px 10px",
+          }}
+        />
+        {/* etiqueta lateral tipo lomo */}
+        <div
+          className={`absolute top-0 left-4 ${cover.tag} text-paper px-2 pt-1 pb-1.5 text-[9px] font-mono tracking-[0.22em] border-x-2 border-b-2 border-ink`}
+        >
+          {cover.label}
         </div>
-        <div className="absolute top-3 right-3 flex items-center gap-1">
+        {/* icono */}
+        <div className="absolute top-3 right-3 bg-paper border-2 border-ink p-1.5 shadow-[2px_2px_0_0_var(--color-ink)] group-hover:rotate-[-4deg] transition-transform">
+          <ClayIcon icon={resolveIcon(notebook.emoji)} size={36} flat />
+        </div>
+        {/* badges de estado abajo a la izquierda */}
+        <div className="absolute bottom-2 left-3 flex items-center gap-1">
           {processing > 0 && (
-            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-paper/85 backdrop-blur-sm rounded-full text-[10px] font-mono text-ink/65">
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-paper border-2 border-ink text-[9px] font-mono uppercase tracking-wider text-ink">
               <Clock className="w-2.5 h-2.5 animate-pulse" strokeWidth={2.5} /> {processing}
             </span>
           )}
           {errors > 0 && (
-            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-paper/85 backdrop-blur-sm rounded-full text-[10px] font-mono text-destructive">
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-destructive text-paper border-2 border-ink text-[9px] font-mono uppercase tracking-wider">
               <AlertCircle className="w-2.5 h-2.5" strokeWidth={2.5} /> {errors}
             </span>
           )}
           {ready > 0 && processing === 0 && errors === 0 && (
-            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-paper/85 backdrop-blur-sm rounded-full text-[10px] font-mono text-orange-deep">
-              <CheckCircle2 className="w-2.5 h-2.5" strokeWidth={2.5} />
+            <span
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 text-paper border-2 border-ink text-[9px] font-mono uppercase tracking-wider"
+              style={{ backgroundColor: cover.accent }}
+            >
+              <CheckCircle2 className="w-2.5 h-2.5" strokeWidth={2.5} /> {ready}
             </span>
           )}
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col px-4 pt-3 pb-3.5 min-h-0">
-        <h3 className="font-display text-[15.5px] font-semibold tracking-tight text-ink line-clamp-2 leading-snug">
+      <div className="flex-1 flex flex-col px-4 pt-3 pb-3.5 min-h-0 bg-paper">
+        <h3 className="font-display text-[19px] tracking-tight text-ink line-clamp-2 leading-[1.1]">
           {notebook.title}
         </h3>
         {notebook.description && (
-          <p className="text-[12px] text-ink/55 mt-1 line-clamp-1 leading-relaxed">{notebook.description}</p>
+          <p className="text-[12px] text-ink/60 mt-1 line-clamp-1 leading-relaxed">{notebook.description}</p>
         )}
         {ready > 0 && (
           <div className="flex flex-wrap gap-1 mt-2.5" onClick={(e) => e.stopPropagation()}>
@@ -777,45 +794,35 @@ function NotebookCard({ notebook }: { notebook: NotebookRow }) {
                 key={d.id}
                 to="/document/$id"
                 params={{ id: d.id }}
-                className="inline-flex items-center gap-1 px-2 py-1 bg-cream border border-border rounded text-xs hover:border-ink/40 transition-colors truncate max-w-[130px]"
+                className="inline-flex items-center gap-1 px-2 py-0.5 bg-cream border border-ink/60 text-[11px] font-mono hover:bg-ink hover:text-paper transition-colors truncate max-w-[130px]"
                 title={d.title}
               >
                 {d.title}
               </Link>
             ))}
             {ready > 3 && (
-              <Link
-                to="/notebook/$id"
-                params={{ id: notebook.id }}
-                className="inline-flex items-center gap-1 px-2 py-1 bg-cream border border-border rounded text-xs hover:border-ink/40 transition-colors text-orange-deep"
-              >
-                + {ready - 3} más →
-              </Link>
+              <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-mono text-ink/55">
+                +{ready - 3}
+              </span>
             )}
           </div>
         )}
         {ready === 0 && processing > 0 && (
-          <p className="text-xs text-ink/50 mt-2.5 inline-flex items-center gap-1">
-            <Loader2 className="w-3 h-3 animate-spin" /> Procesando...
+          <p className="text-xs text-ink/55 mt-2.5 inline-flex items-center gap-1 font-mono">
+            <Loader2 className="w-3 h-3 animate-spin" /> PROCESANDO...
           </p>
         )}
         {total === 0 && (
-          <Link
-            to="/notebook/$id"
-            params={{ id: notebook.id }}
-            onClick={(e) => e.stopPropagation()}
-            className="text-xs text-orange hover:text-orange-deep mt-2.5 inline-block font-medium"
-          >
+          <span className="text-[11px] text-ink/55 mt-2.5 font-mono uppercase tracking-wider">
             Subí tu primer material →
-          </Link>
+          </span>
         )}
-        <div className="mt-auto pt-2 flex items-center gap-2 text-[11px] font-mono text-ink/45">
-          <span>{relativeDate(notebook.created_at)}</span>
-          <span className="text-ink/20">·</span>
-          <span>
+        <div className="mt-auto pt-2 flex items-center gap-2 text-[10px] font-mono text-ink/50 uppercase tracking-[0.15em] border-t border-dashed border-ink/20">
+          <span className="pt-1.5">{relativeDate(notebook.created_at)}</span>
+          <span className="text-ink/20 pt-1.5">·</span>
+          <span className="pt-1.5">
             {total} {total === 1 ? "fuente" : "fuentes"}
           </span>
-          <Globe className="w-3 h-3 ml-auto text-ink/30" strokeWidth={2} />
         </div>
       </div>
     </Link>
@@ -878,25 +885,34 @@ function relativeDate(iso: string): string {
 
 function EmptyState({ onCreate }: { onCreate: () => void }) {
   return (
-    <div className="relative border border-dashed border-border py-20 px-6 text-center bg-cream/20 animate-fade-up overflow-hidden rounded-xl">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[200px] bg-orange/10 blur-[80px] -z-10 rounded-full" />
-      <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-orange shadow-orange rounded-xl mb-5 animate-pulse-glow">
-        <Sparkles className="w-5 h-5 text-paper" strokeWidth={2} />
+    <div className="relative border-2 border-ink py-20 px-6 text-center bg-paper animate-fade-up overflow-hidden shadow-[6px_6px_0_0_var(--color-ink)]">
+      <div
+        className="absolute inset-0 opacity-30 pointer-events-none"
+        style={{
+          backgroundImage:
+            "radial-gradient(var(--color-orange) 1px, transparent 1px)",
+          backgroundSize: "16px 16px",
+        }}
+      />
+      <div className="relative">
+        <div className="inline-flex items-center justify-center w-14 h-14 bg-orange border-2 border-ink shadow-[3px_3px_0_0_var(--color-ink)] mb-5">
+          <Sparkles className="w-6 h-6 text-paper" strokeWidth={2} />
+        </div>
+        <p className="text-[10px] uppercase tracking-[0.32em] font-mono text-orange mb-3">Empezá acá</p>
+        <h3 className="font-display text-4xl mb-3 leading-tight tracking-tight">
+          Tu biblioteca está vacía
+        </h3>
+        <p className="text-[14px] text-ink/65 mb-7 max-w-md mx-auto leading-relaxed">
+          Creá tu primer cuaderno, subí un PDF y en segundos vas a tener resumen, mapa mental, flashcards y quiz.
+        </p>
+        <button
+          onClick={onCreate}
+          className="inline-flex items-center gap-2 px-5 py-2.5 text-[12px] font-mono uppercase tracking-[0.2em] bg-ink text-paper border-2 border-ink shadow-[4px_4px_0_0_var(--color-orange)] hover:shadow-[6px_6px_0_0_var(--color-orange)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all active:shadow-[2px_2px_0_0_var(--color-orange)] active:translate-x-0 active:translate-y-0"
+        >
+          <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+          Crear primer cuaderno
+        </button>
       </div>
-      <p className="text-[10px] uppercase tracking-[0.28em] font-mono text-orange mb-2.5">Empezá acá</p>
-      <h3 className="font-display text-3xl font-semibold mb-2.5 leading-tight tracking-tight">
-        Tu biblioteca está vacía
-      </h3>
-      <p className="text-[14px] text-ink/55 mb-7 max-w-md mx-auto leading-relaxed">
-        Creá tu primer cuaderno, subí un PDF y en segundos vas a tener resumen, mapa mental, flashcards y quiz.
-      </p>
-      <button
-        onClick={onCreate}
-        className="inline-flex items-center gap-2 px-5 py-2.5 text-[13px] font-medium bg-ink text-paper hover:bg-orange transition-colors active:scale-[0.98] rounded-md shadow-soft"
-      >
-        <Plus className="w-3.5 h-3.5" strokeWidth={2.25} />
-        Crear mi primer cuaderno
-      </button>
     </div>
   );
 }

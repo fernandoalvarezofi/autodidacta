@@ -45,6 +45,7 @@ function NotebookPage() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>("documents");
   const [showUploader, setShowUploader] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const readyDocsCount = documents.filter((d) => d.status === "ready").length;
 
@@ -91,6 +92,7 @@ function NotebookPage() {
 
   const loadData = async () => {
     setLoading(true);
+    setLoadError(null);
     const [nbRes, docsRes, notesRes] = await Promise.all([
       supabase.from("notebooks").select("*").eq("id", id).maybeSingle(),
       supabase
@@ -103,9 +105,15 @@ function NotebookPage() {
         .select("id", { count: "exact", head: true })
         .eq("notebook_id", id),
     ]);
-    if (nbRes.error || !nbRes.data) {
-      toast.error("Cuaderno no encontrado");
-      navigate({ to: "/dashboard" });
+    if (nbRes.error) {
+      console.error("[notebook] error cargando notebook:", nbRes.error);
+      setLoadError(nbRes.error.message ?? "Error desconocido al cargar el cuaderno.");
+      setLoading(false);
+      return;
+    }
+    if (!nbRes.data) {
+      setLoadError(`No se encontró el cuaderno con id ${id}. Puede haber sido eliminado o no tenés permiso para verlo.`);
+      setLoading(false);
       return;
     }
     setNotebook(nbRes.data as Notebook);
@@ -122,6 +130,38 @@ function NotebookPage() {
       .order("created_at", { ascending: false });
     setDocuments((data ?? []) as DocumentRow[]);
   };
+
+  if (loadError) {
+    return (
+      <DashboardShell>
+        <div className="container mx-auto max-w-2xl px-6 py-16">
+          <div className="border-2 border-ink bg-paper p-8 shadow-[6px_6px_0_0_var(--color-ink)]">
+            <p className="text-[10px] uppercase tracking-[0.3em] font-mono text-orange mb-3">
+              Error al abrir cuaderno
+            </p>
+            <h1 className="font-display text-3xl text-ink mb-4">No pudimos cargar el cuaderno</h1>
+            <p className="text-sm text-ink/70 leading-relaxed mb-6 font-mono bg-cream/50 border border-border p-3 rounded">
+              {loadError}
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => void loadData()}
+                className="px-4 py-2 text-sm font-medium border-2 border-ink bg-paper hover:bg-cream transition-colors"
+              >
+                Reintentar
+              </button>
+              <button
+                onClick={() => navigate({ to: "/dashboard" })}
+                className="px-4 py-2 text-sm font-medium bg-ink text-paper hover:bg-orange transition-colors border-2 border-ink"
+              >
+                Volver a la biblioteca
+              </button>
+            </div>
+          </div>
+        </div>
+      </DashboardShell>
+    );
+  }
 
   if (authLoading || loading || !notebook) {
     return (
