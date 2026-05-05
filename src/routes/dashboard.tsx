@@ -12,7 +12,6 @@ import {
   Rows3,
   Check,
   ChevronDown,
-  Globe,
   Camera,
   Star,
   BookOpen,
