@@ -82,11 +82,21 @@ export function Footer() {
 
           <FooterCol
             title="Producto"
-            links={["Método", "Capacidades", "Evidencia", "Planes"]}
+            links={[
+              { label: "Método", href: "/#metodo" },
+              { label: "Capacidades", href: "/#capacidades" },
+              { label: "Evidencia", href: "/#evidencia" },
+              { label: "Planes", href: "/#planes" },
+            ]}
           />
           <FooterCol
             title="Recursos"
-            links={["Documentación", "Blog académico", "Investigación", "Centro de ayuda"]}
+            links={[
+              { label: "Documentación", href: "#" },
+              { label: "Blog académico", href: "#" },
+              { label: "Investigación", href: "#" },
+              { label: "Centro de ayuda", href: "#" },
+            ]}
           />
           <FooterCol
             title="Compañía"
