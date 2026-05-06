@@ -35,6 +35,7 @@ export function Navbar() {
             <a href="/#capacidades" className="text-ink/60 hover:text-ink transition-colors">Capacidades</a>
             <a href="/#evidencia" className="text-ink/60 hover:text-ink transition-colors">Evidencia</a>
             <a href="/#planes" className="text-ink/60 hover:text-ink transition-colors">Planes</a>
+            <Link to="/blog" className="text-ink/60 hover:text-ink transition-colors">Blog</Link>
             <Link to="/iq" className="text-orange hover:text-orange-deep transition-colors">Test de IQ</Link>
           </nav>
 
