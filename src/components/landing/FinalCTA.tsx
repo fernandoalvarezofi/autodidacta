@@ -82,15 +82,31 @@ export function Footer() {
 
           <FooterCol
             title="Producto"
-            links={["Método", "Capacidades", "Evidencia", "Planes"]}
+            links={[
+              { label: "Método", href: "/#metodo" },
+              { label: "Capacidades", href: "/#capacidades" },
+              { label: "Evidencia", href: "/#evidencia" },
+              { label: "Planes", href: "/#planes" },
+            ]}
           />
           <FooterCol
             title="Recursos"
-            links={["Documentación", "Blog académico", "Investigación", "Centro de ayuda"]}
+            links={[
+              { label: "Documentación", href: "#" },
+              { label: "Blog académico", href: "#" },
+              { label: "Investigación", href: "#" },
+              { label: "Centro de ayuda", href: "#" },
+            ]}
           />
           <FooterCol
             title="Compañía"
-            links={["Sobre nosotros", "Contacto", "Términos", "Privacidad"]}
+            links={[
+              { label: "Sobre nosotros", href: "#" },
+              { label: "Contacto", href: "#" },
+              { label: "Términos", href: "/terms" },
+              { label: "Privacidad", href: "/privacy" },
+              { label: "Reembolsos", href: "/refund-policy" },
+            ]}
           />
         </div>
 
@@ -105,7 +121,7 @@ export function Footer() {
   );
 }
 
-function FooterCol({ title, links }: { title: string; links: string[] }) {
+function FooterCol({ title, links }: { title: string; links: { label: string; href: string }[] }) {
   return (
     <div className="md:col-span-2">
       <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-ink/55 mb-4">
@@ -113,9 +129,9 @@ function FooterCol({ title, links }: { title: string; links: string[] }) {
       </div>
       <ul className="space-y-2.5 text-sm">
         {links.map((l) => (
-          <li key={l}>
-            <a href="#" className="text-ink/80 hover:text-orange transition-colors">
-              {l}
+          <li key={l.label}>
+            <a href={l.href} className="text-ink/80 hover:text-orange transition-colors">
+              {l.label}
             </a>
           </li>
         ))}
