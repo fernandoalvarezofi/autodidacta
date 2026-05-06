@@ -90,7 +90,13 @@ export function Footer() {
           />
           <FooterCol
             title="Compañía"
-            links={["Sobre nosotros", "Contacto", "Términos", "Privacidad"]}
+            links={[
+              { label: "Sobre nosotros", href: "#" },
+              { label: "Contacto", href: "#" },
+              { label: "Términos", href: "/terms" },
+              { label: "Privacidad", href: "/privacy" },
+              { label: "Reembolsos", href: "/refund-policy" },
+            ]}
           />
         </div>
 
