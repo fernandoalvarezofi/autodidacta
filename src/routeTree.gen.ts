@@ -18,6 +18,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as IqIndexRouteImport } from './routes/iq.index'
+import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as ReviewNotebookIdRouteImport } from './routes/review.$notebookId'
 import { Route as PlayRoomIdRouteImport } from './routes/play.$roomId'
 import { Route as NotebookIdRouteImport } from './routes/notebook.$id'
@@ -25,6 +26,8 @@ import { Route as IqInicioRouteImport } from './routes/iq.inicio'
 import { Route as IqHistorialRouteImport } from './routes/iq.historial'
 import { Route as EditorIdRouteImport } from './routes/editor.$id'
 import { Route as DocumentIdRouteImport } from './routes/document.$id'
+import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as ApiSitemapDotxmlRouteImport } from './routes/api.sitemap[.]xml'
 import { Route as IqTestIntentoIdRouteImport } from './routes/iq.test.$intentoId'
 import { Route as IqResultadoIntentoIdRouteImport } from './routes/iq.resultado.$intentoId'
 
@@ -73,6 +76,11 @@ const IqIndexRoute = IqIndexRouteImport.update({
   path: '/',
   getParentRoute: () => IqRoute,
 } as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReviewNotebookIdRoute = ReviewNotebookIdRouteImport.update({
   id: '/review/$notebookId',
   path: '/review/$notebookId',
@@ -108,6 +116,16 @@ const DocumentIdRoute = DocumentIdRouteImport.update({
   path: '/document/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/blog/$slug',
+  path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSitemapDotxmlRoute = ApiSitemapDotxmlRouteImport.update({
+  id: '/api/sitemap.xml',
+  path: '/api/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IqTestIntentoIdRoute = IqTestIntentoIdRouteImport.update({
   id: '/test/$intentoId',
   path: '/test/$intentoId',
@@ -128,6 +146,8 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/refund-policy': typeof RefundPolicyRoute
   '/terms': typeof TermsRoute
+  '/api/sitemap.xml': typeof ApiSitemapDotxmlRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/document/$id': typeof DocumentIdRoute
   '/editor/$id': typeof EditorIdRoute
   '/iq/historial': typeof IqHistorialRoute
@@ -135,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/notebook/$id': typeof NotebookIdRoute
   '/play/$roomId': typeof PlayRoomIdRoute
   '/review/$notebookId': typeof ReviewNotebookIdRoute
+  '/blog/': typeof BlogIndexRoute
   '/iq/': typeof IqIndexRoute
   '/iq/resultado/$intentoId': typeof IqResultadoIntentoIdRoute
   '/iq/test/$intentoId': typeof IqTestIntentoIdRoute
@@ -147,6 +168,8 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/refund-policy': typeof RefundPolicyRoute
   '/terms': typeof TermsRoute
+  '/api/sitemap.xml': typeof ApiSitemapDotxmlRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/document/$id': typeof DocumentIdRoute
   '/editor/$id': typeof EditorIdRoute
   '/iq/historial': typeof IqHistorialRoute
@@ -154,6 +177,7 @@ export interface FileRoutesByTo {
   '/notebook/$id': typeof NotebookIdRoute
   '/play/$roomId': typeof PlayRoomIdRoute
   '/review/$notebookId': typeof ReviewNotebookIdRoute
+  '/blog': typeof BlogIndexRoute
   '/iq': typeof IqIndexRoute
   '/iq/resultado/$intentoId': typeof IqResultadoIntentoIdRoute
   '/iq/test/$intentoId': typeof IqTestIntentoIdRoute
@@ -168,6 +192,8 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/refund-policy': typeof RefundPolicyRoute
   '/terms': typeof TermsRoute
+  '/api/sitemap.xml': typeof ApiSitemapDotxmlRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/document/$id': typeof DocumentIdRoute
   '/editor/$id': typeof EditorIdRoute
   '/iq/historial': typeof IqHistorialRoute
@@ -175,6 +201,7 @@ export interface FileRoutesById {
   '/notebook/$id': typeof NotebookIdRoute
   '/play/$roomId': typeof PlayRoomIdRoute
   '/review/$notebookId': typeof ReviewNotebookIdRoute
+  '/blog/': typeof BlogIndexRoute
   '/iq/': typeof IqIndexRoute
   '/iq/resultado/$intentoId': typeof IqResultadoIntentoIdRoute
   '/iq/test/$intentoId': typeof IqTestIntentoIdRoute
@@ -190,6 +217,8 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/refund-policy'
     | '/terms'
+    | '/api/sitemap.xml'
+    | '/blog/$slug'
     | '/document/$id'
     | '/editor/$id'
     | '/iq/historial'
@@ -197,6 +226,7 @@ export interface FileRouteTypes {
     | '/notebook/$id'
     | '/play/$roomId'
     | '/review/$notebookId'
+    | '/blog/'
     | '/iq/'
     | '/iq/resultado/$intentoId'
     | '/iq/test/$intentoId'
@@ -209,6 +239,8 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/refund-policy'
     | '/terms'
+    | '/api/sitemap.xml'
+    | '/blog/$slug'
     | '/document/$id'
     | '/editor/$id'
     | '/iq/historial'
@@ -216,6 +248,7 @@ export interface FileRouteTypes {
     | '/notebook/$id'
     | '/play/$roomId'
     | '/review/$notebookId'
+    | '/blog'
     | '/iq'
     | '/iq/resultado/$intentoId'
     | '/iq/test/$intentoId'
@@ -229,6 +262,8 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/refund-policy'
     | '/terms'
+    | '/api/sitemap.xml'
+    | '/blog/$slug'
     | '/document/$id'
     | '/editor/$id'
     | '/iq/historial'
@@ -236,6 +271,7 @@ export interface FileRouteTypes {
     | '/notebook/$id'
     | '/play/$roomId'
     | '/review/$notebookId'
+    | '/blog/'
     | '/iq/'
     | '/iq/resultado/$intentoId'
     | '/iq/test/$intentoId'
@@ -250,10 +286,13 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   RefundPolicyRoute: typeof RefundPolicyRoute
   TermsRoute: typeof TermsRoute
+  ApiSitemapDotxmlRoute: typeof ApiSitemapDotxmlRoute
+  BlogSlugRoute: typeof BlogSlugRoute
   DocumentIdRoute: typeof DocumentIdRoute
   EditorIdRoute: typeof EditorIdRoute
   NotebookIdRoute: typeof NotebookIdRoute
   ReviewNotebookIdRoute: typeof ReviewNotebookIdRoute
+  BlogIndexRoute: typeof BlogIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -321,6 +360,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IqIndexRouteImport
       parentRoute: typeof IqRoute
     }
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/review/$notebookId': {
       id: '/review/$notebookId'
       path: '/review/$notebookId'
@@ -368,6 +414,20 @@ declare module '@tanstack/react-router' {
       path: '/document/$id'
       fullPath: '/document/$id'
       preLoaderRoute: typeof DocumentIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/blog/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/sitemap.xml': {
+      id: '/api/sitemap.xml'
+      path: '/api/sitemap.xml'
+      fullPath: '/api/sitemap.xml'
+      preLoaderRoute: typeof ApiSitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/iq/test/$intentoId': {
@@ -424,10 +484,13 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   RefundPolicyRoute: RefundPolicyRoute,
   TermsRoute: TermsRoute,
+  ApiSitemapDotxmlRoute: ApiSitemapDotxmlRoute,
+  BlogSlugRoute: BlogSlugRoute,
   DocumentIdRoute: DocumentIdRoute,
   EditorIdRoute: EditorIdRoute,
   NotebookIdRoute: NotebookIdRoute,
   ReviewNotebookIdRoute: ReviewNotebookIdRoute,
+  BlogIndexRoute: BlogIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

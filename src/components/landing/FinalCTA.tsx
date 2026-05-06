@@ -92,8 +92,8 @@ export function Footer() {
           <FooterCol
             title="Recursos"
             links={[
-              { label: "Documentación", href: "#" },
-              { label: "Blog académico", href: "#" },
+              { label: "Blog", href: "/blog" },
+              { label: "Test de IQ", href: "/iq" },
               { label: "Investigación", href: "#" },
               { label: "Centro de ayuda", href: "#" },
             ]}
